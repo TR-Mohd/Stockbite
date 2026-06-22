@@ -1,73 +1,62 @@
-# React + TypeScript + Vite
+# Stockbite 🍔📈
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An integrated Management Information System for fast-paced franchise restaurants featuring QR self-ordering, Kitchen Display System (KDS), and automated real-time inventory tracking.
 
-Currently, two official plugins are available:
+## 🌟 About The Project
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Many F&B business owners struggle to assess real-time profitability, control warehouse costs, or build customer relationships due to disconnected cashier registers and manual stock counting. This fragmentation results in stock-outs, untracked waste, and delayed financial reporting.
 
-## React Compiler
+**Stockbite** solves this by unifying cashier operations, warehouse management, and managerial reporting into a single web-based platform. 
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Key Objectives
+- **Lightning-Fast Checkout:** Digitize the order-to-payment workflow to reduce transaction time to under 90 seconds.
+- **Real-Time Inventory:** Automatic, recipe-based stock deduction to maintain ≥95% inventory accuracy and prevent mid-service stock-outs.
+- **CRM Integration:** Capture customer contact data (WhatsApp/Email) right at the point of sale.
+- **Managerial BI Dashboards:** Provide live Gross Revenue, Net Revenue, COGS, and Profit Margin visualizations.
+- **Automated Procurement:** Generate draft Purchase Orders instantly when ingredients breach their Reorder Point (ROP).
 
-## Expanding the ESLint configuration
+## 👥 Target Users
+- **Cashiers:** Quick order processing, auto-change calculation, and CRM data capture.
+- **Warehouse Staff:** Live inventory visibility and waste/spoilage logging without daily manual counts.
+- **Managers / Owners:** Live business performance dashboards, role-based access control, and centralized supplier management.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🛠️ Technology Stack
+- **Frontend:** React + Vite
+- **Backend:** FastAPI (Python)
+- **Database:** PostgreSQL (with asyncpg & SQLAlchemy)
+- **Authentication:** JWT Bearer tokens with Role-Based Access Control (RBAC)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🚀 Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Prerequisites
+Make sure you have [Docker](https://www.docker.com/) and Python installed.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 1. Start the Database
+Run the PostgreSQL database via Docker Compose:
+```bash
+docker compose up -d
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. Start the Backend (FastAPI)
+Activate your Python environment and run the Uvicorn server:
+```bash
+# Windows
+.\.venv\Scripts\activate
+# Mac/Linux
+source .venv/bin/activate
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Run the server
+uvicorn app.main:app --reload
 ```
+
+### 3. Start the Frontend (React)
+Open a new terminal window, navigate to the `frontend` directory, and start the Vite dev server:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## 📝 Team
+Developed by MBG (Mahasiswa Berprestasi Global).
+- **Product Owner:** Mohammed Aatef Saleh
