@@ -16,3 +16,19 @@
 | 2026-06-20 08:44Z | Verify-Fix: Test DB Setup | Created dedicated `stockbite_test` database. Refactored Pytest to use `NullPool` inside the event loop. | ✅ Completed | *"configure the test suite to use a dedicated test schema or test database on our PostgreSQL instance. Run pytest again and do not proceed until the tests are 100% green"* |
 | 2026-06-20 08:47Z | Final Verification | Ran `pytest tests/test_pos.py`. Tests passed with 100% green validating the optimistic locks. | ✅ Completed | `/gsd-verify-work 1` |
 | 2026-06-20 09:20Z | Phase 1 Shipping | Updated `.gitignore` to exclude `.venv`/`__pycache__` and committed all Phase 1 files to Git. | ✅ Completed | `/gsd-ship` |
+
+## Phase 2: Frontend Core Architecture & Authentication
+
+| Timestamp | Task | Description | Status | Prompts & Commands Used |
+| :--- | :--- | :--- | :--- | :--- |
+| 2026-06-22 15:00Z | Backend Server Fix | Resolved Git Bash Windows paths issue to activate venv and start uvicorn. | ✅ Completed | *"Can you give me the exact commands to step back to the root directory, correctly activate the virtual environment... and start my FastAPI uvicorn server?"* |
+| 2026-06-22 15:08Z | Dependencies Fix | Diagnosed and fixed `python-multipart` missing error for form data processing. | ✅ Completed | *"why I am getting this? (attached terminal trace)"* |
+| 2026-06-22 15:14Z | Database Seeding | Created and executed `seed_db.py` to securely insert 5 team test accounts into PostgreSQL. | ✅ Completed | *"I need to quickly create test accounts for myself and my team to test the frontend authentication..."* |
+| 2026-06-22 15:28Z | Routing & Dev Server | Explained `ERR_CONNECTION_REFUSED` due to running `npm run dev` in the wrong folder, verified `ProtectedRoute` redirect logic. | ✅ Completed | *"when I directly type http://localhost:5173/pos... I get This site can’t be reached..."* |
+| 2026-06-22 15:34Z | Architecture Documentation | Generated an ASCII tree representation of the frontend directory structure. | ✅ Completed | *"As .md file, create a full folder structure, tree, of the frontend folder"* |
+| 2026-06-22 15:39Z | Vitest Suite Implementation | Configured Vitest and wrote comprehensive unit/integration tests for `authStore`, `Login`, and `ProtectedRoute` (10/10 passing). | ✅ Completed | *"I have run this command line... So you do the testing now for my work only"* |
+| 2026-06-22 15:46Z | Git Commit Review | Verified that the commit message accurately summarized the features and tests implemented. Prevented an accidental `--amend` on a merge commit. | ✅ Completed | *"Check the last commit happend in this brach... fits the changes that happend?"* |
+| 2026-06-22 15:49Z | Git Warnings & Errors | Explained Git LF -> CRLF warnings and resolved the `fatal: no upstream branch` error on `git push`. | ✅ Completed | *"why I got this?"* and *"I got this. Why (attached git push error)*" |
+| 2026-06-22 15:57Z | PR Description Review | Validated the Pull Request description for accuracy regarding Zustand, Axios Interceptors, and React Router configurations. | ✅ Completed | *"Now I wanna merge this branch with the main, is this describtion true?"* |
+| 2026-06-22 15:59Z | Unstaged Backend Files | Identified that `app/` files were not staged because `git add .` was run in `frontend/`. Amended the final commit to include them. | ✅ Completed | *"I still have some files not staged thou. Check using the terminal: git status"* |
+| 2026-06-22 16:11Z | Session Wrap-up & Docs | Updated `TASK-MOHAMMED.md` with a worklog and created `src/core/README.md` to guide the team on using the new infrastructure. | ✅ Completed | *"I am wrapping up my development session for today... execute the following two documentation tasks..."* |
