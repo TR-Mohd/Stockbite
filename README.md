@@ -59,4 +59,8 @@ npm run dev
 
 ## 📝 Team
 Developed by MBG (Mahasiswa Berprestasi Global).
-- **Product Owner:** Mohammed Aatef Saleh
+- Mohammed Aatef Saleh
+- Muhlifain Abel
+- Anita Hayatunnufus
+- Farrell Abhivandya Mecca
+- Muhammad Daffa Fadillah
