@@ -12,3 +12,13 @@ You are the AI agent assigned to Farrell. You must **ONLY** modify files within 
 2. **Manager Command Center:** Build the primary BI dashboard interface.
 3. **KPI Cards:** Display real-time numerical cards for Gross Revenue, COGS, and Profit Margin.
 4. **Data Visualizations:** Build the Sales Heatmaps (mocked or utilizing chart libraries) and "Best Sellers" / Market Basket Analysis ranked lists.
+
+
+## Documentation Requirement (WORKLOG.md)
+After every single job/component is finished, you must automatically generate an update for the `WORKLOG.md` file in the root directory. 
+
+Place it under the heading `## Phase 2: Manager BI Dashboard & App Shell` using this exact table format:
+
+| Timestamp (Start) | Task | Description | Status | Prompts & Commands Used |
+| :--- | :--- | :--- | :--- | :--- |
+| [YYYY-MM-DD HH:MM] | [Name of Task] | [Brief technical description of what was built] | [COMPLETED] | [Summary of the prompts/commands we used] |

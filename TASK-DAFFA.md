@@ -14,3 +14,13 @@ You are the AI agent assigned to Daffa. You must **ONLY** modify files within th
    - Handle Cash and QRIS (simulated) payment states.
    - Capture optional CRM data (WA/Email).
    - *CRITICAL:* When calling the `/pos/checkout` endpoint, handle HTTP 409 Conflict responses gracefully. If 409 is returned, display an alert to the cashier indicating that stock levels changed during the transaction and prompt them to retry.
+
+
+## Documentation Requirement (WORKLOG.md)
+After every single job/component is finished, you must automatically generate an update for the `WORKLOG.md` file in the root directory. 
+
+Place it under the heading `## Phase 2: Cashier POS & Checkout` using this exact table format:
+
+| Timestamp (Start) | Task | Description | Status | Prompts & Commands Used |
+| :--- | :--- | :--- | :--- | :--- |
+| [YYYY-MM-DD HH:MM] | [Name of Task] | [Brief technical description of what was built] | [COMPLETED] | [Summary of the prompts/commands we used] |
