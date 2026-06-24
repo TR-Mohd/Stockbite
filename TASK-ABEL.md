@@ -11,3 +11,13 @@ You are the AI agent assigned to Abel. You must **ONLY** modify files within the
 2. **ROP Alerts:** Visually red-flag any row where the current stock level is less than or equal to the ROP.
 3. **Manual Adjustments:** Build forms or modals to allow Warehouse staff to manually increase/decrease stock and provide reason codes.
 4. **Waste Logging:** Implement the UI to log specific ingredient waste (Spoiled, Dropped, etc.).
+
+
+## Documentation Requirement (WORKLOG.md)
+After every single job/component is finished, you must automatically generate an update for the `WORKLOG.md` file in the root directory. 
+
+Place it under the heading `## Phase 2: Inventory Management` using this exact table format:
+
+| Timestamp (Start) | Task | Description | Status | Prompts & Commands Used |
+| :--- | :--- | :--- | :--- | :--- |
+| [YYYY-MM-DD HH:MM] | [Name of Task] | [Brief technical description of what was built] | [COMPLETED] | [Summary of the prompts/commands we used] |
