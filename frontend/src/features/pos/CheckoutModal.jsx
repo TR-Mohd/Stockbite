@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import axiosInstance from '../../core/api/axios';
-import '../../styles/pos/CheckoutModal.css';
+import '../../styles/POS/CheckoutModal.css';
 
 const CheckoutModal = ({ isOpen, onClose, cartItems, total, onCheckoutSuccess }) => {
-  const [paymentMethod, setPaymentMethod] = useState('CASH');
+  const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [whatsapp, setWhatsapp] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,22 +18,23 @@ const CheckoutModal = ({ isOpen, onClose, cartItems, total, onCheckoutSuccess })
     try {
       const payload = {
         items: cartItems.map(item => ({ 
-          menu_item_id: item.id, 
-          qty: item.qty, 
+          menu_item_id: String(item.id), 
+          quantity: item.qty, 
           notes: item.notes || '' 
         })),
         payment_method: paymentMethod,
-        customer_contact: { whatsapp, email }
+        customer_contact: [whatsapp, email].filter(Boolean).join(', ') || undefined
       };
 
       await axiosInstance.post('/pos/checkout', payload);
       onCheckoutSuccess(); 
     } catch (err) {
-      if (err.response && err.response.status === 409) {
-        setError("FAILED: Stock levels for some items changed during the transaction. Please verify inventory.");
-      } else {
-        setError("System error occurred. Please try again.");
+      console.error("Checkout failed", err);
+      let errorMsg = err.response?.data?.detail || "System error occurred. Please try again.";
+      if (Array.isArray(errorMsg)) {
+        errorMsg = errorMsg.map(e => `${e.loc.join('.')}: ${e.msg}`).join('\n');
       }
+      setError(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
     } finally {
       setLoading(false);
     }
@@ -61,7 +62,7 @@ const CheckoutModal = ({ isOpen, onClose, cartItems, total, onCheckoutSuccess })
             onChange={(e) => setPaymentMethod(e.target.value)} 
             className="form-select"
           >
-            <option value="CASH">Cash</option>
+            <option value="Cash">Cash</option>
             <option value="QRIS">QRIS</option>
           </select>
         </div>

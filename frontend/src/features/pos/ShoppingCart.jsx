@@ -1,5 +1,5 @@
 import React from 'react';
-import '../../styles/pos/ShoppingCart.css';
+import '../../styles/POS/ShoppingCart.css';
 
 const ShoppingCart = ({ cartItems, updateQuantity, removeItem, updateNote }) => {
   if (cartItems.length === 0) {

@@ -6,10 +6,16 @@ from sqlalchemy.orm import selectinload
 
 from ..database import get_db
 from ..auth import get_current_user, role_required
+from typing import List
 from ..models import User, RoleEnum, Transaction, TransactionItem, MenuItem, Ingredient, Recipe, AuditLog
-from ..schemas import TransactionCreate, TransactionResponse
+from ..schemas import TransactionCreate, TransactionResponse, MenuItemResponse
 
 router = APIRouter(prefix="/pos", tags=["POS"])
+
+@router.get("/menu", response_model=List[MenuItemResponse])
+async def get_menu(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(MenuItem).where(MenuItem.is_active == True))
+    return result.scalars().all()
 
 @router.post("/checkout", response_model=TransactionResponse)
 async def checkout(

@@ -2,8 +2,6 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './core/routes/ProtectedRoute';
 import { Login } from './features/auth/Login';
-
-// Import komponen POSDashboard 
 import POSDashboard from './features/pos/POSDashboard';
 
 // Dummy components for other features (to be built by other agents)
@@ -20,10 +18,7 @@ function App() {
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Navigate to="/pos" replace />} />
-          
-          {/* Rute /pos sekarang mengarah ke antarmuka kasir buatanmu! */}
           <Route path="/pos" element={<POSDashboard />} />
-          
           <Route path="/inventory" element={<InventoryDummy />} />
           <Route path="/suppliers" element={<SuppliersDummy />} />
           <Route path="/manager" element={<ManagerDummy />} />

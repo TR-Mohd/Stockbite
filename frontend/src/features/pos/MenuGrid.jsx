@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import MenuItemCard from './MenuItemCard';
 import axiosInstance from '../../core/api/axios';
-import '../../styles/pos/MenuGrid.css';
+import '../../styles/POS/MenuGrid.css';
 
 const MenuGrid = ({ onAddToCart }) => {
   const [menuItems, setMenuItems] = useState([]);
@@ -10,7 +10,7 @@ const MenuGrid = ({ onAddToCart }) => {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const response = await axiosInstance.get('/menu'); 
+        const response = await axiosInstance.get('/pos/menu'); 
         setMenuItems(response.data);
       } catch (error) {
         console.error("Failed to fetch menu data:", error);

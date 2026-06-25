@@ -6,6 +6,7 @@
   padding: var(--spacing-6);
   background-color: var(--color-bg-base);
   font-family: var(--font-family-sans);
+  overflow: hidden;
 }
 
 .pos-menu-section {
@@ -20,21 +21,23 @@
 }
 
 .pos-header {
-  border-bottom: 2px solid var(--color-primary);
-  padding-bottom: var(--spacing-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--color-bg-base);
 }
 
 .pos-header h1 {
-  color: var(--color-text-primary);
-  font-size: var(--font-size-3xl);
-  font-weight: 700;
-  margin: 0;
-  margin-bottom: var(--spacing-2);
+  font-size: 2rem;
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
 }
 
 .pos-header p {
-  color: var(--color-text-secondary);
   font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
@@ -86,15 +89,32 @@
   opacity: 0.6;
 }
 
+.btn-logout {
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: var(--color-error, #ef4444);
+  color: var(--color-text-inverse, white);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-logout:hover {
+  opacity: 0.8;
+}
+
 @media (max-width: 1024px) {
   .pos-layout {
     flex-direction: column;
     height: auto;
+    overflow: visible;
   }
 
   .pos-menu-section,
   .pos-cart-section {
     flex: none;
     width: 100%;
+    overflow-y: visible;
   }
 }

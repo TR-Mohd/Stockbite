@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import MenuGrid from './MenuGrid';
 import ShoppingCart from './ShoppingCart';
 import CheckoutModal from './CheckoutModal';
-import '../../styles/pos/POSDashboard.css';
+import { useAuthStore } from '../../core/store/authStore';
+import '../../styles/POS/POSDashboard.css';
 
 const POSDashboard = () => {
   const [cartItems, setCartItems] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const logout = useAuthStore((state) => state.logout);
 
   const handleAddToCart = (item) => {
     setCartItems((prevCart) => {
@@ -48,8 +50,11 @@ const POSDashboard = () => {
       
       <section className="pos-menu-section">
         <header className="pos-header">
-          <h1>Cashier POS</h1>
-          <p>Select items to add to the current order.</p>
+          <div>
+            <h1>Cashier POS</h1>
+            <p>Select items to add to the current order.</p>
+          </div>
+          <button className="btn-logout" onClick={logout}>Logout</button>
         </header>
         <MenuGrid onAddToCart={handleAddToCart} />
       </section>
