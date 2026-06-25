@@ -3,8 +3,10 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './core/routes/ProtectedRoute';
 import { Login } from './features/auth/Login';
 
+// Import komponen POSDashboard 
+import POSDashboard from './features/pos/POSDashboard';
+
 // Dummy components for other features (to be built by other agents)
-const POSDummy = () => <div style={{ padding: '2rem' }}><h1>POS Module</h1><p>Reserved for Daffa</p></div>;
 const InventoryDummy = () => <div style={{ padding: '2rem' }}><h1>Inventory Module</h1><p>Reserved for Abel</p></div>;
 const SuppliersDummy = () => <div style={{ padding: '2rem' }}><h1>Suppliers Module</h1><p>Reserved for Anita</p></div>;
 const ManagerDummy = () => <div style={{ padding: '2rem' }}><h1>Manager Dashboard</h1><p>Reserved for Farrell</p></div>;
@@ -18,7 +20,10 @@ function App() {
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Navigate to="/pos" replace />} />
-          <Route path="/pos" element={<POSDummy />} />
+          
+          {/* Rute /pos sekarang mengarah ke antarmuka kasir buatanmu! */}
+          <Route path="/pos" element={<POSDashboard />} />
+          
           <Route path="/inventory" element={<InventoryDummy />} />
           <Route path="/suppliers" element={<SuppliersDummy />} />
           <Route path="/manager" element={<ManagerDummy />} />

@@ -1,0 +1,29 @@
+/* Menu Grid Container */
+.menu-grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--spacing-6);
+  width: 100%;
+}
+
+/* Loading State */
+.menu-loading-state {
+  text-align: center;
+  padding: var(--spacing-8);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .menu-grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--spacing-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .menu-grid-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

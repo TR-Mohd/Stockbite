@@ -1,0 +1,100 @@
+/* POS Dashboard Layout */
+.pos-layout {
+  display: flex;
+  height: 100vh;
+  gap: var(--spacing-8);
+  padding: var(--spacing-6);
+  background-color: var(--color-bg-base);
+  font-family: var(--font-family-sans);
+}
+
+.pos-menu-section {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  background-color: var(--color-bg-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  overflow-y: auto;
+}
+
+.pos-header {
+  border-bottom: 2px solid var(--color-primary);
+  padding-bottom: var(--spacing-4);
+}
+
+.pos-header h1 {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  margin: 0;
+  margin-bottom: var(--spacing-2);
+}
+
+.pos-header p {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  margin: 0;
+}
+
+.pos-cart-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  background-color: var(--color-bg-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  border-left: 3px solid var(--color-primary);
+  overflow-y: auto;
+}
+
+.pos-cart-section h2 {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  margin: 0;
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--color-bg-base);
+}
+
+/* Checkout Button */
+.btn-proceed-checkout {
+  width: 100%;
+  padding: var(--spacing-4);
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: auto;
+}
+
+.btn-proceed-checkout:hover:not(.disabled) {
+  background-color: var(--color-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.btn-proceed-checkout.disabled {
+  background-color: var(--color-text-tertiary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (max-width: 1024px) {
+  .pos-layout {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .pos-menu-section,
+  .pos-cart-section {
+    flex: none;
+    width: 100%;
+  }
+}
