@@ -1,4 +1,6 @@
+# pyrefly: ignore [missing-import]
 from fastapi import FastAPI
+# pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
 from .routers import pos, inventory, suppliers, manager
 
@@ -12,6 +14,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from .auth import router as auth_router
+
+app.include_router(auth_router)
 app.include_router(pos.router)
 app.include_router(inventory.router)
 app.include_router(suppliers.router)

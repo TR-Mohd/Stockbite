@@ -23,7 +23,10 @@ Open your terminal in the root directory and run:
 * **Windows:**
   ```bash
   python -m venv .venv
+  # If using Command Prompt / PowerShell:
   .\.venv\Scripts\activate
+  # If using Git Bash on Windows:
+  source .venv/Scripts/activate
   ```
 * **Mac/Linux:**
   ```bash
