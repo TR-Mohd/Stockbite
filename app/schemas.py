@@ -33,6 +33,16 @@ class IngredientResponse(BaseModel):
     version_id: int
     model_config = ConfigDict(from_attributes=True)
 
+class MenuItemResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    price: float
+    category: Optional[str] = None
+    image: Optional[str] = None
+    is_active: bool
+    model_config = ConfigDict(from_attributes=True)
+
 class CartItemCreate(BaseModel):
     menu_item_id: str
     quantity: int

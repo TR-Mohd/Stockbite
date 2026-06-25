@@ -1,0 +1,120 @@
+/* POS Dashboard Layout */
+.pos-layout {
+  display: flex;
+  height: 100vh;
+  gap: var(--spacing-8);
+  padding: var(--spacing-6);
+  background-color: var(--color-bg-base);
+  font-family: var(--font-family-sans);
+  overflow: hidden;
+}
+
+.pos-menu-section {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  background-color: var(--color-bg-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  overflow-y: auto;
+}
+
+.pos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--color-bg-base);
+}
+
+.pos-header h1 {
+  font-size: 2rem;
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+}
+
+.pos-header p {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.pos-cart-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  background-color: var(--color-bg-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  border-left: 3px solid var(--color-primary);
+  overflow-y: auto;
+}
+
+.pos-cart-section h2 {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  margin: 0;
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--color-bg-base);
+}
+
+/* Checkout Button */
+.btn-proceed-checkout {
+  width: 100%;
+  padding: var(--spacing-4);
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: auto;
+}
+
+.btn-proceed-checkout:hover:not(.disabled) {
+  background-color: var(--color-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.btn-proceed-checkout.disabled {
+  background-color: var(--color-text-tertiary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btn-logout {
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: var(--color-error, #ef4444);
+  color: var(--color-text-inverse, white);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-logout:hover {
+  opacity: 0.8;
+}
+
+@media (max-width: 1024px) {
+  .pos-layout {
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+  }
+
+  .pos-menu-section,
+  .pos-cart-section {
+    flex: none;
+    width: 100%;
+    overflow-y: visible;
+  }
+}
