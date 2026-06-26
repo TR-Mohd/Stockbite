@@ -12,8 +12,8 @@ You are the AI agent assigned to Anita. You must **ONLY** modify files within th
 3. **PO Management:** Display the history of Purchase Orders and allow users to change PO status (e.g., Draft -> Sent -> Received).
 
 
-## Documentation Requirement (WORKLOG.md)
-After every single job/component is finished, you must automatically generate an update for the `WORKLOG.md` file in the root directory. 
+## Documentation Requirement (Worklogs/WORKLOG_Anita.md)
+After every single job/component is finished, you must automatically generate an update for the `Worklogs/WORKLOG_Anita.md` file in the root directory. 
 
 Place it under the heading `## Phase 2: Suppliers & Purchase Orders` using this exact table format:
 

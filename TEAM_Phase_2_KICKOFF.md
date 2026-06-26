@@ -94,7 +94,7 @@ npm run dev
 
 **Context & Guardrails:**
 You are my AI coding assistant for the Stockbite MVP. My assigned role is the Cashier POS & Checkout module. 
-* **STRICT DIRECTORY RULE:** You must ONLY create or modify files within the `frontend/src/features/pos/` directory. Do not touch global routing, authentication, or other feature modules. Exception: You are permitted to create/modify the `WORKLOG.md` file in the root directory for documentation purposes.
+* **STRICT DIRECTORY RULE:** You must ONLY create or modify files within the `frontend/src/features/pos/` directory. Do not touch global routing, authentication, or other feature modules. Exception: You are permitted to create/modify the `Worklogs/WORKLOG_Daffa.md` file in the root directory for documentation purposes.
 
 **Tech Stack to Use:**
 * **Framework:** React + Vite
@@ -123,8 +123,8 @@ You are my AI coding assistant for the Stockbite MVP. My assigned role is the Ca
     * Provide input fields to capture optional CRM data (WhatsApp/Email).
     * *CRITICAL:* When calling the `/pos/checkout` endpoint, handle HTTP 409 Conflict responses gracefully. If 409 is returned, display an alert to the cashier indicating that stock levels changed during the transaction and prompt them to retry.
 
-**Documentation Requirement (WORKLOG.md):**
-After every single job/component is finished, you must automatically generate an update for my `WORKLOG.md` file. 
+**Documentation Requirement (Worklogs/WORKLOG_Daffa.md):**
+After every single job/component is finished, you must automatically generate an update for my `Worklogs/WORKLOG_Daffa.md` file. 
 
 Place it under the heading `## Phase 2: Cashier POS & Checkout` using this exact table format:
 
@@ -145,7 +145,7 @@ Acknowledge these instructions, confirm your directory constraints, and provide 
 
 **Context & Guardrails:**
 You are my AI coding assistant for the Stockbite MVP. My assigned role is the Inventory Management module. 
-* **STRICT DIRECTORY RULE:** You must ONLY create or modify files within the `frontend/src/features/inventory/` directory. Do not touch routing, auth, pos, or other feature modules. Exception: You are permitted to create the WORKLOG.md file in the root directory for documentation purposes.
+* **STRICT DIRECTORY RULE:** You must ONLY create or modify files within the `frontend/src/features/inventory/` directory. Do not touch routing, auth, pos, or other feature modules. Exception: You are permitted to create the `Worklogs/WORKLOG_Abel.md` file in the root directory for documentation purposes.
 
 
 **Tech Stack to Use:**
@@ -172,8 +172,8 @@ You are my AI coding assistant for the Stockbite MVP. My assigned role is the In
 3.  **Manual Adjustments:** Build forms or modals to allow Warehouse staff to manually increase or decrease stock and provide reason codes.
 4.  **Waste Logging:** Implement the UI to log specific ingredient waste. 
 
-**Documentation Requirement (WORKLOG.md):**
-After every single job/component is finished, you must automatically generate an update for my `WORKLOG.md` file. 
+**Documentation Requirement (Worklogs/WORKLOG_Abel.md):**
+After every single job/component is finished, you must automatically generate an update for my `Worklogs/WORKLOG_Abel.md` file. 
 
 Place it under the heading `## Phase 2: Inventory Management` using this exact table format:
 
@@ -194,7 +194,7 @@ Acknowledge these instructions, confirm your directory constraints, and provide 
 
 **Context & Guardrails:**
 You are my AI coding assistant for the Stockbite MVP. My assigned role is the Suppliers & Purchase Orders module. 
-* **STRICT DIRECTORY RULE:** You must ONLY create or modify files within the `frontend/src/features/suppliers/` directory. Do not touch global routing, authentication, or other feature modules. Exception: You are permitted to create/modify the `WORKLOG.md` file in the root directory for documentation purposes.
+* **STRICT DIRECTORY RULE:** You must ONLY create or modify files within the `frontend/src/features/suppliers/` directory. Do not touch global routing, authentication, or other feature modules. Exception: You are permitted to create/modify the `Worklogs/WORKLOG_Anita.md` file in the root directory for documentation purposes.
 
 **Tech Stack to Use:**
 * **Framework:** React + Vite
@@ -219,8 +219,8 @@ You are my AI coding assistant for the Stockbite MVP. My assigned role is the Su
 2.  **Draft PO Generation:** Build the UI flow triggered by low-stock alerts to auto-generate a Purchase Order Draft for a specific supplier.
 3.  **PO Management:** Display the history of Purchase Orders and allow users to change PO status (e.g., Draft -> Sent -> Received).
 
-**Documentation Requirement (WORKLOG.md):**
-After every single job/component is finished, you must automatically generate an update for my `WORKLOG.md` file. 
+**Documentation Requirement (Worklogs/WORKLOG_Anita.md):**
+After every single job/component is finished, you must automatically generate an update for my `Worklogs/WORKLOG_Anita.md` file. 
 
 Place it under the heading `## Phase 2: Suppliers & Purchase Orders` using this exact table format:
 
@@ -241,7 +241,7 @@ Acknowledge these instructions, confirm your directory constraints, and provide 
 
 **Context & Guardrails:**
 You are my AI coding assistant for the Stockbite MVP. My assigned role is the Manager BI Dashboard & App Shell module. 
-* **STRICT DIRECTORY RULE:** You must ONLY create or modify files within the `frontend/src/features/manager/` and `frontend/src/components/layout/` directories. Do not modify auth, pos, inventory, or suppliers directly. Exception: You are permitted to create/modify the `WORKLOG.md` file in the root directory for documentation purposes.
+* **STRICT DIRECTORY RULE:** You must ONLY create or modify files within the `frontend/src/features/manager/` and `frontend/src/components/layout/` directories. Do not modify auth, pos, inventory, or suppliers directly. Exception: You are permitted to create/modify the `Worklogs/WORKLOG_Farrell.md` file in the root directory for documentation purposes.
 
 **Tech Stack to Use:**
 * **Framework:** React + Vite
@@ -270,8 +270,8 @@ You are my AI coding assistant for the Stockbite MVP. My assigned role is the Ma
 3.  **KPI Cards:** Display real-time numerical cards for Gross Revenue, COGS, and Profit Margin.
 4.  **Data Visualizations:** Build the Sales Heatmaps (mocked or utilizing chart libraries) and "Best Sellers" / Market Basket Analysis ranked lists.
 
-**Documentation Requirement (WORKLOG.md):**
-After every single job/component is finished, you must automatically generate an update for my `WORKLOG.md` file. 
+**Documentation Requirement (Worklogs/WORKLOG_Farrell.md):**
+After every single job/component is finished, you must automatically generate an update for my `Worklogs/WORKLOG_Farrell.md` file. 
 
 Place it under the heading `## Phase 2: Manager BI Dashboard & App Shell` using this exact table format:
 
