@@ -1,11 +1,15 @@
-/* Checkout Modal Overlay */
+/* Checkout / Confirmation Modal */
+
+/* Overlay — semi-transparent + blur */
 .checkout-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -15,15 +19,15 @@
 /* Modal Container */
 .checkout-modal-container {
   background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--spacing-8);
-  max-width: 500px;
+  max-width: 420px;
   width: 90%;
-  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.2);
-  animation: slideUp 0.3s ease;
+  animation: modalSlideUp 0.3s ease;
 }
 
-@keyframes slideUp {
+@keyframes modalSlideUp {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -34,129 +38,225 @@
   }
 }
 
+/* Title */
 .checkout-modal-title {
   color: var(--color-text-primary);
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-lg);
   font-weight: 700;
   margin: 0 0 var(--spacing-6) 0;
   text-align: center;
-  border-bottom: 2px solid var(--color-primary);
-  padding-bottom: var(--spacing-4);
 }
 
-.checkout-modal-total {
-  background-color: var(--color-bg-base);
-  padding: var(--spacing-4);
-  border-radius: var(--radius-md);
+/* Total Amount Display */
+.checkout-modal-amount {
   text-align: center;
   margin-bottom: var(--spacing-6);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-base);
 }
 
-.checkout-modal-total strong {
-  display: block;
+.checkout-modal-amount-value {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
   color: var(--color-primary);
-  font-size: var(--font-size-xl);
-  margin-top: var(--spacing-2);
 }
 
-/* Error Message */
-.checkout-modal-error {
-  background-color: #FEE2E2;
+/* 409 Error Banner */
+.checkout-error-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  background-color: var(--color-error-bg);
   border: 1px solid var(--color-error);
   color: var(--color-error);
-  padding: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
   border-radius: var(--radius-md);
   margin-bottom: var(--spacing-6);
   font-size: var(--font-size-sm);
   font-weight: 500;
+  line-height: 1.4;
 }
 
-/* Form Group */
-.form-group {
-  margin-bottom: var(--spacing-6);
+.checkout-error-banner-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
 }
 
-.form-label {
+/* Form Groups */
+.checkout-form-group {
+  margin-bottom: var(--spacing-4);
+}
+
+.checkout-form-label {
   display: block;
-  color: var(--color-text-primary);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: 500;
   margin-bottom: var(--spacing-2);
 }
 
-.form-select,
-.form-input {
-  width: 100%;
-  padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid var(--color-bg-base);
-  border-radius: var(--radius-md);
-  font-family: var(--font-family-sans);
-  font-size: var(--font-size-base);
-  color: var(--color-text-primary);
-  background-color: var(--color-bg-surface);
-  transition: all 0.2s ease;
+/* Input with icon */
+.checkout-input-wrapper {
+  position: relative;
 }
 
-.form-select:focus,
-.form-input:focus {
+.checkout-input-icon {
+  position: absolute;
+  left: var(--spacing-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-tertiary);
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+.checkout-form-input {
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4) var(--spacing-3) calc(var(--spacing-3) + 24px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-surface);
+  transition: border-color var(--transition-fast);
+}
+
+.checkout-form-input:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
-.form-input::placeholder {
+.checkout-form-input::placeholder {
   color: var(--color-text-tertiary);
 }
 
-/* Modal Buttons */
+.checkout-form-label .required {
+  color: var(--color-error);
+}
+
+/* Payment Method Cards */
+.checkout-payment-group {
+  margin-bottom: var(--spacing-6);
+}
+
+.payment-cards-container {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.payment-card {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  height: 50px;
+}
+
+.payment-card:hover {
+  border-color: var(--color-text-tertiary);
+}
+
+.payment-card.active {
+  border-color: var(--color-success-border);
+  border-width: 2px;
+  background-color: var(--color-success-bg);
+}
+
+.payment-card-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.payment-card-img {
+  height: 24px;
+  width: auto;
+  object-fit: contain;
+}
+
+.qris-dark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .qris-light {
+    display: none;
+  }
+  .qris-dark {
+    display: block;
+  }
+}
+
+/* Action Buttons */
 .checkout-modal-actions {
   display: flex;
-  gap: var(--spacing-4);
-  margin-top: var(--spacing-8);
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-6);
 }
 
-.btn-pay,
-.btn-confirm,
-.btn-cancel {
+.btn-modal-cancel,
+.btn-modal-confirm,
+.btn-modal-danger {
   flex: 1;
-  padding: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
   border: none;
   border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
-.btn-pay,
-.btn-confirm {
+.btn-modal-cancel {
+  background-color: var(--color-text-secondary);
+  color: var(--color-text-inverse);
+}
+
+.btn-modal-cancel:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.btn-modal-confirm {
   background-color: var(--color-primary);
   color: var(--color-text-inverse);
 }
 
-.btn-pay:hover:not(:disabled),
-.btn-confirm:hover:not(:disabled) {
+.btn-modal-confirm:hover:not(:disabled) {
   background-color: var(--color-primary-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
 
-.btn-pay:disabled,
-.btn-confirm:disabled {
-  background-color: var(--color-text-tertiary);
+.btn-modal-danger {
+  background-color: var(--color-error);
+  color: var(--color-text-inverse);
+}
+
+.btn-modal-danger:hover:not(:disabled) {
+  background-color: var(--color-error-hover);
+}
+
+.btn-modal-cancel:disabled,
+.btn-modal-confirm:disabled,
+.btn-modal-danger:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
-  opacity: 0.6;
 }
 
-.btn-cancel {
-  background-color: var(--color-bg-base);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-text-tertiary);
-}
-
-.btn-cancel:hover {
-  background-color: var(--color-bg-base);
-  border-color: var(--color-text-secondary);
+@media (prefers-color-scheme: dark) {
+  .btn-modal-cancel {
+    background-color: var(--color-border);
+    color: var(--color-text-primary);
+  }
+  
+  .btn-modal-cancel:hover:not(:disabled) {
+    background-color: var(--color-border-strong);
+    opacity: 1;
+  }
 }

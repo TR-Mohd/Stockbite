@@ -1,58 +1,69 @@
 import React from 'react';
 import '../../styles/POS/ShoppingCart.css';
 
-const ShoppingCart = ({ cartItems, updateQuantity, removeItem, updateNote }) => {
+const ShoppingCart = ({ cartItems, updateQuantity, removeItem }) => {
   if (cartItems.length === 0) {
     return (
       <div className="cart-empty-state">
-          <p>Cart is empty.</p>
+        <p>Your cart is empty.</p>
       </div>
     );
   }
-
-  const calculateTotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.qty), 0);
-  };
 
   return (
     <div className="cart-container">
       <ul className="cart-item-list">
         {cartItems.map((item) => (
           <li key={item.id} className="cart-item">
-            <div className="cart-item-header">
-              <span className="cart-item-title">{item.name}</span>
-              <span className="cart-item-price">Rp {(item.price * item.qty).toLocaleString('id-ID')}</span>
+            {/* Thumbnail */}
+            <div className="cart-item-thumb">
+              <img
+                src={item.image || '/placeholder-food.png'}
+                alt={item.name}
+                loading="lazy"
+              />
             </div>
-            
-            <div className="cart-item-controls">
-              <div className="cart-qty-controls">
-                <button onClick={() => updateQuantity(item.id, item.qty - 1)} className="btn-qty">-</button>
-                <span className="cart-qty-value">{item.qty}</span>
-                <button onClick={() => updateQuantity(item.id, item.qty + 1)} className="btn-qty">+</button>
+
+            {/* Details */}
+            <div className="cart-item-details">
+              <div className="cart-item-top">
+                <p className="cart-item-name">{item.name}</p>
+                <button
+                  className="btn-remove-item"
+                  onClick={() => removeItem(item.id)}
+                  aria-label={`Remove ${item.name} from cart`}
+                  title="Remove item"
+                >
+                  ✕
+                </button>
               </div>
-
-              <button onClick={() => removeItem(item.id)} className="btn-remove">
-                Remove
-              </button>
+              
+              <div className="cart-item-bottom">
+                <div className="cart-qty-controls">
+                  <button
+                    className="btn-qty btn-minus"
+                    onClick={() => updateQuantity(item.id, item.qty - 1)}
+                    aria-label={`Decrease quantity of ${item.name}`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  </button>
+                  <span className="cart-qty-value">{item.qty}</span>
+                  <button
+                    className="btn-qty btn-plus"
+                    onClick={() => updateQuantity(item.id, item.qty + 1)}
+                    aria-label={`Increase quantity of ${item.name}`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  </button>
+                </div>
+                <p className="cart-item-price">
+                  Rp {(item.price * item.qty).toLocaleString('id-ID')}
+                </p>
+              </div>
             </div>
-
-            <input 
-              type="text" 
-              placeholder="Notes (optional)..." 
-              value={item.notes || ''}
-              onChange={(e) => updateNote(item.id, e.target.value)}
-              className="input-note"
-            />
           </li>
         ))}
       </ul>
-
-      <div className="cart-summary">
-        <h3>
-          <span>Total:</span>
-          <span>Rp {calculateTotal().toLocaleString('id-ID')}</span>
-        </h3>
-      </div>
     </div>
   );
 };
