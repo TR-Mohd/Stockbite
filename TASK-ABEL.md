@@ -13,8 +13,8 @@ You are the AI agent assigned to Abel. You must **ONLY** modify files within the
 4. **Waste Logging:** Implement the UI to log specific ingredient waste (Spoiled, Dropped, etc.).
 
 
-## Documentation Requirement (WORKLOG.md)
-After every single job/component is finished, you must automatically generate an update for the `WORKLOG.md` file in the root directory. 
+## Documentation Requirement (Worklogs/WORKLOG_Abel.md)
+After every single job/component is finished, you must automatically generate an update for the `Worklogs/WORKLOG_Abel.md` file in the root directory. 
 
 Place it under the heading `## Phase 2: Inventory Management` using this exact table format:
 
