@@ -2,8 +2,8 @@
 
 :root {
   /* Color Palette - Light Mode */
-  --color-primary: #4F46E5; /* Indigo 600 */
-  --color-primary-hover: #4338CA;
+  --color-primary: #f08b50; /* Light Orange */
+  --color-primary-hover: #e16f2d; /* Darker Orange */
   --color-secondary: #10B981; /* Emerald 500 */
   --color-secondary-hover: #059669;
   
@@ -15,11 +15,22 @@
   --color-text-secondary: #4B5563; /* Gray 600 */
   --color-text-tertiary: #9CA3AF; /* Gray 400 */
   --color-text-inverse: #FFFFFF;
+  --color-text-accent: #374151; /* Dark Gray for prices in light mode */
 
   --color-error: #EF4444; /* Red 500 */
   --color-error-hover: #DC2626;
+  --color-error-bg: #FEE2E2; /* Light red for error banners */
   --color-success: #10B981;
   --color-warning: #F59E0B; /* Amber 500 */
+
+  /* POS Design Tokens */
+  --color-bg-page: #FFFFFF; /* Pure white background per Kopag UI */
+  --color-border: #E5E7EB; /* Card / input borders */
+  --color-border-strong: #D1D5DB; /* Slightly darker card borders */
+  --color-border-selected: #4B5563; /* Dark gray for selected cards */
+  --color-primary-light: #f4a273; /* Lighter Orange */
+  --color-success-bg: #f0fdf4; /* Light green background for selected payment */
+  --color-success-border: #4ade80; /* Green border for selected payment */
 
   /* Typography */
   --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
@@ -58,16 +69,28 @@
   --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Dark Mode Variables (Optional enhancement later) */
+/* Dark Mode Variables */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg-base: #111827; /* Gray 900 */
-    --color-bg-surface: #1F2937; /* Gray 800 */
-    --color-bg-surface-hover: #374151; /* Gray 700 */
+    --color-bg-base: #2a2a2a;
+    --color-bg-surface: #363636;
+    --color-bg-surface-hover: #444444;
     
     --color-text-primary: #F9FAFB; /* Gray 50 */
     --color-text-secondary: #D1D5DB; /* Gray 300 */
-    --color-text-tertiary: #6B7280; /* Gray 500 */
+    --color-text-tertiary: #9CA3AF; /* Gray 400 */
+    --color-text-accent: #FFFFFF; /* White in dark mode */
+    
+    /* POS Overrides */
+    --color-primary: #e16f2d; /* Requested orange */
+    --color-primary-hover: #c95d22; /* Slightly darker orange for hover */
+    --color-primary-light: #f08b50; /* Lighter orange */
+    --color-bg-page: #2a2a2a;
+    --color-border: #4a4a4a; /* Adjusted for contrast */
+    --color-border-strong: #5a5a5a; /* Adjusted for contrast */
+    --color-border-selected: #9CA3AF; /* Lighter gray for selected cards in dark mode */
+    --color-success-bg: rgba(16, 185, 129, 0.1);
+    --color-success-border: #10B981;
   }
 }
 
@@ -84,6 +107,25 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
 }
 
 h1, h2, h3, h4, h5, h6 {
