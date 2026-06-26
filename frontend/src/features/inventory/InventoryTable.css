@@ -1,0 +1,200 @@
+.inventory-table-container {
+  flex: 1;
+  overflow-y: auto;
+  width: 100%;
+  background-color: var(--color-bg-page);
+}
+
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.inventory-table th {
+  position: sticky;
+  top: 0;
+  background-color: var(--color-bg-surface);
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--color-border);
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.inventory-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.875rem;
+  vertical-align: middle;
+  color: var(--color-text-primary);
+}
+
+.inventory-table tr:hover td {
+  background-color: var(--color-bg-surface-hover);
+}
+
+.inventory-table tr.row-warning td {
+  background-color: rgba(239, 68, 68, 0.05);
+}
+
+.inventory-table tr.row-warning:hover td {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.text-right {
+  text-align: right;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.text-muted {
+  color: var(--color-text-tertiary);
+}
+
+.text-sm {
+  font-size: var(--font-size-xs);
+}
+
+.category-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background-color: var(--color-bg-surface-hover);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.stock-level-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.stock-value {
+  font-weight: 600;
+  font-family: monospace;
+  font-size: var(--font-size-sm);
+}
+
+.sparkline-container {
+  width: 100%;
+  height: 4px;
+  background-color: var(--color-border);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.sparkline-bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.sparkline-bar.normal {
+  background-color: var(--color-success);
+}
+
+.sparkline-bar.warning {
+  background-color: var(--color-warning);
+}
+
+.sparkline-bar.empty {
+  background-color: var(--color-error);
+}
+
+.sparkline-rop-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--color-text-primary);
+  z-index: 2;
+}
+
+.status-normal {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background-color: var(--color-success-bg);
+  color: var(--color-success-border);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.actions-cell {
+  white-space: nowrap;
+}
+
+.actions-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.action-placeholder {
+  width: 80px; /* roughly the width of Draft PO button to keep alignment */
+}
+
+.secondary-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.icon-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.icon-action-btn:hover {
+  background-color: var(--color-bg-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.icon-action-btn.text-error:hover {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  color: var(--color-text-secondary);
+}
+
+.empty-state-icon {
+  color: var(--color-border-strong);
+  margin-bottom: 1rem;
+}
+
+.empty-state-container h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
+}
+
+.empty-state-container p {
+  margin: 0;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+}
