@@ -3,11 +3,20 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './core/routes/ProtectedRoute';
 import { Login } from './features/auth/Login';
 import POSDashboard from './features/pos/POSDashboard';
+import { InventoryDashboard } from './features/inventory/InventoryDashboard';
+import { ManagerDashboard } from './features/manager/ManagerDashboard';
+import { useAuthStore } from './core/store/authStore';
 
 // Dummy components for other features (to be built by other agents)
-const InventoryDummy = () => <div style={{ padding: '2rem' }}><h1>Inventory Module</h1><p>Reserved for Abel</p></div>;
 const SuppliersDummy = () => <div style={{ padding: '2rem' }}><h1>Suppliers Module</h1><p>Reserved for Anita</p></div>;
-const ManagerDummy = () => <div style={{ padding: '2rem' }}><h1>Manager Dashboard</h1><p>Reserved for Farrell</p></div>;
+
+const RoleRedirect = () => {
+  const { user } = useAuthStore();
+  if (user?.role === 'Cashier') return <Navigate to="/pos" replace />;
+  if (user?.role === 'Warehouse') return <Navigate to="/inventory" replace />;
+  if (user?.role === 'Manager') return <Navigate to="/manager/dashboard" replace />;
+  return <Navigate to="/login" replace />;
+};
 
 function App() {
   return (
@@ -16,16 +25,25 @@ function App() {
         <Route path="/login" element={<Login />} />
         
         {/* Protected Routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<Navigate to="/pos" replace />} />
+        <Route element={<ProtectedRoute allowedRoles={['Cashier']} />}>
           <Route path="/pos" element={<POSDashboard />} />
-          <Route path="/inventory" element={<InventoryDummy />} />
+        </Route>
+
+        <Route element={<ProtectedRoute allowedRoles={['Warehouse']} />}>
+          <Route path="/inventory" element={<InventoryDashboard />} />
+        </Route>
+
+        <Route element={<ProtectedRoute allowedRoles={['Manager']} />}>
+          <Route path="/manager/dashboard" element={<ManagerDashboard />} />
+        </Route>
+        
+        <Route element={<ProtectedRoute allowedRoles={['Warehouse', 'Manager']} />}>
           <Route path="/suppliers" element={<SuppliersDummy />} />
-          <Route path="/manager" element={<ManagerDummy />} />
         </Route>
 
         {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/" element={<RoleRedirect />} />
+        <Route path="*" element={<RoleRedirect />} />
       </Routes>
     </BrowserRouter>
   );

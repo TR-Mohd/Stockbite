@@ -35,12 +35,31 @@ export const Login = () => {
       });
 
       // Assuming backend returns { access_token: "...", token_type: "bearer", user: {...} }
-      // Or we decode the JWT if user object is not returned.
-      // For now, let's mock the user object if backend doesn't provide it alongside token.
-      const userObj = response.data.user || { username, role: 'manager' }; // Dummy role fallback
+      // Decode the JWT if user object is not returned.
+      let userObj = response.data.user;
+      if (!userObj && response.data.access_token) {
+        try {
+          const payload = JSON.parse(atob(response.data.access_token.split('.')[1]));
+          userObj = { username: payload.sub || username, role: payload.role || 'Cashier' };
+        } catch (e) {
+          userObj = { username, role: 'Cashier' };
+        }
+      } else if (!userObj) {
+        userObj = { username, role: 'Cashier' };
+      }
 
       login(response.data.access_token, userObj);
-      navigate('/'); // Redirect to home/pos after login
+      
+      const role = userObj.role || 'Cashier';
+      if (role === 'Cashier') {
+        navigate('/pos');
+      } else if (role === 'Warehouse') {
+        navigate('/inventory');
+      } else if (role === 'Manager') {
+        navigate('/manager/dashboard');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError('Invalid username or password');
     } finally {

@@ -9,11 +9,17 @@ export const ProtectedRoute = ({ allowedRoles = [] }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Basic RBAC implementation
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    // If they are logged in but don't have the correct role, redirect them somewhere safe
-    // For now, redirecting to a generic unauthorized route or just dashboard (e.g. /pos)
-    return <Navigate to="/" replace />;
+    if (user.role === 'Cashier') {
+      return <Navigate to="/pos" replace />;
+    }
+    if (user.role === 'Warehouse') {
+      return <Navigate to="/inventory" replace />;
+    }
+    if (user.role === 'Manager') {
+      return <Navigate to="/manager/dashboard" replace />;
+    }
+    return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;
