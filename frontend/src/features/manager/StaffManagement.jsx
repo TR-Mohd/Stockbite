@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAuthStore } from '../../core/store/authStore';
 import '../../styles/inventory/InventoryTable.css';
-import styles from './ManagerDashboard.module.css';
+import styles from '../../styles/manager/ManagerDashboard.module.css';
+import { StaffModal } from './StaffModal';
 
 const EditIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -16,45 +17,75 @@ export const StaffManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const token = useAuthStore(state => state.token);
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedStaff, setSelectedStaff] = useState(null);
 
-  useEffect(() => {
-    const fetchStaff = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get('http://localhost:8000/manager/staff', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        setStaffList(response.data);
-      } catch (err) {
-        console.error('Error fetching staff:', err);
-        setError('Failed to load staff data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (token) {
-      fetchStaff();
+  const fetchStaff = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('http://localhost:8000/manager/staff', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setStaffList(response.data);
+    } catch (err) {
+      console.error('Error fetching staff:', err);
+      setError('Failed to load staff data');
+    } finally {
+      setLoading(false);
     }
   }, [token]);
 
-  const toggleStatus = (id) => {
-    setStaffList(prev => prev.map(staff => 
-      staff.id === id 
-        ? { ...staff, status: staff.status === 'Active' ? 'Inactive' : 'Active' }
-        : staff
-    ));
+  useEffect(() => {
+    if (token) {
+      fetchStaff();
+    }
+  }, [token, fetchStaff]);
+
+  const toggleStatus = async (id) => {
+    try {
+      await axios.put(`http://localhost:8000/manager/staff/${id}/toggle-status`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchStaff();
+    } catch (err) {
+      console.error('Error toggling status:', err);
+      alert(err.response?.data?.detail || 'Failed to toggle status');
+    }
   };
 
   const handleEdit = (id) => {
-    console.log(`Edit clicked for staff ${id}`);
-    // No-op for now per requirements, but clickable
+    const staff = staffList.find(s => s.id === id);
+    setSelectedStaff(staff);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedStaff(null);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveStaff = async (formData) => {
+    try {
+      if (selectedStaff) {
+        await axios.put(`http://localhost:8000/manager/staff/${selectedStaff.id}`, formData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } else {
+        await axios.post('http://localhost:8000/manager/staff', formData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+      setIsModalOpen(false);
+      fetchStaff();
+    } catch (err) {
+      console.error('Error saving staff:', err);
+      alert(err.response?.data?.detail || 'Failed to save staff data');
+    }
   };
 
   return (
-    <div className={styles.dashboardContainer} style={{ minHeight: 'auto' }}>
+    <div className={`${styles.dashboardContainer} ${styles.dashboardContainerAuto}`}>
       <div className={styles.dashboardContent}>
         <header className={styles.header}>
           <div>
@@ -62,20 +93,12 @@ export const StaffManagement = () => {
             <p className={styles.subtitle}>Manage employee roles and access</p>
           </div>
           
-          <button className="inventory-btn" style={{ 
-            backgroundColor: 'var(--color-primary)', 
-            color: 'white', 
-            border: 'none', 
-            padding: '0.75rem 1.5rem', 
-            borderRadius: '8px', 
-            fontWeight: '600',
-            cursor: 'pointer'
-          }}>
+          <button className={styles.primaryBtn} onClick={handleAdd}>
             Add Staff Member
           </button>
         </header>
 
-        <div className="inventory-table-section" style={{ backgroundColor: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', overflow: 'hidden' }}>
+        <div className={`inventory-table-section ${styles.tableSection}`}>
           <div className="inventory-table-container">
             <table className="inventory-table">
               <thead>
@@ -104,65 +127,35 @@ export const StaffManagement = () => {
                   </tr>
                 ) : (
                   staffList.map((staff) => (
-                    <tr key={staff.id} style={{ opacity: staff.status === 'Inactive' ? 0.6 : 1 }}>
-                      <td className="text-muted font-medium">{staff.id}</td>
+                    <tr key={staff.id} className={staff.status === 'Inactive' ? styles.inactiveRow : ''}>
+                      <td className="text-muted font-medium">EMP-{staff.id.substring(0, 6).toUpperCase()}</td>
                       <td className="font-medium">
                         {staff.name}
                       </td>
                       <td><span className="category-tag">{staff.role}</span></td>
                       <td className="text-muted text-sm">
-                        {staff.last_active ? new Date(staff.last_active).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                        {staff.last_active ? new Date(staff.last_active + 'Z').toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                       </td>
                       <td>
                         {staff.status === 'Active' ? (
                           <span className="status-normal">Active</span>
                         ) : (
-                          <span style={{ 
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            padding: '2px 8px',
-                            borderRadius: '9999px',
-                            backgroundColor: 'var(--color-error-bg, rgba(239, 68, 68, 0.1))',
-                            color: 'var(--color-error, #ef4444)',
-                            fontSize: '0.75rem',
-                            fontWeight: '600'
-                          }}>Inactive</span>
+                          <span className={styles.statusInactive}>Inactive</span>
                         )}
                       </td>
                       <td className="actions-cell text-right">
                         <div className="actions-group" style={{ justifyContent: 'flex-end', gap: '0.5rem', alignItems: 'center' }}>
                           <button 
-                            className="icon-action-btn" 
+                            className={`icon-action-btn ${styles.editActionBtn}`}
                             title="Edit"
                             onClick={() => handleEdit(staff.id)}
-                            style={{ 
-                              border: '1px solid var(--color-border)', 
-                              padding: '0.35rem 0.5rem', 
-                              borderRadius: '4px',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: 'var(--color-text-secondary)',
-                              background: 'transparent'
-                            }}
                           >
                             <EditIcon />
                           </button>
                           <button 
-                            className="icon-action-btn text-error" 
+                            className={`icon-action-btn text-error ${styles.toggleActionBtn}`}
                             title={staff.status === 'Active' ? 'Deactivate' : 'Activate'}
                             onClick={() => toggleStatus(staff.id)}
-                            style={{ 
-                              border: '1px solid var(--color-error, #ef4444)', 
-                              padding: '0.25rem 0', 
-                              borderRadius: '4px',
-                              fontSize: '0.8rem',
-                              fontWeight: '500',
-                              color: 'var(--color-error, #ef4444)',
-                              width: '85px',
-                              textAlign: 'center',
-                              background: 'transparent'
-                            }}
                           >
                             {staff.status === 'Active' ? 'Deactivate' : 'Activate'}
                           </button>
@@ -175,7 +168,13 @@ export const StaffManagement = () => {
             </table>
           </div>
         </div>
-      </div>
+    </div>
+      <StaffModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSave={handleSaveStaff} 
+        staff={selectedStaff} 
+      />
     </div>
   );
 };

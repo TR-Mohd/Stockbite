@@ -1,16 +1,101 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import '../../styles/inventory/InventoryTable.css';
-import styles from './ManagerDashboard.module.css';
-
-const mockSuppliers = [
-  { id: 'SUP-001', company: 'Global Meats Inc.', contact: 'John Smith', phone: '+62 812-3456-7890', category: 'Meat', status: 'Active' },
-  { id: 'SUP-002', company: 'Fresh Farms Produce', contact: 'Sarah Johnson', phone: '+62 813-9876-5432', category: 'Produce', status: 'Active' },
-  { id: 'SUP-003', company: 'Sunrise Bakery Supplies', contact: 'Michael Chen', phone: '+62 811-2222-3333', category: 'Bakery', status: 'Inactive' },
-  { id: 'SUP-004', company: 'Oceanic Beverages', contact: 'David Lee', phone: '+62 815-5555-6666', category: 'Beverages', status: 'Active' },
-  { id: 'SUP-005', company: 'Premium Dairy Co.', contact: 'Emma Wilson', phone: '+62 818-7777-8888', category: 'Dairy', status: 'Active' },
-];
+import styles from '../../styles/manager/ManagerDashboard.module.css';
+import { SupplierModal } from './SupplierModal';
 
 export const SupplierDirectory = () => {
+  const [suppliers, setSuppliers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState(null);
+
+  const token = localStorage.getItem('token');
+
+  const fetchSuppliers = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:8000/suppliers/', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setSuppliers(data);
+      } else {
+        throw new Error('Failed to fetch suppliers');
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (token) {
+      fetchSuppliers();
+    }
+  }, [token, fetchSuppliers]);
+
+  const handleAddSupplier = () => {
+    setSelectedSupplier(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditSupplier = (supplier) => {
+    setSelectedSupplier(supplier);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveSupplier = async (formData) => {
+    try {
+      const isEditing = !!selectedSupplier;
+      const url = isEditing 
+        ? `http://localhost:8000/suppliers/${selectedSupplier.id}` 
+        : 'http://localhost:8000/suppliers/';
+      
+      const method = isEditing ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      if (response.ok) {
+        setIsModalOpen(false);
+        fetchSuppliers();
+      } else {
+        console.error('Failed to save supplier');
+      }
+    } catch (error) {
+      console.error('Error saving supplier:', error);
+    }
+  };
+
+  const handleToggleStatus = async (supplierId) => {
+    try {
+      const response = await fetch(`http://localhost:8000/suppliers/${supplierId}/toggle-status`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        fetchSuppliers();
+      } else {
+        console.error('Failed to toggle status');
+      }
+    } catch (error) {
+      console.error('Error toggling status:', error);
+    }
+  };
   return (
     <div className={styles.dashboardContainer} style={{ minHeight: 'auto' }}>
       <div className={styles.dashboardContent}>
@@ -28,7 +113,7 @@ export const SupplierDirectory = () => {
             borderRadius: '8px', 
             fontWeight: '600',
             cursor: 'pointer'
-          }}>
+          }} onClick={handleAddSupplier}>
             Add Supplier
           </button>
         </header>
@@ -44,12 +129,13 @@ export const SupplierDirectory = () => {
                   <th>Phone</th>
                   <th>Category Supplied</th>
                   <th>Status</th>
+                  <th className="text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {mockSuppliers.length === 0 ? (
+                {suppliers.length === 0 ? (
                   <tr>
-                    <td colSpan="6">
+                    <td colSpan="7">
                       <div className="empty-state-container">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="empty-state-icon">
                           <circle cx="11" cy="11" r="8"></circle>
@@ -61,28 +147,40 @@ export const SupplierDirectory = () => {
                     </td>
                   </tr>
                 ) : (
-                  mockSuppliers.map((supplier) => (
-                    <tr key={supplier.id}>
+                  suppliers.map((supplier) => (
+                    <tr key={supplier.id} className={!supplier.is_active ? styles.inactiveRow : ''}>
                       <td className="text-muted font-medium">{supplier.id}</td>
-                      <td className="font-medium">{supplier.company}</td>
-                      <td>{supplier.contact}</td>
-                      <td className="text-muted">{supplier.phone}</td>
-                      <td><span className="category-tag">{supplier.category}</span></td>
+                      <td className="font-medium">{supplier.name}</td>
+                      <td>{supplier.contact_person || '-'}</td>
+                      <td className="text-muted">{supplier.phone || '-'}</td>
+                      <td><span className="category-tag">{supplier.specialization || 'General'}</span></td>
                       <td>
-                        {supplier.status === 'Active' ? (
+                        {supplier.is_active ? (
                           <span className="status-normal">Active</span>
                         ) : (
-                          <span style={{ 
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            padding: '2px 8px',
-                            borderRadius: '9999px',
-                            backgroundColor: 'var(--color-error-bg, rgba(239, 68, 68, 0.1))',
-                            color: 'var(--color-error, #ef4444)',
-                            fontSize: '0.75rem',
-                            fontWeight: '600'
-                          }}>Inactive</span>
+                          <span className={styles.statusInactive}>Inactive</span>
                         )}
+                      </td>
+                      <td className="actions-cell text-right">
+                        <div className="actions-group" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', alignItems: 'center' }}>
+                          <button 
+                            className={`icon-action-btn ${styles.editActionBtn}`}
+                            title="Edit"
+                            onClick={() => handleEditSupplier(supplier)}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                          </button>
+                          <button 
+                            className={`icon-action-btn text-error ${styles.toggleActionBtn}`}
+                            style={{ 
+                              color: supplier.is_active ? 'var(--color-error)' : 'var(--color-success, #10b981)',
+                              borderColor: supplier.is_active ? 'var(--color-error)' : 'var(--color-success, #10b981)'
+                            }}
+                            onClick={() => handleToggleStatus(supplier.id)}
+                          >
+                            {supplier.is_active ? 'Deactivate' : 'Activate'}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -92,6 +190,13 @@ export const SupplierDirectory = () => {
           </div>
         </div>
       </div>
+      
+      <SupplierModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveSupplier}
+        supplier={selectedSupplier}
+      />
     </div>
   );
 };

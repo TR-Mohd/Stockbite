@@ -2,8 +2,8 @@
 
 :root {
   /* Color Palette - Light Mode */
-  --color-primary: #f08b50; /* Light Orange */
-  --color-primary-hover: #e16f2d; /* Darker Orange */
+  --color-primary: #e16f2d; /* Darker Orange for better contrast */
+  --color-primary-hover: #c95d22; /* Even darker for hover */
   --color-secondary: #10B981; /* Emerald 500 */
   --color-secondary-hover: #059669;
   
@@ -29,7 +29,8 @@
   --color-border-strong: #D1D5DB; /* Slightly darker card borders */
   --color-border-selected: #4B5563; /* Dark gray for selected cards */
   --color-primary-light: #f4a273; /* Lighter Orange */
-  --color-success-bg: #f0fdf4; /* Light green background for selected payment */
+  --color-success-bg: #d1fae5; /* Emerald 100 background for better contrast */
+  --color-success-text: #047857; /* Emerald 700 for high-contrast green text */
   --color-success-border: #4ade80; /* Green border for selected payment */
 
   /* Typography */
@@ -90,6 +91,7 @@
     --color-border-strong: #4a4a4a; /* Adjusted for contrast */
     --color-border-selected: #9CA3AF; /* Lighter gray for selected cards in dark mode */
     --color-success-bg: rgba(16, 185, 129, 0.1);
+    --color-success-text: #10B981; /* Keep bright green for dark mode contrast */
     --color-success-border: #10B981;
   }
 }

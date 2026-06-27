@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from '../../components/ui/Card';
-import styles from './KPICard.module.css';
+import styles from '../../styles/manager/KPICard.module.css';
 
 export const KPICard = ({ title, value, trend, trendUp }) => {
   return (

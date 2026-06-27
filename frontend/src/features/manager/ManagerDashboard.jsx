@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 // useAuthStore is not used anymore here since username and logout are in Layout
 import { KPICard } from './KPICard';
-import styles from './ManagerDashboard.module.css';
+import styles from '../../styles/manager/ManagerDashboard.module.css';
 import {
   AreaChart,
   Area,
