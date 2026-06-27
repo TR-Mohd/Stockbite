@@ -55,3 +55,15 @@
 | :--- | :--- | :--- | :--- | :--- |
 | 2026-06-27 15:30Z | POS UI Enhancements & Formatting | Fixed IDR currency formatting, implemented placeholder category images, updated pill designs to match Inventory style, and aligned layout components. | ✅ Completed | Multiple user prompts |
 | 2026-06-27 15:40Z | Header Layout Fix | Moved the search bar next to the Menu title and expanded the top navigation bar to align with page content paddings. | ✅ Completed | *"put the Hi, {user} to the absolout right and the Point of Sale to the left..."* |
+
+## Phase 4: Manager Dashboard & Business Intelligence
+
+| Timestamp | Task | Description | Status | Prompts & Commands Used |
+| :--- | :--- | :--- | :--- | :--- |
+| 2026-06-28 00:00Z | Docker Conflicts & Dev Setup | Resolved Docker naming conflict for `stockbite_db`. Synchronized and started backend/frontend servers across worktrees. | ✅ Completed | Multiple user prompts |
+| 2026-06-28 00:10Z | Manager Dashboard UI | Built `ManagerDashboard.jsx` (Command Center) with glassmorphism, responsive metrics cards, and a modern layout. | ✅ Completed | Multiple user prompts |
+| 2026-06-28 00:20Z | Staff Management Module | Developed `StaffManagement.jsx` page with custom table styling, status badges, and an interactive `StaffModal.jsx` for creating/editing employees. Implemented dropdowns and touch protections. | ✅ Completed | *"do the same styling to the Role drop down... accidental touch protection"* |
+| 2026-06-28 00:30Z | Supplier Directory & DB Sync | Built `SupplierDirectory.jsx`. Updated `models.py` (added `contact_person`, `is_active`). Migrated DB, purged duplicate records, and restored correct mock data. Connected frontend buttons to backend CRUD endpoints. | ✅ Completed | *"Restore the previous db. just make sure the db is connected... Action column"* |
+| 2026-06-28 00:35Z | UI Polish & Validations | Added robust form validations to Staff/Supplier modals, fixed hover effects, and enforced `--select role--` placeholder. | ✅ Completed | *"keep the default '--select role--'"* |
+| 2026-06-28 00:45Z | Git Branching & Merging | Advised on merge order (Backend first, then Frontend). Resolved a tricky Git merge conflict in `manager.py` locally and pushed to GitHub for seamless PR merge. | ✅ Completed | *"compare between feature/mohammed-pos and feature/mohammed-pos-logic..."* |
+| 2026-06-28 00:55Z | Worktree Sync (Anita) | Fast-forwarded Anita's `feature/mohammed-manager-bi` branch by merging `main` into it so development could cleanly transition to the correct worktree. | ✅ Completed | *"I wanna push the builing of this pages to that branch"* |
