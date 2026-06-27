@@ -10,26 +10,33 @@
 }
 
 /* Top Navigation Bar */
-.pos-navbar {
+.pos-header-nav {
+  background-color: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.pos-header-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-4) var(--spacing-6);
-  background-color: var(--color-bg-surface);
-  border-bottom: 1px solid var(--color-border);
+  width: 100%;
+  padding: var(--spacing-6);
 }
 
-.pos-navbar-brand {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  color: var(--color-text-primary);
+.pos-header-nav h1 {
   margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
 }
 
-.pos-navbar-actions {
+.pos-header-actions {
   display: flex;
+  gap: 0.75rem;
   align-items: center;
-  gap: var(--spacing-4);
 }
 
 /* Navbar Search */
@@ -68,38 +75,42 @@
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
-/* Navbar User Section */
-.pos-navbar-user {
+/* Container to group the greeting and button */
+.pos-header-user-actions {
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
-  margin-left: var(--spacing-4);
+  gap: 12px;
 }
 
-.pos-user-name {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--color-text-secondary);
+/* Greeting text */
+.pos-user-greeting {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary); 
 }
 
-/* Navbar Logout Button */
-.btn-nav-logout {
+/* Logout ghost button */
+.pos-logout-button {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 36px;
   height: 36px;
+  background: transparent;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background-color: transparent;
+  border-radius: 8px;
   color: var(--color-error);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
-.btn-nav-logout:hover {
+.pos-logout-button:hover {
   background-color: rgba(239, 68, 68, 0.1);
   border-color: var(--color-error);
+}
+
+.pos-logout-icon {
+  flex-shrink: 0;
 }
 
 /* Main Layout */
@@ -115,28 +126,30 @@
   flex: 0 0 73%;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
   overflow-y: auto;
   padding: var(--spacing-6);
-  border-right: 1px solid var(--color-border);
+  /* Removed border-right to prevent double borders; relies on cart's border-left */
 }
 
 /* Header */
 .pos-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  min-height: 36px;
+  margin-bottom: var(--spacing-3);
 }
 
 .pos-header-title {
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-xl);
   font-weight: 700;
   color: var(--color-text-primary);
-  margin: 0 0 var(--spacing-1) 0;
+  margin: 0;
+  line-height: 1.2;
 }
 
 .pos-header-subtitle {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   margin: 0;
   font-weight: 500;
@@ -157,15 +170,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-4);
-  min-height: 36px; /* Prevents title shift when button renders */
+  min-height: 36px;
+  margin-bottom: var(--spacing-3);
 }
 
 .pos-cart-title {
   color: var(--color-text-primary);
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-xl);
   font-weight: 700;
   margin: 0;
+  line-height: 1.2;
 }
 
 .btn-empty-cart {

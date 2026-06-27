@@ -26,6 +26,15 @@ const MenuItemCard = ({ item, onAddToCart, onUpdateQuantity, cartQty, isSelected
     }
   };
 
+  const getPlaceholderImage = (category) => {
+    const lower = (category || 'other').toLowerCase();
+    if (['food', 'foods', 'main'].includes(lower)) return '/placeholder-food.png';
+    if (['beverage', 'beverages', 'drink', 'drinks'].includes(lower)) return '/placeholder-beverage.png';
+    return '/placeholder-other.png';
+  };
+
+  const formattedPrice = item.price?.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
   return (
     <div
       className={cardClasses}
@@ -35,14 +44,14 @@ const MenuItemCard = ({ item, onAddToCart, onUpdateQuantity, cartQty, isSelected
       role="button"
       tabIndex={isOutOfStock ? -1 : 0}
       aria-disabled={isOutOfStock}
-      aria-label={`${item.name} - Rp ${item.price?.toLocaleString('id-ID')}${isOutOfStock ? ' (Out of stock)' : ''}`}
+      aria-label={`${item.name} - Rp ${formattedPrice}${isOutOfStock ? ' (Out of stock)' : ''}`}
       onKeyDown={(e) => {
         if (e.key === 'Enter' && !isOutOfStock && cartQty === 0) onAddToCart(item);
       }}
     >
       <div className="menu-card-image">
         <img
-          src={item.image || '/placeholder-food.png'}
+          src={item.image || getPlaceholderImage(item.category)}
           alt={item.name}
           loading="lazy"
         />
@@ -55,7 +64,8 @@ const MenuItemCard = ({ item, onAddToCart, onUpdateQuantity, cartQty, isSelected
         </div>
 
         <div className="menu-card-footer">
-          <span className="menu-item-price">Rp {item.price?.toLocaleString('id-ID')}</span>
+          <span className="menu-item-price">Rp {formattedPrice}</span>
+
           
           <div className="menu-item-controls">
             {isOutOfStock ? (

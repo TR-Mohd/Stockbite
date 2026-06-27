@@ -12,6 +12,26 @@ from sqlalchemy.future import select
 
 async def seed_db():
     async with AsyncSessionLocal() as session:
+        from app.models import Transaction, TransactionItem
+        print("Checking if database already has transactions...")
+        result_ti = await session.execute(select(TransactionItem))
+        for ti in result_ti.scalars().all():
+            await session.delete(ti)
+        result_t = await session.execute(select(Transaction))
+        for t in result_t.scalars().all():
+            await session.delete(t)
+        await session.commit()
+
+        print("Checking if database already has recipes and menu items...")
+        result_recipes = await session.execute(select(Recipe))
+        for r in result_recipes.scalars().all():
+            await session.delete(r)
+        
+        result_menu = await session.execute(select(MenuItem))
+        for m in result_menu.scalars().all():
+            await session.delete(m)
+        await session.commit()
+
         print("Checking if database already has ingredients...")
         result = await session.execute(select(Ingredient))
         existing_ingredients = result.scalars().all()
@@ -115,17 +135,17 @@ async def seed_db():
 
         print("Seeding POS Menu Items...")
         
-        m1 = MenuItem(name="Classic Burger", price=8.99, category="Foods")
-        m2 = MenuItem(name="Cheeseburger", price=9.99, category="Foods")
-        m3 = MenuItem(name="Chicken Sandwich", price=7.99, category="Foods")
-        m4 = MenuItem(name="Fries", price=3.49, category="Foods")
+        m1 = MenuItem(name="Classic Burger", price=45000, category="Foods")
+        m2 = MenuItem(name="Cheeseburger", price=55000, category="Foods")
+        m3 = MenuItem(name="Chicken Sandwich", price=40000, category="Foods")
+        m4 = MenuItem(name="Fries", price=20000, category="Foods")
         
-        m5 = MenuItem(name="Cola", price=1.99, category="Beverage")
-        m6 = MenuItem(name="Fresh Lemonade", price=2.49, category="Beverage")
-        m7 = MenuItem(name="Iced Coffee", price=3.99, category="Beverage")
+        m5 = MenuItem(name="Cola", price=15000, category="Beverage")
+        m6 = MenuItem(name="Fresh Lemonade", price=25000, category="Beverage")
+        m7 = MenuItem(name="Iced Coffee", price=28000, category="Beverage")
         
-        m8 = MenuItem(name="Extra Cheese", price=1.00, category="Other")
-        m9 = MenuItem(name="Bacon Add-on", price=1.50, category="Other")
+        m8 = MenuItem(name="Extra Cheese", price=8000, category="Other")
+        m9 = MenuItem(name="Bacon Add-on", price=12000, category="Other")
         
         menu_items = [m1, m2, m3, m4, m5, m6, m7, m8, m9]
         session.add_all(menu_items)

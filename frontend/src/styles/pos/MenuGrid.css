@@ -6,7 +6,7 @@
   gap: var(--spacing-3);
   flex-wrap: wrap;
   background-color: transparent;
-  padding: var(--spacing-2) 0;
+  margin-bottom: var(--spacing-6);
   border-radius: 999px;
   width: fit-content;
 }
@@ -15,7 +15,7 @@
   padding: var(--spacing-2) var(--spacing-6);
   border: 1px solid var(--color-border);
   border-radius: 999px;
-  background-color: var(--color-bg-surface);
+  background-color: transparent;
   color: var(--color-text-secondary);
   font-family: var(--font-family-sans);
   font-size: var(--font-size-sm);
@@ -28,6 +28,7 @@
 .menu-category-tab:hover {
   border-color: var(--color-primary);
   color: var(--color-text-primary);
+  background-color: var(--color-bg-surface);
 }
 
 .menu-category-tab.active {
