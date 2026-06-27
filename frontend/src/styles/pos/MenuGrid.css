@@ -3,19 +3,19 @@
 /* Category Tabs */
 .menu-category-tabs {
   display: flex;
-  gap: var(--spacing-1);
+  gap: var(--spacing-3);
   flex-wrap: wrap;
-  background-color: var(--color-bg-base);
-  padding: var(--spacing-2);
+  background-color: transparent;
+  padding: var(--spacing-2) 0;
   border-radius: 999px;
   width: fit-content;
 }
 
 .menu-category-tab {
   padding: var(--spacing-2) var(--spacing-6);
-  border: none;
+  border: 1px solid var(--color-border);
   border-radius: 999px;
-  background-color: transparent;
+  background-color: var(--color-bg-surface);
   color: var(--color-text-secondary);
   font-family: var(--font-family-sans);
   font-size: var(--font-size-sm);
@@ -26,12 +26,14 @@
 }
 
 .menu-category-tab:hover {
+  border-color: var(--color-primary);
   color: var(--color-text-primary);
 }
 
 .menu-category-tab.active {
-  background-color: var(--color-bg-surface);
-  color: var(--color-text-primary);
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-inverse);
   box-shadow: var(--shadow-sm);
 }
 
@@ -91,11 +93,3 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .menu-category-tabs {
-    background-color: #363636;
-  }
-  .menu-category-tab.active {
-    background-color: #2a2a2a;
-  }
-}

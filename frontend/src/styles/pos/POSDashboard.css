@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: var(--color-bg-page);
+  background-color: var(--color-bg-base);
   font-family: var(--font-family-sans);
   overflow: hidden;
 }
@@ -15,7 +15,7 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-4) var(--spacing-6);
-  background-color: var(--color-bg-page);
+  background-color: var(--color-bg-surface);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -43,7 +43,7 @@
   left: var(--spacing-3);
   top: 50%;
   transform: translateY(-50%);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
   width: 16px;
   height: 16px;
   pointer-events: none;
@@ -51,13 +51,14 @@
 
 .pos-nav-search-input {
   width: 100%;
-  padding: var(--spacing-2) var(--spacing-4) var(--spacing-2) calc(var(--spacing-3) + 24px);
+  padding: 0.625rem 1rem 0.625rem calc(1rem + 24px);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-family: var(--font-family-sans);
-  font-size: var(--font-size-sm);
+  border-radius: 8px;
+  background-color: var(--color-bg-base);
   color: var(--color-text-primary);
-  background-color: var(--color-bg-surface);
+  font-family: inherit;
+  font-size: 0.875rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   transition: border-color var(--transition-fast);
 }
 
@@ -97,7 +98,7 @@
 }
 
 .btn-nav-logout:hover {
-  background-color: var(--color-error-bg);
+  background-color: rgba(239, 68, 68, 0.1);
   border-color: var(--color-error);
 }
 
@@ -106,7 +107,7 @@
   display: flex;
   flex: 1;
   overflow: hidden;
-  background-color: var(--color-bg-page);
+  background-color: var(--color-bg-base);
 }
 
 /* Left Panel — Menu Section (73%) */
@@ -148,6 +149,8 @@
   flex-direction: column;
   padding: var(--spacing-6);
   overflow-y: auto;
+  background-color: var(--color-bg-surface);
+  border-left: 1px solid var(--color-border);
 }
 
 .pos-cart-header {
@@ -212,7 +215,7 @@
 }
 
 .pos-summary-row.total .pos-summary-value {
-  color: var(--color-text-accent);
+  color: var(--color-primary);
   font-size: var(--font-size-xl);
 }
 

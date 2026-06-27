@@ -6,7 +6,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from app.database import AsyncSessionLocal
-from app.models import Supplier, Ingredient, User, RoleEnum
+from app.models import Supplier, Ingredient, User, RoleEnum, MenuItem, Recipe
 from app.auth import get_password_hash
 from sqlalchemy.future import select
 
@@ -25,12 +25,23 @@ async def seed_db():
         print("Checking if database already has users...")
         result = await session.execute(select(User))
         existing_users = result.scalars().all()
-        if not existing_users:
-            print("Seeding dummy users...")
-            manager_user = User(name="admin", role=RoleEnum.Manager, hashed_password=get_password_hash("admin123"))
-            warehouse_user = User(name="warehouse", role=RoleEnum.Warehouse, hashed_password=get_password_hash("warehouse123"))
-            session.add_all([manager_user, warehouse_user])
+        
+        if existing_users:
+            print("Database already contains users. Clearing them...")
+            for u in existing_users:
+                await session.delete(u)
             await session.commit()
+            
+        print("Seeding team users...")
+        users = [
+            User(name="mohammed", role=RoleEnum.Manager, hashed_password=get_password_hash("password123")),
+            User(name="daffa", role=RoleEnum.Cashier, hashed_password=get_password_hash("password123")),
+            User(name="anita", role=RoleEnum.Manager, hashed_password=get_password_hash("password123")),
+            User(name="abel", role=RoleEnum.Warehouse, hashed_password=get_password_hash("password123")),
+            User(name="farrell", role=RoleEnum.Manager, hashed_password=get_password_hash("password123")),
+        ]
+        session.add_all(users)
+        await session.commit()
             
         print("Seeding dummy data...")
         
@@ -83,7 +94,57 @@ async def seed_db():
         
         session.add_all(ingredients)
         await session.commit()
-        print(f"Successfully seeded {len(ingredients)} ingredients and 3 suppliers!")
+        
+        # Refresh to get IDs
+        for ing in ingredients:
+            await session.refresh(ing)
+            
+        print("Checking if database already has menu items...")
+        result = await session.execute(select(MenuItem))
+        existing_menu_items = result.scalars().all()
+        
+        if existing_menu_items:
+            print("Database already contains menu items. Clearing them (and recipes)...")
+            result_recipes = await session.execute(select(Recipe))
+            existing_recipes = result_recipes.scalars().all()
+            for r in existing_recipes:
+                await session.delete(r)
+            for m in existing_menu_items:
+                await session.delete(m)
+            await session.commit()
+
+        print("Seeding POS Menu Items...")
+        
+        m1 = MenuItem(name="Classic Burger", price=8.99, category="Foods")
+        m2 = MenuItem(name="Cheeseburger", price=9.99, category="Foods")
+        m3 = MenuItem(name="Chicken Sandwich", price=7.99, category="Foods")
+        m4 = MenuItem(name="Fries", price=3.49, category="Foods")
+        
+        m5 = MenuItem(name="Cola", price=1.99, category="Beverage")
+        m6 = MenuItem(name="Fresh Lemonade", price=2.49, category="Beverage")
+        m7 = MenuItem(name="Iced Coffee", price=3.99, category="Beverage")
+        
+        m8 = MenuItem(name="Extra Cheese", price=1.00, category="Other")
+        m9 = MenuItem(name="Bacon Add-on", price=1.50, category="Other")
+        
+        menu_items = [m1, m2, m3, m4, m5, m6, m7, m8, m9]
+        session.add_all(menu_items)
+        await session.commit()
+        
+        for m in menu_items:
+            await session.refresh(m)
+            
+        print("Seeding Recipes...")
+        # Just simple recipes linking to ingredients
+        recipes = [
+            Recipe(menu_item_id=m1.id, ingredient_id=ingredients[0].id, quantity=0.2), # Ground Beef
+            Recipe(menu_item_id=m1.id, ingredient_id=ingredients[3].id, quantity=1.0), # Burger Bun
+            Recipe(menu_item_id=m5.id, ingredient_id=ingredients[16].id, quantity=1.0), # Cola Can
+        ]
+        session.add_all(recipes)
+        await session.commit()
+
+        print(f"Successfully seeded {len(ingredients)} ingredients, 3 suppliers, and {len(menu_items)} menu items!")
 
 if __name__ == "__main__":
     asyncio.run(seed_db())
