@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../../styles/inventory/InventoryDashboard.css';
 import { InventoryTable } from './InventoryTable';
 import { Button } from '../../components/ui/Button';
+import { useAuthStore } from '../../core/store/authStore';
 import api from '../../core/api/axios'; // Use pre-configured Axios
 
 // Modals
@@ -11,6 +12,9 @@ import { AdjustStockModal } from './modals/AdjustStockModal';
 import { LogWasteModal } from './modals/LogWasteModal';
 
 export const InventoryDashboard = () => {
+  const logout = useAuthStore((state) => state.logout);
+  const user = useAuthStore((state) => state.user);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('All');
   const [filterStatus, setFilterStatus] = useState('All');
@@ -131,8 +135,8 @@ export const InventoryDashboard = () => {
             <Button variant="primary" onClick={() => setIsReceiveModalOpen(true)}>Receive Stock</Button>
             
             <div className="header-user-actions">
-              <span className="user-greeting">Hi, Mohammed</span>
-              <button className="logout-button" aria-label="Log out">
+              <span className="user-greeting">Hi, {user?.username || 'User'}</span>
+              <button className="logout-button" aria-label="Log out" onClick={logout}>
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
                   width="18" 
