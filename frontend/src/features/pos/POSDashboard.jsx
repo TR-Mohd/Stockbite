@@ -33,6 +33,7 @@ const LogoutIcon = () => (
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
+    className="pos-logout-icon"
   >
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
     <polyline points="16 17 21 12 16 7" />
@@ -114,29 +115,19 @@ const POSDashboard = () => {
   return (
     <div className="pos-layout-container">
       {/* Top Navigation Bar */}
-      <nav className="pos-navbar">
-        <h1 className="pos-navbar-brand">Point of Sale</h1>
-        <div className="pos-navbar-actions">
-          <div className="pos-nav-search">
-            <SearchIcon />
-            <input
-              type="text"
-              className="pos-nav-search-input"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Search menu items"
-            />
-          </div>
-          
-          <div className="pos-navbar-user">
-            {(user?.username || user?.name) && <span className="pos-user-name">Hi, {user.username || user.name}</span>}
-            <button className="btn-nav-logout" onClick={logout} title="Logout">
-              <LogoutIcon />
-            </button>
+      <header className="pos-header-nav">
+        <div className="pos-header-container">
+          <h1>Point of Sale</h1>
+          <div className="pos-header-actions">
+            <div className="pos-header-user-actions">
+              {(user?.username || user?.name) && <span className="pos-user-greeting">Hi, {user.username || user.name}</span>}
+              <button className="pos-logout-button" aria-label="Log out" onClick={logout} title="Logout">
+                <LogoutIcon />
+              </button>
+            </div>
           </div>
         </div>
-      </nav>
+      </header>
 
       <div className="pos-main-content">
         {/* Left Panel — Product Menu (73%) */}
@@ -144,6 +135,17 @@ const POSDashboard = () => {
           <header className="pos-header">
             <div>
               <h2 className="pos-header-title">Menu</h2>
+            </div>
+            <div className="pos-nav-search">
+              <SearchIcon />
+              <input
+                type="text"
+                className="pos-nav-search-input"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Search menu items"
+              />
             </div>
           </header>
 
@@ -177,15 +179,15 @@ const POSDashboard = () => {
           <div className="pos-order-summary">
             <div className="pos-summary-row">
               <span>Subtotal ({totalItemCount})</span>
-              <span>Rp {subtotal.toLocaleString('id-ID')}</span>
+              <span>Rp {subtotal.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
             </div>
             <div className="pos-summary-row">
               <span>Tax (11%)</span>
-              <span>Rp {tax.toLocaleString('id-ID')}</span>
+              <span>Rp {tax.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
             </div>
             <div className="pos-summary-row total">
               <span>Total Payment</span>
-              <span className="pos-summary-value">Rp {cartTotal.toLocaleString('id-ID')}</span>
+              <span className="pos-summary-value">Rp {cartTotal.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
             </div>
           </div>
 

@@ -48,3 +48,10 @@
 | 2026-06-27 11:00Z | Backend DB & Endpoints | Added category column to ingredients, implemented bulk-receive endpoint, and created `seed.py` for dummy users/data. | ✅ Completed | *"I do not see anything in the inventory. Check where did I ran the npm"* |
 | 2026-06-27 11:05Z | Frontend API Integration | Connected Receive Stock, Draft PO, Adjust Stock, and Log Waste modals to real backend endpoints using Axios. | ✅ Completed | *"When I recieve bulk stock, the data is not saved in the db..."* |
 | 2026-06-27 11:20Z | CSS Refactoring & Auth Actions | Refactored Inventory CSS files into `styles/` folder. Appended user greeting (dynamic username) and functional logout button to header. | ✅ Completed | *"move all the css files created for the inventory out of the features to the styles"* |
+
+## Phase 3: Point of Sale Development
+
+| Timestamp | Task | Description | Status | Prompts & Commands Used |
+| :--- | :--- | :--- | :--- | :--- |
+| 2026-06-27 15:30Z | POS UI Enhancements & Formatting | Fixed IDR currency formatting, implemented placeholder category images, updated pill designs to match Inventory style, and aligned layout components. | ✅ Completed | Multiple user prompts |
+| 2026-06-27 15:40Z | Header Layout Fix | Moved the search bar next to the Menu title and expanded the top navigation bar to align with page content paddings. | ✅ Completed | *"put the Hi, {user} to the absolout right and the Point of Sale to the left..."* |
