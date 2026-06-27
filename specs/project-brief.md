@@ -6,7 +6,7 @@ An integrated Management Information System for fast-paced franchise restaurants
 
 | | |
 | --- | --- |
-| **Version** | v1.0 - Draft |
+| **Version** | v2.0 - Draft |
 | **Date** | 19 June 2026 |
 | **Team** | MBG (Mahasiswa Berprestasi Global) |
 | **Product Owner** | Mohammed Aatef Saleh |
