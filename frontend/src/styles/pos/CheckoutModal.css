@@ -216,12 +216,14 @@
 }
 
 .btn-modal-cancel {
-  background-color: var(--color-text-secondary);
-  color: var(--color-text-inverse);
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
 }
 
 .btn-modal-cancel:hover:not(:disabled) {
-  opacity: 0.85;
+  background-color: var(--color-bg-surface-hover);
+  color: var(--color-text-primary);
 }
 
 .btn-modal-confirm {

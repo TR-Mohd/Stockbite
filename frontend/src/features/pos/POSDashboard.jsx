@@ -115,7 +115,7 @@ const POSDashboard = () => {
     <div className="pos-layout-container">
       {/* Top Navigation Bar */}
       <nav className="pos-navbar">
-        <h1 className="pos-navbar-brand">Stockbite</h1>
+        <h1 className="pos-navbar-brand">Point of Sale</h1>
         <div className="pos-navbar-actions">
           <div className="pos-nav-search">
             <SearchIcon />
@@ -143,8 +143,7 @@ const POSDashboard = () => {
         <section className="pos-menu-section">
           <header className="pos-header">
             <div>
-              <h2 className="pos-header-title">Point of Sale</h2>
-              <p className="pos-header-subtitle">Menu</p>
+              <h2 className="pos-header-title">Menu</h2>
             </div>
           </header>
 
