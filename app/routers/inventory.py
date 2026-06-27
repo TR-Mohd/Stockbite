@@ -6,7 +6,7 @@ from typing import List
 from ..database import get_db
 from ..auth import role_required
 from ..models import User, RoleEnum, Ingredient, AuditLog
-from ..schemas import IngredientResponse
+from ..schemas import IngredientResponse, BulkReceiveRequest
 
 router = APIRouter(prefix="/inventory", tags=["Inventory"])
 
@@ -53,3 +53,29 @@ async def adjust_stock(
     await db.commit()
     await db.refresh(ingredient)
     return ingredient
+
+@router.post("/bulk-receive")
+async def bulk_receive(
+    request: BulkReceiveRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Warehouse, RoleEnum.Manager]))
+):
+    updates = []
+    for item in request.items:
+        result = await db.execute(select(Ingredient).where(Ingredient.id == item.ingredient_id))
+        ingredient = result.scalars().first()
+        
+        if ingredient:
+            ingredient.stock_level += item.quantity
+            updates.append(ingredient)
+            
+            audit = AuditLog(
+                user_id=current_user.id,
+                action="Bulk Receive",
+                resource=f"Ingredient:{ingredient.name}",
+                outcome="Success"
+            )
+            db.add(audit)
+            
+    await db.commit()
+    return {"message": f"Successfully updated {len(updates)} ingredients."}
