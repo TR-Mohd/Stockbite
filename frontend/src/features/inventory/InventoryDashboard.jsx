@@ -63,44 +63,46 @@ export const InventoryDashboard = () => {
           </div>
         </div>
 
-        <div className="inventory-controls-panel">
-          <div className="search-filter-bar">
-            <div className="search-input">
-              <input 
-                type="text" 
-                placeholder="Search ingredients..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="inventory-input"
-              />
-            </div>
-            <div className="filter-group">
-              <select 
-                value={filterCategory} 
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className="inventory-select"
-              >
-                <option value="All">All Categories</option>
-                <option value="Meat">Meat</option>
-                <option value="Bakery">Bakery</option>
-                <option value="Produce">Produce</option>
-              </select>
-              <select 
-                value={filterStatus} 
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="inventory-select"
-              >
-                <option value="All">All Statuses</option>
-                <option value="Normal">Normal</option>
-                <option value="Low">Low Stock</option>
-                <option value="Out of Stock">Out of Stock</option>
-              </select>
+        <div className="inventory-table-section">
+          <div className="inventory-controls-panel">
+            <div className="search-filter-bar">
+              <div className="search-input">
+                <input 
+                  type="text" 
+                  placeholder="Search ingredients..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="inventory-input"
+                />
+              </div>
+              <div className="filter-group">
+                <select 
+                  value={filterCategory} 
+                  onChange={(e) => setFilterCategory(e.target.value)}
+                  className="inventory-select"
+                >
+                  <option value="All">All Categories</option>
+                  <option value="Meat">Meat</option>
+                  <option value="Bakery">Bakery</option>
+                  <option value="Produce">Produce</option>
+                </select>
+                <select 
+                  value={filterStatus} 
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="inventory-select"
+                >
+                  <option value="All">All Statuses</option>
+                  <option value="Normal">Normal</option>
+                  <option value="Low">Low Stock</option>
+                  <option value="Out of Stock">Out of Stock</option>
+                </select>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="inventory-content">
-          <InventoryTable data={filteredData} />
+          <div className="inventory-content">
+            <InventoryTable data={filteredData} />
+          </div>
         </div>
       </div>
     </div>
