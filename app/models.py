@@ -33,6 +33,7 @@ class User(Base):
     name = Column(String, nullable=False)
     role = Column(Enum(RoleEnum), nullable=False)
     hashed_password = Column(String, nullable=False)
+    is_active = Column(Boolean, default=True)
 
 class Shift(Base):
     __tablename__ = "shifts"
@@ -53,6 +54,8 @@ class Supplier(Base):
     phone = Column(String)
     email = Column(String)
     address = Column(String)
+    contact_person = Column(String)
+    is_active = Column(Boolean, default=True)
 
 class Ingredient(Base):
     __tablename__ = "ingredients"

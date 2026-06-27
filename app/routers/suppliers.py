@@ -6,7 +6,7 @@ from typing import List
 from ..database import get_db
 from ..auth import role_required
 from ..models import User, RoleEnum, Supplier, PurchaseOrder, AuditLog
-from ..schemas import SupplierResponse
+from ..schemas import SupplierResponse, SupplierCreate, SupplierUpdate
 
 router = APIRouter(prefix="/suppliers", tags=["Suppliers"])
 
@@ -15,8 +15,56 @@ async def get_suppliers(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(role_required([RoleEnum.Manager]))
 ):
-    result = await db.execute(select(Supplier))
+    result = await db.execute(select(Supplier).order_by(Supplier.name))
     return result.scalars().all()
+
+@router.post("/", response_model=SupplierResponse)
+async def create_supplier(
+    supplier: SupplierCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    new_supplier = Supplier(**supplier.model_dump())
+    db.add(new_supplier)
+    await db.commit()
+    await db.refresh(new_supplier)
+    return new_supplier
+
+@router.put("/{supplier_id}", response_model=SupplierResponse)
+async def update_supplier(
+    supplier_id: str,
+    supplier_update: SupplierUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    result = await db.execute(select(Supplier).filter(Supplier.id == supplier_id))
+    supplier = result.scalars().first()
+    if not supplier:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    
+    update_data = supplier_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(supplier, key, value)
+        
+    await db.commit()
+    await db.refresh(supplier)
+    return supplier
+
+@router.put("/{supplier_id}/toggle-status", response_model=SupplierResponse)
+async def toggle_supplier_status(
+    supplier_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    result = await db.execute(select(Supplier).filter(Supplier.id == supplier_id))
+    supplier = result.scalars().first()
+    if not supplier:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    
+    supplier.is_active = not supplier.is_active
+    await db.commit()
+    await db.refresh(supplier)
+    return supplier
 
 @router.post("/{supplier_id}/po")
 async def create_purchase_order(
