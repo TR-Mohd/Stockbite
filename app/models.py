@@ -61,6 +61,7 @@ class Ingredient(Base):
     stock_level = Column(Float, default=0.0)
     unit = Column(String, nullable=False)
     reorder_point = Column(Float, default=0.0)
+    category = Column(String, default="Uncategorized")
     last_updated = Column(DateTime, default=datetime.utcnow)
     preferred_supplier_id = Column(String, ForeignKey("suppliers.id"), nullable=True)
     version_id = Column(Integer, nullable=False, default=1)

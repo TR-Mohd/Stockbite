@@ -28,10 +28,18 @@ class IngredientResponse(BaseModel):
     stock_level: float
     unit: str
     reorder_point: float
+    category: Optional[str] = "Uncategorized"
     last_updated: datetime
     preferred_supplier_id: Optional[str] = None
     version_id: int
     model_config = ConfigDict(from_attributes=True)
+
+class BulkReceiveItem(BaseModel):
+    ingredient_id: str
+    quantity: float
+
+class BulkReceiveRequest(BaseModel):
+    items: List[BulkReceiveItem]
 
 class MenuItemResponse(BaseModel):
     id: str
