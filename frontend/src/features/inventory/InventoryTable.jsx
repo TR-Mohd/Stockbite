@@ -1,5 +1,5 @@
-import React from 'react';
-import './InventoryTable.css';
+import React, { useState, useMemo } from 'react';
+import '../../styles/inventory/InventoryTable.css';
 import { ROPAlertBadge } from './ROPAlertBadge';
 import { Button } from '../../components/ui/Button';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import './ROPAlertBadge.css';
+import '../../styles/inventory/ROPAlertBadge.css';
 
 export const ROPAlertBadge = ({ stock, rop }) => {
   const isOutOfStock = stock === 0;
