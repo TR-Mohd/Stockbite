@@ -6,6 +6,21 @@
   color: var(--color-text-primary, #f9fafb);
 }
 
+.primaryBtn {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse, white);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.primaryBtn:hover {
+  background-color: var(--color-primary-hover);
+}
+
 .topNav {
   display: flex;
   justify-content: space-between;
@@ -35,7 +50,7 @@
 
 .logoutBtn {
   background: none;
-  border: none;
+  border: 1px solid var(--color-border);
   color: var(--color-text-secondary, #9ca3af);
   cursor: pointer;
   padding: 0.5rem;
@@ -43,12 +58,13 @@
   align-items: center;
   justify-content: center;
   border-radius: 4px;
-  transition: color 0.2s, background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .logoutBtn:hover {
-  color: #ef4444;
+  color: var(--color-error, #ef4444);
   background-color: rgba(239, 68, 68, 0.1);
+  border-color: var(--color-error, #ef4444);
 }
 
 .dashboardContent {
@@ -107,7 +123,10 @@
 .dropdownList {
   position: absolute;
   top: 100%;
+  left: 0;
   right: 0;
+  width: 100%;
+  box-sizing: border-box;
   margin-top: 0.5rem;
   margin-bottom: 0;
   background-color: var(--color-bg-surface);
@@ -116,7 +135,6 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   list-style: none;
   padding: 0.5rem 0;
-  min-width: 150px;
   z-index: 50;
 }
 
@@ -341,4 +359,66 @@
   .chartsGrid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Staff Management & Modal Classes */
+.dashboardContainerAuto {
+  min-height: auto;
+}
+
+.tableSection {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.inactiveRow {
+  opacity: 0.6;
+}
+
+.statusInactive {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background-color: var(--color-error-bg, rgba(239, 68, 68, 0.1));
+  color: var(--color-error, #ef4444);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.editActionBtn {
+  border: 1px solid var(--color-border);
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  background: transparent;
+}
+
+.toggleActionBtn {
+  border: 1px solid var(--color-error, #ef4444);
+  padding: 0.25rem 0;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-error, #ef4444);
+  width: 85px;
+  text-align: center;
+  background: transparent;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }

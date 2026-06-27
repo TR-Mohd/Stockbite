@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import styles from './Modal.module.css';
 
-export const Modal = ({ isOpen, onClose, title, children, footer, size = 'default' }) => {
+export const Modal = ({ isOpen, onClose, title, children, footer, size = 'default', disableOutsideClick = false }) => {
   // Prevent body scroll when open
   useEffect(() => {
     if (isOpen) {
@@ -17,7 +17,7 @@ export const Modal = ({ isOpen, onClose, title, children, footer, size = 'defaul
   if (!isOpen) return null;
 
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
+    <div className={styles.modalOverlay} onClick={disableOutsideClick ? undefined : onClose}>
       <div 
         className={`${styles.modalContent} ${size === 'large' ? styles.large : ''}`}
         onClick={(e) => e.stopPropagation()}
