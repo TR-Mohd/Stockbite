@@ -22,6 +22,13 @@ class UserResponse(UserBase):
     id: str
     model_config = ConfigDict(from_attributes=True)
 
+class StaffResponse(BaseModel):
+    id: str
+    name: str
+    role: str
+    last_active: Optional[datetime] = None
+    status: str
+
 class IngredientResponse(BaseModel):
     id: str
     name: str
