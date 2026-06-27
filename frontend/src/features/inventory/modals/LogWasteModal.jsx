@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
-import './InventoryModals.css';
+import { Input } from '../../../components/ui/Input';
+import '../../../styles/inventory/modals/InventoryModals.css';
 
 export const LogWasteModal = ({ isOpen, onClose, ingredient, onSubmit }) => {
   const [wasteQty, setWasteQty] = useState('');
