@@ -7,8 +7,9 @@ import { InventoryDashboard } from './features/inventory/InventoryDashboard';
 import { ManagerDashboard } from './features/manager/ManagerDashboard';
 import { useAuthStore } from './core/store/authStore';
 
-// Dummy components for other features (to be built by other agents)
-const SuppliersDummy = () => <div style={{ padding: '2rem' }}><h1>Suppliers Module</h1><p>Reserved for Anita</p></div>;
+import { ManagerLayout } from './components/layout/ManagerLayout';
+import { SupplierDirectory } from './features/manager/SupplierDirectory';
+import { StaffManagement } from './features/manager/StaffManagement';
 
 const RoleRedirect = () => {
   const { user } = useAuthStore();
@@ -34,11 +35,12 @@ function App() {
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={['Manager']} />}>
-          <Route path="/manager/dashboard" element={<ManagerDashboard />} />
-        </Route>
-        
-        <Route element={<ProtectedRoute allowedRoles={['Warehouse', 'Manager']} />}>
-          <Route path="/suppliers" element={<SuppliersDummy />} />
+          <Route path="/manager" element={<ManagerLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<ManagerDashboard />} />
+            <Route path="suppliers" element={<SupplierDirectory />} />
+            <Route path="staff" element={<StaffManagement />} />
+          </Route>
         </Route>
 
         {/* Fallback */}

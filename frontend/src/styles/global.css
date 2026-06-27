@@ -72,12 +72,12 @@
 /* Dark Mode Variables */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg-base: #2a2a2a;
-    --color-bg-surface: #363636;
-    --color-bg-surface-hover: #444444;
+    --color-bg-base: #1E1B1A; /* Updated to requested dark theme token */
+    --color-bg-surface: #262220; /* Updated to requested dark theme token */
+    --color-bg-surface-hover: #3A3532;
     
     --color-text-primary: #F9FAFB; /* Gray 50 */
-    --color-text-secondary: #D1D5DB; /* Gray 300 */
+    --color-text-secondary: #9B958F; /* Gray 300 equivalent */
     --color-text-tertiary: #9CA3AF; /* Gray 400 */
     --color-text-accent: #FFFFFF; /* White in dark mode */
     
@@ -85,9 +85,9 @@
     --color-primary: #e16f2d; /* Requested orange */
     --color-primary-hover: #c95d22; /* Slightly darker orange for hover */
     --color-primary-light: #f08b50; /* Lighter orange */
-    --color-bg-page: #2a2a2a;
-    --color-border: #4a4a4a; /* Adjusted for contrast */
-    --color-border-strong: #5a5a5a; /* Adjusted for contrast */
+    --color-bg-page: #1E1B1A;
+    --color-border: #3A3532; /* Adjusted for contrast */
+    --color-border-strong: #4a4a4a; /* Adjusted for contrast */
     --color-border-selected: #9CA3AF; /* Lighter gray for selected cards in dark mode */
     --color-success-bg: rgba(16, 185, 129, 0.1);
     --color-success-border: #10B981;

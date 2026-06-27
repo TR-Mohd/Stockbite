@@ -18,9 +18,21 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
 
+class UserUpdate(BaseModel):
+    name: str
+    role: RoleEnum
+    password: Optional[str] = None
+
 class UserResponse(UserBase):
     id: str
     model_config = ConfigDict(from_attributes=True)
+
+class StaffResponse(BaseModel):
+    id: str
+    name: str
+    role: str
+    last_active: Optional[datetime] = None
+    status: str
 
 class IngredientResponse(BaseModel):
     id: str
@@ -72,11 +84,21 @@ class TransactionResponse(BaseModel):
     status: StatusEnum
     model_config = ConfigDict(from_attributes=True)
 
-class SupplierResponse(BaseModel):
-    id: str
+class SupplierBase(BaseModel):
     name: str
-    specialization: Optional[str]
-    phone: Optional[str]
-    email: Optional[str]
-    address: Optional[str]
+    specialization: Optional[str] = None
+    contact_person: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None
+
+class SupplierCreate(SupplierBase):
+    pass
+
+class SupplierUpdate(SupplierBase):
+    pass
+
+class SupplierResponse(SupplierBase):
+    id: str
+    is_active: bool
     model_config = ConfigDict(from_attributes=True)

@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from .database import get_db
-from .models import User, RoleEnum
+from .models import User, RoleEnum, AuditLog
 from .schemas import TokenData
 
 SECRET_KEY = "my_super_secret_key_for_stockbite_mvp"
@@ -81,6 +81,17 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token = create_access_token(
         data={"sub": user.name, "role": user.role.value}, expires_delta=access_token_expires
     )
+    
+    # Record login activity
+    audit_log = AuditLog(
+        user_id=user.id,
+        action="login",
+        resource="auth",
+        outcome="success"
+    )
+    db.add(audit_log)
+    await db.commit()
+
     return {
         "access_token": access_token,
         "token_type": "bearer",

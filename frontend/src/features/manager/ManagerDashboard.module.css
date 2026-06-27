@@ -1,0 +1,344 @@
+.dashboardContainer {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg-base);
+  min-height: 100vh;
+  color: var(--color-text-primary, #f9fafb);
+}
+
+.topNav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.navBrand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-brand, #E0782E);
+}
+
+.navUser {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.userName {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary, #9ca3af);
+}
+
+.logoutBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary, #9ca3af);
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.logoutBtn:hover {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.dashboardContent {
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  gap: 2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+
+.subtitle {
+  color: var(--color-text-secondary, #9ca3af);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.dateFilterContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+.customSelect {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.chevron {
+  color: var(--color-text-tertiary);
+  transition: transform 0.2s ease;
+}
+
+.dropdownList {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  list-style: none;
+  padding: 0.5rem 0;
+  min-width: 150px;
+  z-index: 50;
+}
+
+.dropdownItem {
+  padding: 0.5rem 1rem;
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dropdownItem:hover {
+  background-color: var(--color-border);
+}
+
+.dropdownItem.selected {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse, #fff);
+  font-weight: 600;
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+.leftColumn, .rightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.chartCard {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.chartWrapper {
+  height: 300px;
+  width: 100%;
+}
+
+/* Heatmap Styles */
+.heatmapContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+}
+
+.heatmapYAxis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding-bottom: 2rem; /* account for X axis height */
+}
+
+.heatmapLabelY {
+  font-size: 0.75rem;
+  color: #9B958F;
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.heatmapContent {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.heatmapGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.heatmapRow {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  gap: 4px;
+  height: 24px;
+}
+
+.heatmapCell {
+  border-radius: 2px;
+  transition: transform 0.1s ease;
+  min-width: 12px;
+}
+
+.heatmapCell:hover {
+  transform: scale(1.2);
+  z-index: 10;
+}
+
+.heatmapXAxis {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  gap: 4px;
+  margin-top: 0.5rem;
+}
+
+.heatmapLabelX {
+  font-size: 0.7rem;
+  color: #9B958F;
+  text-align: left;
+}
+
+
+/* Best Sellers Styles */
+.bestSellersList {
+  display: flex;
+  flex-direction: column;
+}
+
+.bestSellerItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.bestSellerItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.itemThumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  object-fit: cover;
+  background-color: var(--color-border);
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.itemName {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.itemQty {
+  color: var(--color-text-secondary, #9ca3af);
+  font-size: 0.8rem;
+}
+
+.itemRevenue {
+  font-weight: 700;
+  color: var(--color-brand, #E0782E);
+}
+
+/* Market Basket Analysis Styles */
+.marketBasketList {
+  display: flex;
+  flex-direction: column;
+}
+
+.marketBasketItem {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--color-border);
+  gap: 0.5rem;
+}
+
+.marketBasketItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.basketPair {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.basketMetrics {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+}
+
+.basketTimes {
+  color: #9ca3af;
+}
+
+.basketConfidence {
+  color: #10b981;
+  font-weight: 600;
+  background-color: rgba(16, 185, 129, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .chartsGrid {
+    grid-template-columns: 1fr;
+  }
+}
