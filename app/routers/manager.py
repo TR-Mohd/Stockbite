@@ -7,7 +7,37 @@ from ..database import get_db
 from ..auth import role_required
 from ..models import User, RoleEnum, Transaction, TransactionItem, StatusEnum
 
+from typing import List
+from ..schemas import StaffResponse
+
 router = APIRouter(prefix="/manager", tags=["Manager BI"])
+
+@router.get("/staff", response_model=List[StaffResponse])
+async def get_staff(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    result = await db.execute(select(User))
+    users = result.scalars().all()
+    
+    staff_list = []
+    for u in users:
+        # Find latest transaction as proxy for last active
+        last_active = None
+        if u.role == RoleEnum.Cashier:
+            res = await db.execute(
+                select(func.max(Transaction.timestamp)).where(Transaction.cashier_id == u.id)
+            )
+            last_active = res.scalar()
+        
+        staff_list.append({
+            "id": u.id,
+            "name": u.name,
+            "role": u.role.value,
+            "last_active": last_active,
+            "status": "Active" # Mock status for now
+        })
+    return staff_list
 
 @router.get("/dashboard/kpis")
 async def get_kpis(
