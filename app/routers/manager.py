@@ -132,6 +132,27 @@ async def toggle_staff_status(
     await db.commit()
     return {"message": "Status updated", "status": "Active" if user.is_active else "Inactive"}
 
+@router.delete("/staff/{user_id}")
+async def delete_staff(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    if current_user.name != "mohammed":
+        raise HTTPException(status_code=403, detail="Only Mohammed can delete employees")
+
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot delete yourself")
+
+    res = await db.execute(select(User).where(User.id == user_id))
+    user = res.scalars().first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    await db.delete(user)
+    await db.commit()
+    return {"message": "Employee deleted"}
+
 @router.get("/dashboard/kpis")
 async def get_kpis(
     db: AsyncSession = Depends(get_db),
