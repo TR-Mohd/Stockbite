@@ -84,30 +84,3 @@
 | 2026-06-28 00:43Z | Automated Task | feat(manager): implement supplier and staff management dashboards with CRUD integration | ✅ Completed | Automate Worklog Consolidation |
 | 2026-06-28 00:45Z | Git Branching & Merging | Advised on merge order (Backend first, then Frontend). Resolved a tricky Git merge conflict in `manager.py` locally and pushed to GitHub for seamless PR merge. | ✅ Completed | *"compare between feature/mohammed-pos and feature/mohammed-pos-logic..."* |
 | 2026-06-28 00:55Z | Worktree Sync (Anita) | Fast-forwarded Anita's `feature/mohammed-manager-bi` branch by merging `main` into it so development could cleanly transition to the correct worktree. | ✅ Completed | *"I wanna push the builing of this pages to that branch"* |
-| 2026-06-28 08:35Z | Admin Staff Deletion UI | Developed strict UI rendering for a 'Fire Employee' button exclusively for the admin account. Built a responsive confirmation modal and fixed region constant mapping for suppliers. | ✅ Completed | Multiple user prompts |
-| 2026-06-28 15:35Z | Automated Task | feat(ui): add admin staff deletion modal and fix supplier region rendering | ✅ Completed | Automate Worklog Consolidation |
-
-## Phase 2: Suppliers & Purchase Orders
-
-| Timestamp | Task | Description | Status | Prompts & Commands Used |
-| :--- | :--- | :--- | :--- | :--- |
-| 2026-06-20 08:37Z | Inventory & Suppliers | Implemented REST endpoints for stock adjustment, low-stock alerts, and drafting purchase orders. | ✅ Completed | `/gsd-execute-phase 1` |
-| 2026-06-28 00:30Z | Supplier Directory & DB Sync | Built `SupplierDirectory.jsx`. Updated `models.py` (added `contact_person`, `is_active`). Migrated DB, purged duplicate records, and restored correct mock data. Connected frontend buttons to backend CRUD endpoints. | ✅ Completed | *"Restore the previous db. just make sure the db is connected... Action column"* |
-| 2026-06-28 14:59Z | Automated Task | feat(backend): support custom ID generation for suppliers and employees | ✅ Completed | Automate Worklog Consolidation |
-
-## Phase 2: Inventory Management
-
-| Timestamp | Task | Description | Status | Prompts & Commands Used |
-| :--- | :--- | :--- | :--- | :--- |
-| 2026-06-26 23:20Z | Scaffold Inventory Dashboard | Implemented InventoryDashboard, InventoryTable, and ROPAlertBadge with pure CSS adhering to POS style. | ✅ Completed | Initial scaffolding prompt. |
-| 2026-06-26 23:40Z | Redesign Inventory UI | Added summary strip, stock sparklines, secondary action icons, and updated sorting logic by status. | ✅ Completed | *"Redesign the Inventory Management screen..."* |
-| 2026-06-27 10:39Z | Automated Task | style(inventory): switch filter bar to independent pills and elevate table into separate card | ✅ Completed | Automate Worklog Consolidation |
-| 2026-06-27 10:51Z | Automated Task | feat(inventory): connect inventory dashboard to backend database endpoints | ✅ Completed | Automate Worklog Consolidation |
-| 2026-06-27 10:52Z | Automated Task | feat(inventory): connect inventory dashboard to backend database endpoints | ✅ Completed | Automate Worklog Consolidation |
-| 2026-06-27 11:00Z | Backend DB & Endpoints | Added category column to ingredients, implemented bulk-receive endpoint, and created `seed.py` for dummy users/data. | ✅ Completed | *"I do not see anything in the inventory. Check where did I ran the npm"* |
-| 2026-06-27 11:05Z | Automated Task | chore(database): add seed script with dummy users and inventory data | ✅ Completed | Automate Worklog Consolidation |
-| 2026-06-27 11:05Z | Frontend API Integration | Connected Receive Stock, Draft PO, Adjust Stock, and Log Waste modals to real backend endpoints using Axios. | ✅ Completed | *"When I recieve bulk stock, the data is not saved in the db..."* |
-| 2026-06-27 11:19Z | Automated Task | refactor(inventory): move css to styles folder and add header user actions | ✅ Completed | Automate Worklog Consolidation |
-| 2026-06-27 15:30Z | POS UI Enhancements & Formatting | Fixed IDR currency formatting, implemented placeholder category images, updated pill designs to match Inventory style, and aligned layout components. | ✅ Completed | Multiple user prompts |
-| 2026-06-28 00:00Z | Docker Conflicts & Dev Setup | Resolved Docker naming conflict for `stockbite_db`. Synchronized and started backend/frontend servers across worktrees. | ✅ Completed | Multiple user prompts |
-

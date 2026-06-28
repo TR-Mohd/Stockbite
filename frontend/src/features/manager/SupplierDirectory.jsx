@@ -2,6 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import '../../styles/inventory/InventoryTable.css';
 import styles from '../../styles/manager/ManagerDashboard.module.css';
 import { SupplierModal } from './SupplierModal';
+import { capitalize, formatPhoneNumber } from '../../utils/formatters';
+import { REGIONS } from '../../constants/regions';
+import { generateSupplierId } from '../../utils/idGenerator';
 
 export const SupplierDirectory = () => {
   const [suppliers, setSuppliers] = useState([]);
@@ -52,6 +55,20 @@ export const SupplierDirectory = () => {
   const handleSaveSupplier = async (formData) => {
     try {
       const isEditing = !!selectedSupplier;
+      
+      let payload = { ...formData };
+      if (payload.specialization) {
+        payload.specialization = payload.specialization.toLowerCase();
+      }
+      
+      if (payload.phone) {
+        payload.phone = formatPhoneNumber(payload.phone, !!payload.contact_person?.trim());
+      }
+      
+      if (!isEditing) {
+        payload.id = generateSupplierId(payload.coverage, payload.regionCode, suppliers);
+      }
+      
       const url = isEditing 
         ? `http://localhost:8000/suppliers/${selectedSupplier.id}` 
         : 'http://localhost:8000/suppliers/';
@@ -64,7 +81,7 @@ export const SupplierDirectory = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
       
       if (response.ok) {
@@ -128,6 +145,7 @@ export const SupplierDirectory = () => {
                   <th>Contact Person</th>
                   <th>Phone</th>
                   <th>Category Supplied</th>
+                  <th>Region</th>
                   <th>Status</th>
                   <th className="text-right">Actions</th>
                 </tr>
@@ -153,7 +171,16 @@ export const SupplierDirectory = () => {
                       <td className="font-medium">{supplier.name}</td>
                       <td>{supplier.contact_person || '-'}</td>
                       <td className="text-muted">{supplier.phone || '-'}</td>
-                      <td><span className="category-tag">{supplier.specialization || 'General'}</span></td>
+                      <td><span className="category-tag">{capitalize(supplier.specialization) || 'General'}</span></td>
+                      <td>
+                        {(() => {
+                          if (!supplier.id || !supplier.id.startsWith('SUP-')) return '-';
+                          const code = supplier.id.split('-')[1];
+                          if (code === 'NAT') return 'National (Multiple)';
+                          const region = REGIONS.find(r => r.code === code);
+                          return region ? region.label : code;
+                        })()}
+                      </td>
                       <td>
                         {supplier.is_active ? (
                           <span className="status-normal">Active</span>
