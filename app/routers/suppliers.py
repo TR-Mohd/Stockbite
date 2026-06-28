@@ -24,7 +24,7 @@ async def create_supplier(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(role_required([RoleEnum.Manager]))
 ):
-    new_supplier = Supplier(**supplier.model_dump())
+    new_supplier = Supplier(**supplier.model_dump(exclude_unset=True))
     db.add(new_supplier)
     await db.commit()
     await db.refresh(new_supplier)

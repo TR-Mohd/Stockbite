@@ -60,12 +60,16 @@ async def create_staff(
     if res.scalars().first():
         raise HTTPException(status_code=400, detail="Username already exists")
 
-    new_user = User(
-        name=staff.name,
-        role=staff.role,
-        hashed_password=get_password_hash(staff.password),
-        is_active=True
-    )
+    user_data = {
+        "name": staff.name,
+        "role": staff.role,
+        "hashed_password": get_password_hash(staff.password),
+        "is_active": True
+    }
+    if staff.id is not None:
+        user_data["id"] = staff.id
+        
+    new_user = User(**user_data)
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
