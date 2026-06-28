@@ -4,6 +4,8 @@ import { useAuthStore } from '../../core/store/authStore';
 import '../../styles/inventory/InventoryTable.css';
 import styles from '../../styles/manager/ManagerDashboard.module.css';
 import { StaffModal } from './StaffModal';
+import { Modal } from '../../components/ui/Modal';
+import { generateEmployeeId } from '../../utils/idGenerator';
 
 const EditIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -12,14 +14,25 @@ const EditIcon = () => (
   </svg>
 );
 
+const TrashIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"></polyline>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+  </svg>
+);
+
 export const StaffManagement = () => {
   const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const token = useAuthStore(state => state.token);
+  const user = useAuthStore(state => state.user);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState(null);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [staffToDelete, setStaffToDelete] = useState(null);
 
   const fetchStaff = useCallback(async () => {
     try {
@@ -67,12 +80,14 @@ export const StaffManagement = () => {
 
   const handleSaveStaff = async (formData) => {
     try {
+      const payload = { ...formData };
       if (selectedStaff) {
-        await axios.put(`http://localhost:8000/manager/staff/${selectedStaff.id}`, formData, {
+        await axios.put(`http://localhost:8000/manager/staff/${selectedStaff.id}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        await axios.post('http://localhost:8000/manager/staff', formData, {
+        payload.id = generateEmployeeId(payload.role, staffList);
+        await axios.post('http://localhost:8000/manager/staff', payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
@@ -81,6 +96,26 @@ export const StaffManagement = () => {
     } catch (err) {
       console.error('Error saving staff:', err);
       alert(err.response?.data?.detail || 'Failed to save staff data');
+    }
+  };
+
+  const confirmDelete = (staff) => {
+    setStaffToDelete(staff);
+    setIsDeleteModalOpen(true);
+  };
+
+  const executeDelete = async () => {
+    if (!staffToDelete) return;
+    try {
+      await axios.delete(`http://localhost:8000/manager/staff/${staffToDelete.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIsDeleteModalOpen(false);
+      setStaffToDelete(null);
+      fetchStaff();
+    } catch (err) {
+      console.error('Error deleting staff:', err);
+      alert(err.response?.data?.detail || 'Failed to delete staff member');
     }
   };
 
@@ -128,7 +163,7 @@ export const StaffManagement = () => {
                 ) : (
                   staffList.map((staff) => (
                     <tr key={staff.id} className={staff.status === 'Inactive' ? styles.inactiveRow : ''}>
-                      <td className="text-muted font-medium">EMP-{staff.id.substring(0, 6).toUpperCase()}</td>
+                      <td className="text-muted font-medium">{staff.id}</td>
                       <td className="font-medium">
                         {staff.name}
                       </td>
@@ -159,6 +194,16 @@ export const StaffManagement = () => {
                           >
                             {staff.status === 'Active' ? 'Deactivate' : 'Activate'}
                           </button>
+                          {user?.username === 'mohammed' && (
+                            <button 
+                              className={`icon-action-btn text-error ${styles.editActionBtn}`}
+                              title="Delete Employee"
+                              style={{ color: 'var(--color-error)' }}
+                              onClick={() => confirmDelete(staff)}
+                            >
+                              <TrashIcon />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -175,6 +220,52 @@ export const StaffManagement = () => {
         onSave={handleSaveStaff} 
         staff={selectedStaff} 
       />
+
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="Fire Employee"
+        size="small"
+      >
+        <div style={{ padding: '0.5rem 1rem 1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '0.5rem' }}>
+            <div style={{ 
+              width: '48px', height: '48px', borderRadius: '50%', 
+              backgroundColor: 'rgba(239, 68, 68, 0.15)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--color-error)',
+              marginBottom: '0.5rem'
+            }}>
+              <TrashIcon />
+            </div>
+            <h3 style={{ margin: 0, color: 'var(--color-text)' }}>Fire Employee?</h3>
+            <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>
+              Are you sure you want to fire <strong>{staffToDelete?.name}</strong>?<br/>
+              This action cannot be undone and will permanently remove their access.
+            </p>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', marginTop: '1.5rem' }}>
+            <button 
+              style={{ 
+                backgroundColor: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text)',
+                padding: '0.5rem 1.5rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500', fontSize: '0.9rem'
+              }}
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              Cancel
+            </button>
+            <button 
+              style={{ 
+                backgroundColor: 'var(--color-error)', color: 'white', border: 'none',
+                padding: '0.5rem 1.5rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500', fontSize: '0.9rem'
+              }}
+              onClick={executeDelete}
+            >
+              Yes, Fire Employee
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

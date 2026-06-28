@@ -19,7 +19,7 @@ export const Modal = ({ isOpen, onClose, title, children, footer, size = 'defaul
   return (
     <div className={styles.modalOverlay} onClick={disableOutsideClick ? undefined : onClose}>
       <div 
-        className={`${styles.modalContent} ${size === 'large' ? styles.large : ''}`}
+        className={`${styles.modalContent} ${size === 'large' ? styles.large : ''} ${size === 'small' ? styles.small : ''}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.modalHeader}>
