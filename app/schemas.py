@@ -17,6 +17,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    id: Optional[str] = None
 
 class UserUpdate(BaseModel):
     name: str
@@ -93,7 +94,7 @@ class SupplierBase(BaseModel):
     address: Optional[str] = None
 
 class SupplierCreate(SupplierBase):
-    pass
+    id: Optional[str] = None
 
 class SupplierUpdate(SupplierBase):
     pass
