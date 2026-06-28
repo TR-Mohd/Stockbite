@@ -6,7 +6,7 @@ An integrated Management Information System for fast-paced franchise restaurants
 
 | | |
 | --- | --- |
-| **Version** | v2.0 - Draft |
+| **Version** | v3 - Draft |
 | **Date** | 19 June 2026 |
 | **Team** | MBG (Mahasiswa Berprestasi Global) |
 | **Product Owner** | Mohammed Aatef Saleh |
@@ -154,6 +154,11 @@ Cashiers, warehouse operators, and managers cannot efficiently coordinate daily 
 | FR-026 | Manager | View and filter the audit log by date range, user, and event type. | When the manager navigates to the “Audit Logs” section. | Medium | S |
 | FR-027 | Manager | Export BI dashboard data (revenue, COGS, profit, best sellers) and inventory reports as a downloadable CSV or PDF file. | When the manager selects a report type, date range, and clicks “Export Report.” | Medium | C |
 | FR-028 | Manager | Manage the menu catalog: add new menu items (with name, price, category, image, and linked digital recipe), edit existing items, and deactivate items. | When the manager navigates to “Menu Management” and performs a catalog action. | Critical | M |
+| **F-029** | Manager | Display an accurate "Last Active" timestamp for each employee in the User Management list by aggregating their latest POS transaction or login event. | When the manager views the Staff list in the User Management module. | Medium | S |
+| **F-030** | System | Automatically generate structured IDs for new employees (`EMP-<ROLE>-<YY><SEQ>`) and suppliers (`SUP-<HUB>-<YY><SEQ>`) instead of default UUIDs. | When adding a new user or supplier via the management modals. | High | S |
+| **F-031** | System | Restrict the permanent deletion ("Firing") of User accounts exclusively to a predefined Super-Admin or Founder account, blocking standard Managers. | When a deletion request is sent or the Staff Management UI is rendered. | High | M |
+| **F-032** | Manager | Assign a "Coverage" type (Regional/National) and a "Logistics Hub" region to suppliers to track geographical supply chain distribution. | When creating or editing a supplier record in the Supplier Directory. | Medium | S |
+| **F-033** | System | Apply live conditional formatting to phone numbers and perform strict validation on email addresses during data entry. | When a user types in phone or email fields in CRM or Supplier modals. | Medium | S |
 
 > **MoSCoW reference**
 > * **M** Must Have: the product does not ship without this.
@@ -285,3 +290,4 @@ Cashiers, warehouse operators, and managers cannot efficiently coordinate daily 
 | :--- | :--- | :--- | :--- |
 | v1 | 7 May 2026 | Farrell Abhivandya Mecca, Muhammad Daffa Fadillah, Muhlifain Abel, Mohammed Aatef Saleh, Anita Hayatunnufus | Initial draft |
 | v2 | 19 June 2026 | Mohammed Aatef Saleh | Completely restructured the PRD to pivot the system focus from a QR self-ordering application to an integrated Cashier POS, Warehouse Management, and Business Intelligence (BI) system. |
+| v3 | 29 June 2026 | Mohammed Aatef Saleh | Appended F-029 to F-033 to formally document manager and BI features built beyond the MVP scope (Advanced IDs, Supplier Geography, Contact Validation, Last Active Tracking, and Super-Admin Delete protection). |

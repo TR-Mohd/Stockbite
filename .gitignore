@@ -55,3 +55,4 @@ stockbite_test.db
 !.vscode/extensions.json
 .idea
 .DS_Store
+app/receipts/
