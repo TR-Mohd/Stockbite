@@ -132,7 +132,7 @@ export const StaffModal = ({ isOpen, onClose, onSave, staff = null }) => {
           label={staff ? "New Password (leave blank to keep current)" : "Initial Password"}
           id="password"
           name="password"
-          type="password"
+          type="text"
           value={formData.password}
           onChange={handleChange}
           error={errors.password}

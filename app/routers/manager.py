@@ -1,14 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import func
+from sqlalchemy import func, text
+from sqlalchemy.exc import IntegrityError
 
 from ..database import get_db
 from ..auth import role_required, get_password_hash
-from ..models import User, RoleEnum, Transaction, TransactionItem, StatusEnum, AuditLog
+from ..models import User, RoleEnum, Transaction, TransactionItem, StatusEnum, AuditLog, MenuItem
 
+from sqlalchemy.orm import aliased
+from datetime import datetime, timedelta
 from typing import List
-from ..schemas import StaffResponse, UserCreate, UserUpdate
+from ..schemas import (
+    StaffResponse, UserCreate, UserUpdate, 
+    RevenueTrendItem, BestSellerItem, HeatmapDataPoint, BasketAnalysisItem
+)
 
 router = APIRouter(prefix="/manager", tags=["Manager BI"])
 
@@ -40,12 +46,15 @@ async def get_staff(
         timestamps = [t for t in (last_transaction, last_audit) if t is not None]
         last_active = max(timestamps) if timestamps else None
         
+        has_transactions = last_transaction is not None
+        
         staff_list.append({
             "id": u.id,
             "name": u.name,
             "role": u.role.value,
             "last_active": last_active,
-            "status": "Active" if u.is_active else "Inactive"
+            "status": "Active" if u.is_active else "Inactive",
+            "has_transactions": has_transactions
         })
     return staff_list
 
@@ -79,7 +88,8 @@ async def create_staff(
         "name": new_user.name,
         "role": new_user.role.value,
         "last_active": None,
-        "status": "Active"
+        "status": "Active",
+        "has_transactions": False
     }
 
 @router.put("/staff/{user_id}", response_model=StaffResponse)
@@ -111,7 +121,8 @@ async def update_staff(
         "name": user.name,
         "role": user.role.value,
         "last_active": None, # For simplicity, omitting full computation here. The frontend will likely refetch the list.
-        "status": "Active" if user.is_active else "Inactive"
+        "status": "Active" if user.is_active else "Inactive",
+        "has_transactions": False
     }
 
 @router.put("/staff/{user_id}/toggle-status")
@@ -149,8 +160,13 @@ async def delete_staff(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    await db.delete(user)
-    await db.commit()
+    try:
+        await db.delete(user)
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Cannot delete staff with transaction history. Please deactivate instead.")
+        
     return {"message": "Employee deleted"}
 
 @router.get("/dashboard/kpis")
@@ -177,3 +193,120 @@ async def get_kpis(
         "net_revenue": round(net_revenue, 2),
         "profit_margin_percent": round(profit_margin, 2)
     }
+
+@router.get("/analytics/revenue-trend", response_model=List[RevenueTrendItem])
+async def get_revenue_trend(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    seven_days_ago = datetime.utcnow() - timedelta(days=7)
+    stmt = (
+        select(
+            func.date_trunc('day', Transaction.timestamp).label("date"),
+            func.sum(Transaction.total_amount).label("revenue")
+        )
+        .where(Transaction.status == StatusEnum.Completed)
+        .where(Transaction.timestamp >= seven_days_ago)
+        .group_by(text("date"))
+        .order_by(text("date"))
+    )
+    result = await db.execute(stmt)
+    
+    trend = []
+    for row in result.all():
+        trend.append({
+            "date": row.date.strftime("%Y-%m-%d") if row.date else "",
+            "revenue": float(row.revenue or 0)
+        })
+    return trend
+
+@router.get("/analytics/best-sellers", response_model=List[BestSellerItem])
+async def get_best_sellers(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    stmt = (
+        select(
+            MenuItem.name,
+            func.sum(TransactionItem.quantity).label("total_sold")
+        )
+        .join(TransactionItem, TransactionItem.menu_item_id == MenuItem.id)
+        .join(Transaction, TransactionItem.transaction_id == Transaction.id)
+        .where(Transaction.status == StatusEnum.Completed)
+        .group_by(MenuItem.id)
+        .order_by(func.sum(TransactionItem.quantity).desc())
+        .limit(5)
+    )
+    result = await db.execute(stmt)
+    
+    return [
+        {"menu_item_name": row.name, "total_sold": int(row.total_sold or 0)} 
+        for row in result.all()
+    ]
+
+@router.get("/analytics/heatmap-data", response_model=List[HeatmapDataPoint])
+async def get_heatmap_data(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    stmt = (
+        select(
+            func.extract('dow', Transaction.timestamp).label('dow'),
+            func.extract('hour', Transaction.timestamp).label('hour'),
+            func.count(Transaction.id).label('count')
+        )
+        .where(Transaction.status == StatusEnum.Completed)
+        .group_by(
+            func.extract('dow', Transaction.timestamp),
+            func.extract('hour', Transaction.timestamp)
+        )
+    )
+    result = await db.execute(stmt)
+    
+    return [
+        {
+            "day_of_week": int(row.dow),
+            "hour_of_day": int(row.hour),
+            "transaction_count": int(row.count)
+        }
+        for row in result.all()
+    ]
+
+@router.get("/analytics/basket-analysis", response_model=List[BasketAnalysisItem])
+async def get_basket_analysis(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    ti1 = aliased(TransactionItem)
+    ti2 = aliased(TransactionItem)
+    mi1 = aliased(MenuItem)
+    mi2 = aliased(MenuItem)
+    
+    stmt = (
+        select(
+            mi1.name.label("item1_name"),
+            mi2.name.label("item2_name"),
+            func.count().label("frequency")
+        )
+        .select_from(Transaction)
+        .join(ti1, ti1.transaction_id == Transaction.id)
+        .join(ti2, ti2.transaction_id == Transaction.id)
+        .join(mi1, ti1.menu_item_id == mi1.id)
+        .join(mi2, ti2.menu_item_id == mi2.id)
+        .where(Transaction.status == StatusEnum.Completed)
+        .where(ti1.menu_item_id < ti2.menu_item_id)
+        .group_by(mi1.id, mi2.id)
+        .order_by(func.count().desc())
+        .limit(3)
+    )
+    result = await db.execute(stmt)
+    
+    return [
+        {
+            "item1_name": row.item1_name,
+            "item2_name": row.item2_name,
+            "frequency": int(row.frequency)
+        }
+        for row in result.all()
+    ]
+

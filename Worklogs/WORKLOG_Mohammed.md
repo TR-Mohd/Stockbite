@@ -84,3 +84,19 @@
 | 2026-06-28 00:43Z | Automated Task | feat(manager): implement supplier and staff management dashboards with CRUD integration | ✅ Completed | Automate Worklog Consolidation |
 | 2026-06-28 00:45Z | Git Branching & Merging | Advised on merge order (Backend first, then Frontend). Resolved a tricky Git merge conflict in `manager.py` locally and pushed to GitHub for seamless PR merge. | ✅ Completed | *"compare between feature/mohammed-pos and feature/mohammed-pos-logic..."* |
 | 2026-06-28 00:55Z | Worktree Sync (Anita) | Fast-forwarded Anita's `feature/mohammed-manager-bi` branch by merging `main` into it so development could cleanly transition to the correct worktree. | ✅ Completed | *"I wanna push the builing of this pages to that branch"* |
+
+## Update: June 2026 - Security & BI Implementation
+
+| Timestamp | Task | Description | Status | Prompts & Commands Used |
+| :--- | :--- | :--- | :--- | :--- |
+| 2026-06-29 12:00Z | Security Protocol | Implemented "Soft Delete" (Deactivation) for staff members to preserve transactional data integrity (FK protection). Enforced authentication lockout in `auth.py` for deactivated accounts. | ✅ [COMPLETED] | (Refer to PROPOSED_PRD_UPDATE.md) |
+| 2026-06-29 12:10Z | BI Analytics Engine | Created 4 new analytical endpoints (`/revenue-trend`, `/best-sellers`, `/heatmap-data`, `/basket-analysis`). Verified mathematical integrity via automated tests in `verify_analytics_endpoints.py`. | ✅ [COMPLETED] | (Refer to PROPOSED_PRD_UPDATE.md) |
+| 2026-06-29 12:15Z | Data Integrity Cleanup | Performed database teardown and transactional purge for production readiness while preserving core `menu_items` catalog. | ✅ [COMPLETED] | (Refer to PROPOSED_PRD_UPDATE.md) |
+| 2026-06-29 12:20Z | Frontend Integration | Refactored Manager Dashboard visualizations to consume live API state, migrating completely away from hardcoded mock data. | ✅ [COMPLETED] | (Refer to PROPOSED_PRD_UPDATE.md) |
+
+## Update: June 2026 - Repository Refactor & QA Standardization
+
+| Timestamp | Task | Description | Status | Prompts & Commands Used |
+| :--- | :--- | :--- | :--- | :--- |
+| 2026-06-29 13:50Z | Codebase Audit & Cleanup | Audited `/scripts` folder. Deleted orphaned standalone scripts (`clean_db_for_prod.py`, `seed_inventory.py`, `test_rev.py`, `verify_analytics.py`) to maintain a clean repository structure. | ✅ [COMPLETED] | N/A |
+| 2026-06-29 13:55Z | Pytest Migration | Refactored core analytics and security verification scripts into standard `pytest` suite. Created `test_analytics_endpoints.py`, `test_dashboard_pipeline.py`, and `test_firing_logic.py`. Solved `asyncpg` engine connection lifecycle issues on Windows. All tests successfully passed. | ✅ [COMPLETED] | N/A |

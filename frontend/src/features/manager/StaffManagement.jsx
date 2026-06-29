@@ -196,10 +196,15 @@ export const StaffManagement = () => {
                           </button>
                           {user?.username === 'mohammed' && (
                             <button 
-                              className={`icon-action-btn text-error ${styles.editActionBtn}`}
-                              title="Delete Employee"
-                              style={{ color: 'var(--color-error)' }}
-                              onClick={() => confirmDelete(staff)}
+                              className={`icon-action-btn ${styles.editActionBtn}`}
+                              title={staff.has_transactions ? "Cannot delete staff with transaction history. Please deactivate instead." : "Delete Employee"}
+                              style={{ 
+                                color: staff.has_transactions ? 'var(--color-text-tertiary)' : 'var(--color-error)',
+                                cursor: staff.has_transactions ? 'not-allowed' : 'pointer',
+                                opacity: staff.has_transactions ? 0.5 : 1
+                              }}
+                              onClick={() => !staff.has_transactions && confirmDelete(staff)}
+                              disabled={staff.has_transactions}
                             >
                               <TrashIcon />
                             </button>

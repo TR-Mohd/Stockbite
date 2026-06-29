@@ -12,6 +12,7 @@ This document formally defines features that were discovered during the audit of
 | **Supplier Geography (Coverage & Logistics Hub)** <br/> Introduces a "Coverage" attribute (Regional vs. National) and a "Logistics Hub" (Region) dropdown for Suppliers, restricting hub selection to 'NAT' if "National" coverage is chosen. | `frontend/src/features/manager/SupplierModal.jsx`, `frontend/src/features/manager/SupplierDirectory.jsx`, `frontend/src/constants/regions.js` | **Aligned.** Provides necessary geographical context for supply chain operations, especially useful for tracking national vs. local vendors. |
 | **Live Conditional Phone Number Formatting** <br/> Automatically formats phone numbers differently based on context (e.g., landline `+62 xx xxxx-xxxx` for companies vs. mobile `+62 8xx-xxxx-xxxx` if a contact person is provided). | `frontend/src/utils/formatters.js`, `frontend/src/features/manager/SupplierModal.jsx` | **Aligned.** Improves UI/UX and standardizes data entry across the system, ensuring clean CRM and Supplier records. |
 | **Strict Live Email Validation** <br/> Implements robust custom logic checking for `@` symbols, usernames, domain dots, and valid domain extensions, providing real-time specific error feedback during input. | `frontend/src/features/manager/SupplierModal.jsx` | **Aligned.** Prevents invalid data entry, ensuring communication features (like sending POs or receipts) function correctly. |
+| **Soft Delete & Login Revocation** <br/> Enforces a data integrity protocol to prevent hard deletion of staff with transactions, alongside an authentication constraint that blocks inactive accounts at login. | `app/routers/manager.py`, `app/auth.py`, `frontend/src/features/manager/StaffManagement.jsx` | **Aligned.** Ensures financial records remain intact (no foreign key violations) while strictly revoking access for fired employees. |
 
 ---
 
@@ -28,3 +29,10 @@ The following requirements should be formally appended to the `specs/project-bri
 | **F-031** | System | Restrict the permanent deletion ("Firing") of User accounts exclusively to a predefined Super-Admin or Founder account, blocking standard Managers. | When a deletion request is sent or the Staff Management UI is rendered. | High | M |
 | **F-032** | Manager | Assign a "Coverage" type (Regional/National) and a "Logistics Hub" region to suppliers to track geographical supply chain distribution. | When creating or editing a supplier record in the Supplier Directory. | Medium | S |
 | **F-033** | System | Apply live conditional formatting to phone numbers and perform strict validation on email addresses during data entry. | When a user types in phone or email fields in CRM or Supplier modals. | Medium | S |
+| **F-034** | System | **Data Integrity Protocol:** To preserve financial accuracy and prevent PostgreSQL foreign key violations, Staff accounts with associated POS transaction histories cannot be hard-deleted. The backend enforces a 'Soft Delete' (Deactivation) workflow via HTTP 400 rejection on deletion attempts. | When a deletion request is sent for an employee with transaction history. | High | M |
+
+### 6.4 NFR Table : Manager (BI & Security) - Additions
+
+| NFR ID | Actor | The system shall… | Condition / Trigger | Priority | MoSCoW |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **NFR-019** | System | **Security Protocol:** The authentication service explicitly verifies the 'is_active' status flag during the login sequence. Deactivated staff members are instantly intercepted and rejected with an HTTP 401. | Every time a user attempts to log in. | Critical | M |
