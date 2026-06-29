@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../../core/api/axios';
 // useAuthStore is not used anymore here since username and logout are in Layout
 import { KPICard } from './KPICard';
 import styles from '../../styles/manager/ManagerDashboard.module.css';
@@ -11,48 +12,8 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-// --- MOCK DATA ---
-const mockSalesData = [
-  { name: 'Mon', revenue: 4000000 },
-  { name: 'Tue', revenue: 3500000 },
-  { name: 'Wed', revenue: 5200000 },
-  { name: 'Thu', revenue: 4800000 },
-  { name: 'Fri', revenue: 6100000 },
-  { name: 'Sat', revenue: 8500000 },
-  { name: 'Sun', revenue: 7900000 },
-];
-
-const mockBestSellers = [
-  { id: 1, name: 'Special Burger', qty: 145, revenue: 6525000, thumb: '/placeholder-food.png' },
-  { id: 2, name: 'French Fries', qty: 210, revenue: 4200000, thumb: '/placeholder-food.png' },
-  { id: 3, name: 'Iced Coffee', qty: 198, revenue: 3564000, thumb: '/placeholder-beverage.png' },
-  { id: 4, name: 'Grilled Chicken', qty: 85, revenue: 2975000, thumb: '/placeholder-food.png' },
-  { id: 5, name: 'Chocolate Cake', qty: 62, revenue: 1736000, thumb: '/placeholder-food.png' },
-];
-
-const mockMarketBasket = [
-  { id: 1, pair: 'Special Burger + French Fries', timesBought: 120, confidence: '82%' },
-  { id: 2, pair: 'Grilled Chicken + Iced Coffee', timesBought: 65, confidence: '76%' },
-  { id: 3, pair: 'Chocolate Cake + Iced Coffee', timesBought: 45, confidence: '72%' },
-];
-
-// Generate Heatmap Data (7 Days x 24 Hours)
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const hours = Array.from({ length: 24 }, (_, i) => i);
-const mockHeatmapData = days.map((day) => 
-  hours.map((hour) => {
-    // Generate some mock patterns (e.g., busier at lunch 12-14 and dinner 18-20)
-    let intensity = Math.random() * 0.3; // Base low traffic
-    if ((hour >= 11 && hour <= 14) || (hour >= 17 && hour <= 21)) {
-      intensity = 0.4 + Math.random() * 0.6; // High traffic
-    }
-    // Make weekends generally busier
-    if (day === 'Sat' || day === 'Sun') {
-      intensity = Math.min(1, intensity + 0.2); 
-    }
-    return intensity;
-  })
-);
 
 // --- ICONS ---
 
@@ -68,6 +29,90 @@ const CalendarIcon = () => (
 export const ManagerDashboard = () => {
   const [dateRange, setDateRange] = useState('Last 7 Days');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [kpiData, setKpiData] = useState(null);
+  
+  // Analytics States
+  const [revenueTrend, setRevenueTrend] = useState([]);
+  const [bestSellers, setBestSellers] = useState([]);
+  const [marketBasket, setMarketBasket] = useState([]);
+  const [heatmapGrid, setHeatmapGrid] = useState(
+    Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => ({ intensity: 0, count: 0 })))
+  );
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchDashboardData = async () => {
+    setIsRefreshing(true);
+    try {
+      const [
+        kpiRes, 
+        revRes, 
+        bestRes, 
+        heatRes, 
+        basketRes
+      ] = await Promise.all([
+        api.get('/manager/dashboard/kpis'),
+        api.get('/manager/analytics/revenue-trend'),
+        api.get('/manager/analytics/best-sellers'),
+        api.get('/manager/analytics/heatmap-data'),
+        api.get('/manager/analytics/basket-analysis')
+      ]);
+      
+      setKpiData(kpiRes.data);
+      
+      // Transform Revenue Trend
+      setRevenueTrend(revRes.data.map(d => ({
+         name: new Date(d.date).toLocaleDateString('en-US', { weekday: 'short' }),
+         revenue: d.revenue
+      })));
+      
+      // Transform Best Sellers
+      setBestSellers(bestRes.data.map((b, idx) => ({
+         id: idx,
+         name: b.menu_item_name,
+         qty: b.total_sold,
+         revenue: 0, // Could fetch actual revenue from backend if needed
+         thumb: '/placeholder-food.png'
+      })));
+      
+      // Transform Market Basket
+      setMarketBasket(basketRes.data.map((b, idx) => ({
+         id: idx,
+         pair: `${b.item1_name} + ${b.item2_name}`,
+         timesBought: b.frequency,
+         confidence: ''
+      })));
+      
+      // Transform Heatmap Grid
+      const newGrid = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => ({ intensity: 0, count: 0 })));
+      let maxCount = 1;
+      heatRes.data.forEach(item => {
+         if (item.transaction_count > maxCount) maxCount = item.transaction_count;
+      });
+      
+      heatRes.data.forEach(item => {
+         const mappedDay = (item.day_of_week + 6) % 7;
+         const mappedHour = item.hour_of_day;
+         newGrid[mappedDay][mappedHour] = {
+           intensity: item.transaction_count / maxCount,
+           count: item.transaction_count
+         };
+      });
+      
+      setHeatmapGrid(newGrid);
+
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  console.log("Heatmap data from API:", heatmapGrid);
 
   return (
     <div className={styles.dashboardContainer}>
@@ -80,9 +125,19 @@ export const ManagerDashboard = () => {
             <p className={styles.subtitle}>Real-time business intelligence</p>
           </div>
           
-          {/* Date Filter Dropdown */}
-          <div className={styles.dateFilterContainer} onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
-            <CalendarIcon />
+          {/* Header Actions */}
+          <div className={styles.headerActions}>
+            <button 
+              className={styles.refreshBtn} 
+              onClick={fetchDashboardData} 
+              disabled={isRefreshing}
+            >
+              {isRefreshing ? <span className={styles.spinner}></span> : 'Refresh'}
+            </button>
+
+            {/* Date Filter Dropdown */}
+            <div className={styles.dateFilterContainer} onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+              <CalendarIcon />
             <div className={styles.customSelect}>
               <span className={styles.selectedValue}>{dateRange}</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.chevron}>
@@ -102,6 +157,7 @@ export const ManagerDashboard = () => {
                 ))}
               </ul>
             )}
+            </div>
           </div>
         </header>
         
@@ -109,25 +165,25 @@ export const ManagerDashboard = () => {
         <div className={styles.kpiGrid}>
           <KPICard 
             title="Gross Revenue" 
-            value="Rp 12.450.000" 
+            value={kpiData ? `Rp ${kpiData.gross_revenue.toLocaleString('id-ID')}` : "Loading..."} 
             trend="+14.5%" 
             trendUp={true} 
           />
           <KPICard 
             title="Net Revenue" 
-            value="Rp 8.250.000" 
+            value={kpiData ? `Rp ${kpiData.net_revenue.toLocaleString('id-ID')}` : "Loading..."} 
             trend="+12.3%" 
             trendUp={true} 
           />
           <KPICard 
             title="COGS" 
-            value="Rp 4.200.000" 
+            value={kpiData ? `Rp ${kpiData.cogs.toLocaleString('id-ID')}` : "Loading..."} 
             trend="-2.1%" 
             trendUp={false} 
           />
           <KPICard 
             title="Profit Margin" 
-            value="66.2%" 
+            value={kpiData ? `${kpiData.profit_margin_percent.toFixed(1)}%` : "Loading..."} 
             trend="+5.2%" 
             trendUp={true} 
           />
@@ -142,8 +198,11 @@ export const ManagerDashboard = () => {
             <div className={styles.chartCard}>
               <h3 className={styles.cardTitle}>Revenue Trend ({dateRange})</h3>
               <div className={styles.chartWrapper}>
+                {revenueTrend.length === 0 ? (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-tertiary)' }}>No data available</div>
+                ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={mockSalesData} margin={{ top: 10, right: 30, left: 30, bottom: 0 }}>
+                  <AreaChart data={revenueTrend} margin={{ top: 10, right: 30, left: 30, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.8}/>
@@ -156,6 +215,7 @@ export const ManagerDashboard = () => {
                     <Area type="monotone" dataKey="revenue" stroke="var(--color-primary)" fillOpacity={1} fill="url(#colorRevenue)" />
                   </AreaChart>
                 </ResponsiveContainer>
+                )}
               </div>
             </div>
 
@@ -174,17 +234,17 @@ export const ManagerDashboard = () => {
                 <div className={styles.heatmapContent}>
                   {/* Heatmap Grid */}
                   <div className={styles.heatmapGrid}>
-                    {mockHeatmapData.map((dayData, dayIdx) => (
+                    {heatmapGrid.map((dayData, dayIdx) => (
                       <div key={dayIdx} className={styles.heatmapRow}>
-                        {dayData.map((intensity, hourIdx) => (
+                        {dayData.map((cell, hourIdx) => (
                           <div 
                             key={`${dayIdx}-${hourIdx}`} 
                             className={styles.heatmapCell}
                             style={{ 
-                              backgroundColor: `rgba(224, 120, 46, ${intensity})`,
+                              backgroundColor: `rgba(224, 120, 46, ${cell.intensity})`,
                               border: '1px solid var(--color-border)'
                             }}
-                            title={`${days[dayIdx]} ${hourIdx}:00 - Intensity: ${(intensity*100).toFixed(0)}%`}
+                            title={`${days[dayIdx]} ${hourIdx}:00 - ${cell.count} transactions`}
                           />
                         ))}
                       </div>
@@ -212,18 +272,22 @@ export const ManagerDashboard = () => {
             <div className={styles.chartCard}>
               <h3 className={styles.cardTitle}>Best Sellers</h3>
               <div className={styles.bestSellersList}>
-                {mockBestSellers.map((item) => (
-                  <div key={item.id} className={styles.bestSellerItem}>
-                    <img src={item.thumb} alt={item.name} className={styles.itemThumb} />
-                    <div className={styles.itemInfo}>
-                      <div className={styles.itemName}>{item.name}</div>
-                      <div className={styles.itemQty}>{item.qty} sold</div>
+                {bestSellers.length === 0 ? (
+                  <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--color-text-tertiary)' }}>No data available</div>
+                ) : (
+                  bestSellers.map((item) => (
+                    <div key={item.id} className={styles.bestSellerItem}>
+                      <img src={item.thumb} alt={item.name} className={styles.itemThumb} />
+                      <div className={styles.itemInfo}>
+                        <div className={styles.itemName}>{item.name}</div>
+                        <div className={styles.itemQty}>{item.qty} sold</div>
+                      </div>
+                      <div className={styles.itemRevenue}>
+                        {item.revenue > 0 ? `Rp ${item.revenue.toLocaleString('id-ID')}` : '-'}
+                      </div>
                     </div>
-                    <div className={styles.itemRevenue}>
-                      Rp {item.revenue.toLocaleString('id-ID')}
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -231,15 +295,19 @@ export const ManagerDashboard = () => {
             <div className={styles.chartCard}>
               <h3 className={styles.cardTitle}>Frequently Bought Together</h3>
               <div className={styles.marketBasketList}>
-                {mockMarketBasket.map((item) => (
-                  <div key={item.id} className={styles.marketBasketItem}>
-                    <div className={styles.basketPair}>{item.pair}</div>
-                    <div className={styles.basketMetrics}>
-                      <span className={styles.basketTimes}>{item.timesBought}x</span>
-                      <span className={styles.basketConfidence}>{item.confidence}</span>
+                {marketBasket.length === 0 ? (
+                  <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--color-text-tertiary)' }}>No data available</div>
+                ) : (
+                  marketBasket.map((item) => (
+                    <div key={item.id} className={styles.marketBasketItem}>
+                      <div className={styles.basketPair}>{item.pair}</div>
+                      <div className={styles.basketMetrics}>
+                        <span className={styles.basketTimes}>{item.timesBought}x</span>
+                        {item.confidence && <span className={styles.basketConfidence}>{item.confidence}</span>}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 

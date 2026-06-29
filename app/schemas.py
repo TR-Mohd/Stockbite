@@ -34,6 +34,7 @@ class StaffResponse(BaseModel):
     role: str
     last_active: Optional[datetime] = None
     status: str
+    has_transactions: bool = False
 
 class IngredientResponse(BaseModel):
     id: str
@@ -103,3 +104,22 @@ class SupplierResponse(SupplierBase):
     id: str
     is_active: bool
     model_config = ConfigDict(from_attributes=True)
+
+class RevenueTrendItem(BaseModel):
+    date: str
+    revenue: float
+
+class BestSellerItem(BaseModel):
+    menu_item_name: str
+    total_sold: int
+
+class HeatmapDataPoint(BaseModel):
+    day_of_week: int
+    hour_of_day: int
+    transaction_count: int
+
+class BasketAnalysisItem(BaseModel):
+    item1_name: str
+    item2_name: str
+    frequency: int
+

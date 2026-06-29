@@ -159,6 +159,7 @@ Cashiers, warehouse operators, and managers cannot efficiently coordinate daily 
 | **F-031** | System | Restrict the permanent deletion ("Firing") of User accounts exclusively to a predefined Super-Admin or Founder account, blocking standard Managers. | When a deletion request is sent or the Staff Management UI is rendered. | High | M |
 | **F-032** | Manager | Assign a "Coverage" type (Regional/National) and a "Logistics Hub" region to suppliers to track geographical supply chain distribution. | When creating or editing a supplier record in the Supplier Directory. | Medium | S |
 | **F-033** | System | Apply live conditional formatting to phone numbers and perform strict validation on email addresses during data entry. | When a user types in phone or email fields in CRM or Supplier modals. | Medium | S |
+| **F-034** | System | **Data Integrity Protocol:** To preserve financial accuracy and prevent PostgreSQL foreign key violations, Staff accounts with associated POS transaction histories cannot be hard-deleted. The backend enforces a 'Soft Delete' (Deactivation) workflow via HTTP 400 rejection on deletion attempts. | When a deletion request is sent for an employee with transaction history. | High | M |
 
 > **MoSCoW reference**
 > * **M** Must Have: the product does not ship without this.
@@ -205,6 +206,7 @@ Cashiers, warehouse operators, and managers cannot efficiently coordinate daily 
 | NFR-016 | System | Render BI dashboard charts (revenue trends, heatmaps, best sellers) within 5 seconds for date ranges up to 90 days. | When the manager selects a date range and the dashboard fetches and visualizes the data. | High | M |
 | NFR-017 | System | Hash and salt all user passwords using bcrypt (or equivalent) before storing them in the database; plaintext passwords must never be persisted. | Every time a new user account is created or a password is changed. | Critical | S |
 | NFR-018 | System | Provide structured, searchable system activity logs containing timestamp, user ID, action type, affected resource, and outcome (success/fail) for every logged event. | Every time a transaction occurs, a stock adjustment is made, or an account is modified. | Medium | S |
+| **NFR-019** | System | **Security Protocol:** The authentication service explicitly verifies the 'is_active' status flag during the login sequence. Deactivated staff members are instantly intercepted and rejected with an HTTP 401. | Every time a user attempts to log in. | Critical | M |
 
 ## 7. User Workflows
 
@@ -290,4 +292,4 @@ Cashiers, warehouse operators, and managers cannot efficiently coordinate daily 
 | :--- | :--- | :--- | :--- |
 | v1 | 7 May 2026 | Farrell Abhivandya Mecca, Muhammad Daffa Fadillah, Muhlifain Abel, Mohammed Aatef Saleh, Anita Hayatunnufus | Initial draft |
 | v2 | 19 June 2026 | Mohammed Aatef Saleh | Completely restructured the PRD to pivot the system focus from a QR self-ordering application to an integrated Cashier POS, Warehouse Management, and Business Intelligence (BI) system. |
-| v3 | 29 June 2026 | Mohammed Aatef Saleh | Appended F-029 to F-033 to formally document manager and BI features built beyond the MVP scope (Advanced IDs, Supplier Geography, Contact Validation, Last Active Tracking, and Super-Admin Delete protection). |
+| v3 | 29 June 2026 | Mohammed Aatef Saleh | Appended F-029 to F-034 and NFR-019 to formally document manager and BI features built beyond the MVP scope (Advanced IDs, Supplier Geography, Contact Validation, Last Active Tracking, Super-Admin Delete protection, Soft Delete, and Login Revocation). |
