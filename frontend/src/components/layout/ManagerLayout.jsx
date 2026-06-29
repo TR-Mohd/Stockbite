@@ -52,7 +52,7 @@ export const ManagerLayout = () => {
 
         <div className={styles.navUser}>
           <span className={styles.userName}>
-            Hi, Mohammed
+            Hi, {user?.username || 'Manager'}
           </span>
           <button className={styles.logoutBtn} onClick={handleLogout} title="Logout">
             <LogoutIcon />

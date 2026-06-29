@@ -6,6 +6,7 @@ import styles from '../../styles/manager/ManagerDashboard.module.css';
 import { StaffModal } from './StaffModal';
 import { Modal } from '../../components/ui/Modal';
 import { generateEmployeeId } from '../../utils/idGenerator';
+import { InlineNotificationQueue } from '../../components/ui/InlineNotificationQueue';
 
 const EditIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -34,6 +35,17 @@ export const StaffManagement = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [staffToDelete, setStaffToDelete] = useState(null);
 
+  const [notifications, setNotifications] = useState([]);
+  
+  const addNotification = (message) => {
+    const id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
+    setNotifications(prev => [...prev, { id, message }]);
+  };
+  
+  const removeNotification = (id) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
   const fetchStaff = useCallback(async () => {
     try {
       setLoading(true);
@@ -60,6 +72,10 @@ export const StaffManagement = () => {
       await axios.put(`http://localhost:8000/manager/staff/${id}/toggle-status`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      const staff = staffList.find(s => s.id === id);
+      if (staff) {
+        addNotification(<span><strong>{staff.name}</strong> ({staff.id}) {staff.status === 'Active' ? 'deactivated' : 'activated'}.</span>);
+      }
       fetchStaff();
     } catch (err) {
       console.error('Error toggling status:', err);
@@ -81,17 +97,21 @@ export const StaffManagement = () => {
   const handleSaveStaff = async (formData) => {
     try {
       const payload = { ...formData };
+      let newId;
       if (selectedStaff) {
+        newId = selectedStaff.id;
         await axios.put(`http://localhost:8000/manager/staff/${selectedStaff.id}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        payload.id = generateEmployeeId(payload.role, staffList);
+        newId = generateEmployeeId(payload.role, staffList);
+        payload.id = newId;
         await axios.post('http://localhost:8000/manager/staff', payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
       setIsModalOpen(false);
+      addNotification(<span><strong>{payload.name}</strong> ({newId}) {selectedStaff ? 'updated' : 'added'}.</span>);
       fetchStaff();
     } catch (err) {
       console.error('Error saving staff:', err);
@@ -110,6 +130,7 @@ export const StaffManagement = () => {
       await axios.delete(`http://localhost:8000/manager/staff/${staffToDelete.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      addNotification(<span><strong>{staffToDelete.name}</strong> ({staffToDelete.id}) deleted.</span>);
       setIsDeleteModalOpen(false);
       setStaffToDelete(null);
       fetchStaff();
@@ -118,6 +139,12 @@ export const StaffManagement = () => {
       alert(err.response?.data?.detail || 'Failed to delete staff member');
     }
   };
+
+  const sortedStaffList = [...staffList].sort((a, b) => {
+    if (a.name === user?.username) return -1;
+    if (b.name === user?.username) return 1;
+    return a.name.localeCompare(b.name);
+  });
 
   return (
     <div className={`${styles.dashboardContainer} ${styles.dashboardContainerAuto}`}>
@@ -128,9 +155,12 @@ export const StaffManagement = () => {
             <p className={styles.subtitle}>Manage employee roles and access</p>
           </div>
           
-          <button className={styles.primaryBtn} onClick={handleAdd}>
-            Add Staff Member
-          </button>
+          <div style={{ position: 'relative' }}>
+            <InlineNotificationQueue notifications={notifications} onDismiss={removeNotification} />
+            <button className={styles.primaryBtn} onClick={handleAdd}>
+              Add Staff Member
+            </button>
+          </div>
         </header>
 
         <div className={`inventory-table-section ${styles.tableSection}`}>
@@ -147,7 +177,7 @@ export const StaffManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                {staffList.length === 0 ? (
+                {sortedStaffList.length === 0 ? (
                   <tr>
                     <td colSpan="6">
                       <div className="empty-state-container">
@@ -161,7 +191,7 @@ export const StaffManagement = () => {
                     </td>
                   </tr>
                 ) : (
-                  staffList.map((staff) => (
+                  sortedStaffList.map((staff) => (
                     <tr key={staff.id} className={staff.status === 'Inactive' ? styles.inactiveRow : ''}>
                       <td className="text-muted font-medium">{staff.id}</td>
                       <td className="font-medium">
@@ -194,21 +224,34 @@ export const StaffManagement = () => {
                           >
                             {staff.status === 'Active' ? 'Deactivate' : 'Activate'}
                           </button>
-                          {user?.username === 'mohammed' && (
-                            <button 
-                              className={`icon-action-btn ${styles.editActionBtn}`}
-                              title={staff.has_transactions ? "Cannot delete staff with transaction history. Please deactivate instead." : "Delete Employee"}
-                              style={{ 
-                                color: staff.has_transactions ? 'var(--color-text-tertiary)' : 'var(--color-error)',
-                                cursor: staff.has_transactions ? 'not-allowed' : 'pointer',
-                                opacity: staff.has_transactions ? 0.5 : 1
-                              }}
-                              onClick={() => !staff.has_transactions && confirmDelete(staff)}
-                              disabled={staff.has_transactions}
-                            >
-                              <TrashIcon />
-                            </button>
-                          )}
+                          {(() => {
+                            const isSelf = staff.name === user?.username;
+                            const isProtectedManager = staff.role === 'Manager' && user?.username !== 'mohammed';
+                            const hasHistory = staff.has_transactions;
+                            
+                            const isDisabled = isSelf || isProtectedManager || hasHistory;
+                            
+                            let tooltip = "Delete Employee";
+                            if (isSelf) tooltip = "Cannot delete yourself";
+                            else if (isProtectedManager) tooltip = "Cannot delete active managers";
+                            else if (hasHistory) tooltip = "Cannot delete staff with transaction history. Please deactivate instead.";
+
+                            return (
+                              <button 
+                                className={`icon-action-btn ${styles.editActionBtn}`}
+                                title={tooltip}
+                                style={{ 
+                                  color: isDisabled ? 'var(--color-text-tertiary)' : 'var(--color-error)',
+                                  cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                  opacity: isDisabled ? 0.5 : 1
+                                }}
+                                onClick={() => !isDisabled && confirmDelete(staff)}
+                                disabled={isDisabled}
+                              >
+                                <TrashIcon />
+                              </button>
+                            );
+                          })()}
                         </div>
                       </td>
                     </tr>

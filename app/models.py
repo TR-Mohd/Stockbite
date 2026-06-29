@@ -56,6 +56,7 @@ class Supplier(Base):
     address = Column(String)
     contact_person = Column(String)
     is_active = Column(Boolean, default=True)
+    region = Column(String, nullable=True)
 
 class Ingredient(Base):
     __tablename__ = "ingredients"

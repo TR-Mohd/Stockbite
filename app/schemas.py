@@ -93,6 +93,7 @@ class SupplierBase(BaseModel):
     phone: Optional[str] = None
     email: Optional[str] = None
     address: Optional[str] = None
+    region: Optional[str] = None
 
 class SupplierCreate(SupplierBase):
     id: Optional[str] = None
