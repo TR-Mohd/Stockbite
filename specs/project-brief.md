@@ -160,6 +160,7 @@ Cashiers, warehouse operators, and managers cannot efficiently coordinate daily 
 | **F-032** | Manager | Assign a "Coverage" type (Regional/National) and a "Logistics Hub" region to suppliers to track geographical supply chain distribution. | When creating or editing a supplier record in the Supplier Directory. | Medium | S |
 | **F-033** | System | Apply live conditional formatting to phone numbers and perform strict validation on email addresses during data entry. | When a user types in phone or email fields in CRM or Supplier modals. | Medium | S |
 | **F-034** | System | **Data Integrity Protocol:** To preserve financial accuracy and prevent PostgreSQL foreign key violations, Staff accounts with associated POS transaction histories cannot be hard-deleted. The backend enforces a 'Soft Delete' (Deactivation) workflow via HTTP 400 rejection on deletion attempts. | When a deletion request is sent for an employee with transaction history. | High | M |
+| **F-035** | System | Render non-blocking, adaptive inline notifications with a 3D stacking visual pattern, auto-dismissing after 3 seconds, whenever a critical CRUD action is performed (e.g., Add, Deactivate, Edit). | When a Manager successfully completes a CRUD action on the Supplier or Staff dashboard. | Low | W |
 
 > **MoSCoW reference**
 > * **M** Must Have: the product does not ship without this.
@@ -293,3 +294,4 @@ Cashiers, warehouse operators, and managers cannot efficiently coordinate daily 
 | v1 | 7 May 2026 | Farrell Abhivandya Mecca, Muhammad Daffa Fadillah, Muhlifain Abel, Mohammed Aatef Saleh, Anita Hayatunnufus | Initial draft |
 | v2 | 19 June 2026 | Mohammed Aatef Saleh | Completely restructured the PRD to pivot the system focus from a QR self-ordering application to an integrated Cashier POS, Warehouse Management, and Business Intelligence (BI) system. |
 | v3 | 29 June 2026 | Mohammed Aatef Saleh | Appended F-029 to F-034 and NFR-019 to formally document manager and BI features built beyond the MVP scope (Advanced IDs, Supplier Geography, Contact Validation, Last Active Tracking, Super-Admin Delete protection, Soft Delete, and Login Revocation). |
+| v4 | 30 June 2026 | Mohammed Aatef Saleh | Appended F-035 to formally document the 3D inline notification queue feature built beyond the MVP scope. |
