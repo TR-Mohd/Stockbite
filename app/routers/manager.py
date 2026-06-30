@@ -249,16 +249,19 @@ async def get_heatmap_data(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(role_required([RoleEnum.Manager]))
 ):
+    # Convert UTC to local store timezone (e.g. Asia/Jakarta)
+    local_timestamp = Transaction.timestamp.op('AT TIME ZONE')('UTC').op('AT TIME ZONE')('Asia/Jakarta')
+    
     stmt = (
         select(
-            func.extract('dow', Transaction.timestamp).label('dow'),
-            func.extract('hour', Transaction.timestamp).label('hour'),
+            func.extract('dow', local_timestamp).label('dow'),
+            func.extract('hour', local_timestamp).label('hour'),
             func.count(Transaction.id).label('count')
         )
         .where(Transaction.status == StatusEnum.Completed)
         .group_by(
-            func.extract('dow', Transaction.timestamp),
-            func.extract('hour', Transaction.timestamp)
+            func.extract('dow', local_timestamp),
+            func.extract('hour', local_timestamp)
         )
     )
     result = await db.execute(stmt)

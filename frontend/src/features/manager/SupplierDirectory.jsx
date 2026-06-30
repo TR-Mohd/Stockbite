@@ -182,7 +182,7 @@ export const SupplierDirectory = () => {
               <tbody>
                 {suppliers.length === 0 ? (
                   <tr>
-                    <td colSpan="7">
+                    <td colSpan="8">
                       <div className="empty-state-container">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="empty-state-icon">
                           <circle cx="11" cy="11" r="8"></circle>
