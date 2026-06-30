@@ -102,3 +102,4 @@
 | 2026-06-29 13:55Z | Pytest Migration | Refactored core analytics and security verification scripts into standard `pytest` suite. Created `test_analytics_endpoints.py`, `test_dashboard_pipeline.py`, and `test_firing_logic.py`. Solved `asyncpg` engine connection lifecycle issues on Windows. All tests successfully passed. | ✅ [COMPLETED] | N/A |
 | 2026-06-29 15:15Z | Automated Task | feat(ui): implement adaptive 3D inline notification queue and fix layout clipping | ✅ [COMPLETED] | Automate Worklog Consolidation |
 | 2026-06-30 05:46Z | Database Update | Fixed Heatmap UTC timezone discrepancies and corrected ID formatting for users and suppliers. Removed dummy users and populated database with real connected supplier data. | ✅ [COMPLETED] | N/A |
+| 2026-06-30 07:12Z | Staff Management Features | Added Contact info fields (phone/email) to DB and UI, implemented 11-digit max auto-formatting, capitalized names, and added overflow tooltips. | ✅ [COMPLETED] | N/A |

@@ -114,6 +114,8 @@ export const ManagerDashboard = () => {
 
   console.log("Heatmap data from API:", heatmapGrid);
 
+  const totalHeatmapTransactions = heatmapGrid.reduce((sum, day) => sum + day.reduce((hSum, cell) => hSum + cell.count, 0), 0);
+
   return (
     <div className={styles.dashboardContainer}>
       <div className={styles.dashboardContent}>
@@ -161,45 +163,52 @@ export const ManagerDashboard = () => {
           </div>
         </header>
         
-        {/* KPI Grid (Now with 4 cards including Net Revenue) */}
-        <div className={styles.kpiGrid}>
-          <KPICard 
-            title="Gross Revenue" 
-            value={kpiData ? `Rp ${kpiData.gross_revenue.toLocaleString('id-ID')}` : "Loading..."} 
-            trend="+14.5%" 
-            trendUp={true} 
-          />
-          <KPICard 
-            title="Net Revenue" 
-            value={kpiData ? `Rp ${kpiData.net_revenue.toLocaleString('id-ID')}` : "Loading..."} 
-            trend="+12.3%" 
-            trendUp={true} 
-          />
-          <KPICard 
-            title="COGS" 
-            value={kpiData ? `Rp ${kpiData.cogs.toLocaleString('id-ID')}` : "Loading..."} 
-            trend="-2.1%" 
-            trendUp={false} 
-          />
-          <KPICard 
-            title="Profit Margin" 
-            value={kpiData ? `${kpiData.profit_margin_percent.toFixed(1)}%` : "Loading..."} 
-            trend="+5.2%" 
-            trendUp={true} 
-          />
-        </div>
         
         <div className={styles.chartsGrid}>
           
           {/* Left Column: Trend & Heatmap */}
           <div className={styles.leftColumn}>
             
+            {/* KPI Grid (Now with 4 cards including Net Revenue) */}
+            <div className={styles.kpiGrid}>
+              <KPICard 
+                title="Gross Revenue" 
+                value={kpiData ? `Rp ${kpiData.gross_revenue.toLocaleString('id-ID')}` : "Loading..."} 
+                trend="+14.5%" 
+                trendUp={true} 
+              />
+              <KPICard 
+                title="Net Revenue" 
+                value={kpiData ? `Rp ${kpiData.net_revenue.toLocaleString('id-ID')}` : "Loading..."} 
+                trend="+12.3%" 
+                trendUp={true} 
+                highlight={true}
+              />
+              <KPICard 
+                title="COGS" 
+                value={kpiData ? `Rp ${kpiData.cogs.toLocaleString('id-ID')}` : "Loading..."} 
+                trend="-2.1%" 
+                trendUp={false} 
+              />
+              <KPICard 
+                title="Profit Margin" 
+                value={kpiData ? `${kpiData.profit_margin_percent.toFixed(1)}%` : "Loading..."} 
+                trend="+5.2%" 
+                trendUp={true} 
+              />
+            </div>
+            
             {/* Revenue Trend Chart */}
             <div className={styles.chartCard}>
               <h3 className={styles.cardTitle}>Revenue Trend ({dateRange})</h3>
               <div className={styles.chartWrapper}>
-                {revenueTrend.length === 0 ? (
-                  <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-tertiary)' }}>No data available</div>
+                {revenueTrend.length < 2 ? (
+                  <div className={styles.emptyState}>
+                    <svg className={styles.emptyStateIcon} xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                    Not enough data yet — check back after a few more days of sales.
+                  </div>
                 ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={revenueTrend} margin={{ top: 10, right: 30, left: 30, bottom: 0 }}>
@@ -222,6 +231,16 @@ export const ManagerDashboard = () => {
             {/* Transaction Heatmap */}
             <div className={styles.chartCard}>
               <h3 className={styles.cardTitle}>Transaction Heatmap</h3>
+              {totalHeatmapTransactions < 5 ? (
+                <div className={styles.emptyState} style={{ height: '250px' }}>
+                  <svg className={styles.emptyStateIcon} xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                    <line x1="9" y1="21" x2="9" y2="9"></line>
+                  </svg>
+                  Activity is currently too low to generate a meaningful heat map.
+                </div>
+              ) : (
               <div className={styles.heatmapContainer}>
                 
                 {/* Heatmap Y-Axis (Days) */}
@@ -259,8 +278,9 @@ export const ManagerDashboard = () => {
                       </div>
                     ))}
                   </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
             
           </div>
@@ -282,9 +302,11 @@ export const ManagerDashboard = () => {
                         <div className={styles.itemName}>{item.name}</div>
                         <div className={styles.itemQty}>{item.qty} sold</div>
                       </div>
-                      <div className={styles.itemRevenue}>
-                        {item.revenue > 0 ? `Rp ${item.revenue.toLocaleString('id-ID')}` : '-'}
-                      </div>
+                      {item.revenue > 0 && (
+                        <div className={styles.itemRevenue}>
+                          Rp {item.revenue.toLocaleString('id-ID')}
+                        </div>
+                      )}
                     </div>
                   ))
                 )}

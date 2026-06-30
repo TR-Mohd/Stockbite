@@ -31,8 +31,11 @@ class User(Base):
     __tablename__ = "users"
     id = Column(String, primary_key=True, default=generate_uuid)
     name = Column(String, nullable=False)
+    username = Column(String, nullable=True)
     role = Column(Enum(RoleEnum), nullable=False)
     hashed_password = Column(String, nullable=False)
+    phone_number = Column(String, nullable=True)
+    email = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
 
 class Shift(Base):

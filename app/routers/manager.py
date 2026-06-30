@@ -51,7 +51,10 @@ async def get_staff(
         staff_list.append({
             "id": u.id,
             "name": u.name,
+            "username": u.username,
             "role": u.role.value,
+            "phone_number": u.phone_number,
+            "email": u.email,
             "last_active": last_active,
             "status": "Active" if u.is_active else "Inactive",
             "has_transactions": has_transactions
@@ -65,14 +68,17 @@ async def create_staff(
     current_user: User = Depends(role_required([RoleEnum.Manager]))
 ):
     # Check if username exists
-    res = await db.execute(select(User).where(User.name == staff.name))
+    res = await db.execute(select(User).where(User.username == staff.username))
     if res.scalars().first():
         raise HTTPException(status_code=400, detail="Username already exists")
 
     user_data = {
         "name": staff.name,
+        "username": staff.username,
         "role": staff.role,
         "hashed_password": get_password_hash(staff.password),
+        "phone_number": staff.phone_number,
+        "email": staff.email,
         "is_active": True
     }
     if staff.id is not None:
@@ -86,7 +92,10 @@ async def create_staff(
     return {
         "id": new_user.id,
         "name": new_user.name,
+        "username": new_user.username,
         "role": new_user.role.value,
+        "phone_number": new_user.phone_number,
+        "email": new_user.email,
         "last_active": None,
         "status": "Active",
         "has_transactions": False
@@ -104,14 +113,17 @@ async def update_staff(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # If changing name, check if taken by another user
-    if user.name != staff.name:
-        exist_res = await db.execute(select(User).where(User.name == staff.name))
+    # If changing username, check if taken by another user
+    if user.username != staff.username:
+        exist_res = await db.execute(select(User).where(User.username == staff.username))
         if exist_res.scalars().first():
             raise HTTPException(status_code=400, detail="Username already exists")
 
     user.name = staff.name
+    user.username = staff.username
     user.role = staff.role
+    user.phone_number = staff.phone_number
+    user.email = staff.email
     if staff.password:
         user.hashed_password = get_password_hash(staff.password)
     await db.commit()
@@ -119,7 +131,10 @@ async def update_staff(
     return {
         "id": user.id,
         "name": user.name,
+        "username": user.username,
         "role": user.role.value,
+        "phone_number": user.phone_number,
+        "email": user.email,
         "last_active": None, # For simplicity, omitting full computation here. The frontend will likely refetch the list.
         "status": "Active" if user.is_active else "Inactive",
         "has_transactions": False

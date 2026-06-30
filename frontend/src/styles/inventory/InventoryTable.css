@@ -1,6 +1,7 @@
 .inventory-table-container {
   flex: 1;
   overflow-y: auto;
+  overflow-x: auto;
   width: 100%;
   background-color: var(--color-bg-page);
 }

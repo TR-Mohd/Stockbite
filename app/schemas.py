@@ -13,7 +13,10 @@ class TokenData(BaseModel):
 
 class UserBase(BaseModel):
     name: str
+    username: str
     role: RoleEnum
+    phone_number: Optional[str] = None
+    email: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str
@@ -21,8 +24,11 @@ class UserCreate(UserBase):
 
 class UserUpdate(BaseModel):
     name: str
+    username: str
     role: RoleEnum
     password: Optional[str] = None
+    phone_number: Optional[str] = None
+    email: Optional[str] = None
 
 class UserResponse(UserBase):
     id: str
@@ -31,7 +37,10 @@ class UserResponse(UserBase):
 class StaffResponse(BaseModel):
     id: str
     name: str
+    username: Optional[str] = None
     role: str
+    phone_number: Optional[str] = None
+    email: Optional[str] = None
     last_active: Optional[datetime] = None
     status: str
     has_transactions: bool = False

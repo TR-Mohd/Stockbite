@@ -9,14 +9,20 @@ export const formatPhoneNumber = (phone, hasContactPerson) => {
   // Extract all digits
   let digits = phone.replace(/\D/g, '');
   
-  // Remove leading 62 or 0
+  // Remove leading 62
   if (digits.startsWith('62')) {
     digits = digits.substring(2);
-  } else if (digits.startsWith('0')) {
+  }
+  
+  // Remove leading 0
+  if (digits.startsWith('0')) {
     digits = digits.substring(1);
   }
   
   if (!digits) return phone;
+  
+  // Limit to maximum 11 digits after country code
+  digits = digits.substring(0, 11);
   
   if (hasContactPerson) {
     // Format: +62 8xx-xxxx-xxxx
