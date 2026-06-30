@@ -196,8 +196,15 @@ export const SupplierDirectory = () => {
                 ) : (
                   suppliers.map((supplier) => (
                     <tr key={supplier.id} className={!supplier.is_active ? styles.inactiveRow : ''}>
-                      <td className="text-muted font-medium">{supplier.id}</td>
-                      <td className="font-medium">{supplier.name}</td>
+                      <td className="text-muted font-medium" title={supplier.id}>
+                        <div className="truncate-text" style={{ maxWidth: '120px' }}>{supplier.id}</div>
+                      </td>
+                      <td className="font-medium">
+                        <div className="tooltip-container" style={{ display: 'block', maxWidth: '200px' }}>
+                          <div className="truncate-text">{supplier.name}</div>
+                          <div className="custom-tooltip">{supplier.name}</div>
+                        </div>
+                      </td>
                       <td>{supplier.contact_person || '-'}</td>
                       <td className="text-muted">{supplier.phone || '-'}</td>
                       <td><span className="category-tag">{capitalize(supplier.specialization) || 'General'}</span></td>
