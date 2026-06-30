@@ -35,7 +35,7 @@ export const generateEmployeeId = (role, currentEmployees) => {
     const match = employee.id?.match(regex);
     if (match) {
       const [, empRole, empYear, empSeq] = match;
-      if (empRole === roleCode && empYear === year) {
+      if (empYear === year) {
         const seq = parseInt(empSeq, 10);
         if (seq > maxSeq) {
           maxSeq = seq;

@@ -5,6 +5,7 @@ import { SupplierModal } from './SupplierModal';
 import { capitalize, formatPhoneNumber } from '../../utils/formatters';
 import { REGIONS } from '../../constants/regions';
 import { generateSupplierId } from '../../utils/idGenerator';
+import { InlineNotificationQueue } from '../../components/ui/InlineNotificationQueue';
 
 export const SupplierDirectory = () => {
   const [suppliers, setSuppliers] = useState([]);
@@ -13,6 +14,17 @@ export const SupplierDirectory = () => {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
+
+  const [notifications, setNotifications] = useState([]);
+  
+  const addNotification = (message) => {
+    const id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
+    setNotifications(prev => [...prev, { id, message }]);
+  };
+  
+  const removeNotification = (id) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
 
   const token = localStorage.getItem('token');
 
@@ -48,7 +60,15 @@ export const SupplierDirectory = () => {
   };
 
   const handleEditSupplier = (supplier) => {
-    setSelectedSupplier(supplier);
+    const code = supplier.region || (supplier.id ? supplier.id.split('-')[1] : 'NAT');
+    const coverage = code === 'NAT' ? 'National' : 'Regional';
+    const regionCode = code === 'NAT' ? '' : code;
+
+    setSelectedSupplier({
+      ...supplier,
+      coverage,
+      regionCode
+    });
     setIsModalOpen(true);
   };
 
@@ -68,6 +88,7 @@ export const SupplierDirectory = () => {
       if (!isEditing) {
         payload.id = generateSupplierId(payload.coverage, payload.regionCode, suppliers);
       }
+      payload.region = payload.coverage === 'National' ? 'NAT' : payload.regionCode;
       
       const url = isEditing 
         ? `http://localhost:8000/suppliers/${selectedSupplier.id}` 
@@ -86,6 +107,7 @@ export const SupplierDirectory = () => {
       
       if (response.ok) {
         setIsModalOpen(false);
+        addNotification(<span><strong>{payload.name}</strong> ({payload.id || selectedSupplier.id}) {isEditing ? 'updated' : 'added'}.</span>);
         fetchSuppliers();
       } else {
         console.error('Failed to save supplier');
@@ -105,6 +127,10 @@ export const SupplierDirectory = () => {
       });
       
       if (response.ok) {
+        const supplier = suppliers.find(s => s.id === supplierId);
+        if (supplier) {
+          addNotification(<span><strong>{supplier.name}</strong> ({supplier.id}) {supplier.is_active ? 'deactivated' : 'activated'}.</span>);
+        }
         fetchSuppliers();
       } else {
         console.error('Failed to toggle status');
@@ -122,17 +148,20 @@ export const SupplierDirectory = () => {
             <p className={styles.subtitle}>Manage your vendors and supply chain</p>
           </div>
           
-          <button className="inventory-btn" style={{ 
-            backgroundColor: 'var(--color-primary)', 
-            color: 'white', 
-            border: 'none', 
-            padding: '0.75rem 1.5rem', 
-            borderRadius: '8px', 
-            fontWeight: '600',
-            cursor: 'pointer'
-          }} onClick={handleAddSupplier}>
-            Add Supplier
-          </button>
+          <div style={{ position: 'relative' }}>
+            <InlineNotificationQueue notifications={notifications} onDismiss={removeNotification} />
+            <button className="inventory-btn" style={{ 
+              backgroundColor: 'var(--color-primary)', 
+              color: 'white', 
+              border: 'none', 
+              padding: '0.75rem 1.5rem', 
+              borderRadius: '8px', 
+              fontWeight: '600',
+              cursor: 'pointer'
+            }} onClick={handleAddSupplier}>
+              Add Supplier
+            </button>
+          </div>
         </header>
 
         <div className="inventory-table-section" style={{ backgroundColor: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', overflow: 'hidden' }}>
@@ -174,8 +203,8 @@ export const SupplierDirectory = () => {
                       <td><span className="category-tag">{capitalize(supplier.specialization) || 'General'}</span></td>
                       <td>
                         {(() => {
-                          if (!supplier.id || !supplier.id.startsWith('SUP-')) return '-';
-                          const code = supplier.id.split('-')[1];
+                          const code = supplier.region || (supplier.id && supplier.id.startsWith('SUP-') ? supplier.id.split('-')[1] : null);
+                          if (!code) return '-';
                           if (code === 'NAT') return 'National (Multiple)';
                           const region = REGIONS.find(r => r.code === code);
                           return region ? region.label : code;

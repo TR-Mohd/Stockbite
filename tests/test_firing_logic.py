@@ -24,6 +24,18 @@ def get_staff(token):
     req = urllib.request.Request(f"{BASE_URL}/manager/staff", headers={"Authorization": f"Bearer {token}"})
     with urllib.request.urlopen(req) as response:
         return json.loads(response.read().decode())
+def create_staff(token, username, role, password):
+    req = urllib.request.Request(
+        f"{BASE_URL}/manager/staff", 
+        data=json.dumps({"name": username, "role": role, "password": password}).encode(),
+        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+        method="POST"
+    )
+    try:
+        with urllib.request.urlopen(req) as response:
+            return json.loads(response.read().decode())
+    except urllib.error.HTTPError as e:
+        raise
 
 def delete_staff(token, user_id):
     req = urllib.request.Request(f"{BASE_URL}/manager/staff/{user_id}", headers={"Authorization": f"Bearer {token}"}, method="DELETE")
@@ -56,7 +68,7 @@ def update_password(token, user_id, username, role, new_password):
         return json.loads(response.read().decode())
 
 def test_firing_logic():
-    # Login as Manager
+    # Login as Mohammed
     manager_login = login("mohammed", "managerpassword")
     if "error" in manager_login:
         manager_login = login("mohammed", "manager123")
@@ -68,6 +80,49 @@ def test_firing_logic():
     assert "error" not in manager_login, "Manager login failed"
     token = manager_login["access_token"]
     
+    # 1. Setup new RBAC test users
+    try:
+        std_mgr = create_staff(token, "test_std_mgr", "Manager", "password123")
+    except urllib.error.HTTPError:
+        staff_list = get_staff(token)
+        std_mgr = next((s for s in staff_list if s["name"] == "test_std_mgr"), None)
+        
+    try:
+        target_mgr = create_staff(token, "test_target_mgr", "Manager", "password123")
+    except urllib.error.HTTPError:
+        staff_list = get_staff(token)
+        target_mgr = next((s for s in staff_list if s["name"] == "test_target_mgr"), None)
+
+    try:
+        target_csh = create_staff(token, "test_clean_cashier", "Cashier", "password123")
+    except urllib.error.HTTPError:
+        staff_list = get_staff(token)
+        target_csh = next((s for s in staff_list if s["name"] == "test_clean_cashier"), None)
+        
+    # Login as standard manager
+    std_mgr_login = login("test_std_mgr", "password123")
+    std_token = std_mgr_login["access_token"]
+    
+    # Test 1: self-deletion (403)
+    status_code, _ = delete_staff(std_token, std_mgr["id"])
+    assert status_code == 403, f"Self-deletion not blocked, got {status_code}"
+    
+    # Test 2: standard manager cannot delete another manager (403)
+    status_code, _ = delete_staff(std_token, target_mgr["id"])
+    assert status_code == 403, f"Manager hierarchy lock failed, got {status_code}"
+    
+    # Test 3: standard manager CAN delete a clean cashier (200)
+    status_code, _ = delete_staff(std_token, target_csh["id"])
+    assert status_code == 200, f"Standard manager failed to delete cashier, got {status_code}"
+    
+    # Test 4: 'mohammed' successfully bypasses the manager deletion lock (200)
+    status_code, _ = delete_staff(token, target_mgr["id"])
+    assert status_code == 200, f"Mohammed failed to bypass manager lock, got {status_code}"
+    
+    # Cleanup std_mgr
+    delete_staff(token, std_mgr["id"])
+
+    # Old Tests (Transaction Delete Block & Soft Delete)
     staff_list = get_staff(token)
     target_cashier = next((s for s in staff_list if s["has_transactions"]), None)
     
