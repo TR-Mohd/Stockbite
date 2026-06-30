@@ -49,7 +49,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     except JWTError:
         raise credentials_exception
     
-    result = await db.execute(select(User).where(User.name == token_data.username))
+    result = await db.execute(select(User).where(User.username == token_data.username))
     user = result.scalars().first()
     if user is None:
         raise credentials_exception
@@ -69,7 +69,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/token")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.name == form_data.username))
+    result = await db.execute(select(User).where(User.username == form_data.username))
     user = result.scalars().first()
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
@@ -85,7 +85,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.name, "role": user.role.value}, expires_delta=access_token_expires
+        data={"sub": user.username, "role": user.role.value}, expires_delta=access_token_expires
     )
     
     # Record login activity
