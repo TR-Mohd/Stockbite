@@ -25,6 +25,7 @@ export const InventoryDashboard = () => {
 
   // Modal Visibility State
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
+  const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
   const [draftPOContext, setDraftPOContext] = useState(null);
   const [adjustContext, setAdjustContext] = useState(null);
   const [wasteContext, setWasteContext] = useState(null);
@@ -125,6 +126,8 @@ export const InventoryDashboard = () => {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
+  const uniqueCategories = ['All', ...new Set(inventoryData.map(item => item.category).filter(Boolean))].sort();
+
   return (
     <div className="inventory-dashboard">
       <header className="inventory-header">
@@ -132,6 +135,7 @@ export const InventoryDashboard = () => {
           <h1>Inventory Management</h1>
           <div className="header-actions">
             {/* Add Item button removed per Warehouse role restrictions */}
+            <Button variant="outline" onClick={() => setIsAdjustModalOpen(true)}>Adjust Stock</Button>
             <Button variant="primary" onClick={() => setIsReceiveModalOpen(true)}>Receive Stock</Button>
             
             <div className="header-user-actions">
@@ -196,10 +200,9 @@ export const InventoryDashboard = () => {
                 onChange={(e) => setFilterCategory(e.target.value)}
                 className="inventory-select"
               >
-                <option value="All">All Categories</option>
-                <option value="Meat">Meat</option>
-                <option value="Bakery">Bakery</option>
-                <option value="Produce">Produce</option>
+                {uniqueCategories.map(cat => (
+                  <option key={cat} value={cat}>{cat === 'All' ? 'All Categories' : cat}</option>
+                ))}
               </select>
               <select 
                 value={filterStatus} 
@@ -218,7 +221,10 @@ export const InventoryDashboard = () => {
             <InventoryTable 
               data={filteredData} 
               onDraftPO={setDraftPOContext}
-              onAdjustStock={setAdjustContext}
+              onAdjustStock={(item) => {
+                setAdjustContext(item);
+                setIsAdjustModalOpen(true);
+              }}
               onLogWaste={setWasteContext}
             />
           </div>
@@ -241,9 +247,13 @@ export const InventoryDashboard = () => {
       />
 
       <AdjustStockModal
-        isOpen={!!adjustContext}
-        onClose={() => setAdjustContext(null)}
-        ingredient={adjustContext}
+        isOpen={isAdjustModalOpen}
+        onClose={() => {
+          setIsAdjustModalOpen(false);
+          setAdjustContext(null);
+        }}
+        inventoryData={inventoryData}
+        initialIngredientId={adjustContext?.id || ''}
         onSubmit={handleAdjustStock}
       />
 

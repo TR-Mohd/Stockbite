@@ -80,7 +80,7 @@ export const LogWasteModal = ({ isOpen, onClose, ingredient, onSubmit }) => {
         >
           <option value="">Select reason...</option>
           <option value="Spoiled">Spoiled</option>
-          <option value="Damaged">Damaged</option>
+          <option value="Dropped">Dropped</option>
           <option value="Expired">Expired</option>
           <option value="Other">Other</option>
         </select>
