@@ -13,6 +13,33 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 from datetime import date
 from sqlalchemy.orm import joinedload
+from zoneinfo import ZoneInfo
+from sqlalchemy import and_
+
+def get_timeframe_boundaries(timeframe: str):
+    tz = ZoneInfo("Asia/Jakarta")
+    now = datetime.now(tz)
+    
+    if timeframe == "today":
+        start_local = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_local = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    elif timeframe == "yesterday":
+        yesterday = now - timedelta(days=1)
+        start_local = yesterday.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_local = yesterday.replace(hour=23, minute=59, second=59, microsecond=999999)
+    elif timeframe == "this_month":
+        start_local = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        end_local = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    elif timeframe == "last_30_days":
+        start_local = (now - timedelta(days=29)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_local = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    else: # default to last_7_days
+        start_local = (now - timedelta(days=6)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_local = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+        
+    start_utc = start_local.astimezone(ZoneInfo("UTC")).replace(tzinfo=None)
+    end_utc = end_local.astimezone(ZoneInfo("UTC")).replace(tzinfo=None)
+    return start_utc, end_utc, start_local, end_local
 from ..schemas import (
     StaffResponse, UserCreate, UserUpdate, 
     RevenueTrendItem, BestSellerItem, HeatmapDataPoint, BasketAnalysisItem,
@@ -190,13 +217,18 @@ async def delete_staff(
 
 @router.get("/dashboard/kpis")
 async def get_kpis(
+    timeframe: str = "last_7_days",
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(role_required([RoleEnum.Manager]))
 ):
+    start_utc, end_utc, _, _ = get_timeframe_boundaries(timeframe)
+
     # Calculate Gross Revenue from Completed Transactions
     result = await db.execute(
         select(func.sum(Transaction.total_amount))
         .where(Transaction.status == StatusEnum.Completed)
+        .where(Transaction.timestamp >= start_utc)
+        .where(Transaction.timestamp <= end_utc)
     )
     gross_revenue = result.scalar() or 0.0
 
@@ -215,35 +247,61 @@ async def get_kpis(
 
 @router.get("/analytics/revenue-trend", response_model=List[RevenueTrendItem])
 async def get_revenue_trend(
+    timeframe: str = "last_7_days",
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(role_required([RoleEnum.Manager]))
 ):
-    seven_days_ago = datetime.utcnow() - timedelta(days=7)
+    start_utc, end_utc, start_local, end_local = get_timeframe_boundaries(timeframe)
+    hourly = timeframe in ["today", "yesterday"]
+    interval_td = timedelta(hours=1) if hourly else timedelta(days=1)
+    
+    series = select(
+        func.generate_series(
+            start_local.replace(tzinfo=None),
+            end_local.replace(tzinfo=None),
+            interval_td
+        ).label("ts")
+    ).subquery("series_ts")
+    
+    local_tx_ts = Transaction.timestamp.op('AT TIME ZONE')('UTC').op('AT TIME ZONE')('Asia/Jakarta')
+    trunc_tx_ts = func.date_trunc('hour' if hourly else 'day', local_tx_ts)
+    
     stmt = (
         select(
-            func.date_trunc('day', Transaction.timestamp).label("date"),
-            func.sum(Transaction.total_amount).label("revenue")
+            series.c.ts.label("date"),
+            func.coalesce(func.sum(Transaction.total_amount), 0).label("revenue")
         )
-        .where(Transaction.status == StatusEnum.Completed)
-        .where(Transaction.timestamp >= seven_days_ago)
-        .group_by(text("date"))
-        .order_by(text("date"))
+        .select_from(series)
+        .outerjoin(
+            Transaction,
+            and_(
+                Transaction.status == StatusEnum.Completed,
+                trunc_tx_ts == series.c.ts,
+                Transaction.timestamp >= start_utc,
+                Transaction.timestamp <= end_utc
+            )
+        )
+        .group_by(series.c.ts)
+        .order_by(series.c.ts)
     )
     result = await db.execute(stmt)
     
     trend = []
     for row in result.all():
         trend.append({
-            "date": row.date.strftime("%Y-%m-%d") if row.date else "",
+            "date": row.date.strftime("%Y-%m-%d %H:%M:%S") if row.date else "",
             "revenue": float(row.revenue or 0)
         })
     return trend
 
 @router.get("/analytics/best-sellers", response_model=List[BestSellerItem])
 async def get_best_sellers(
+    timeframe: str = "last_7_days",
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(role_required([RoleEnum.Manager]))
 ):
+    start_utc, end_utc, _, _ = get_timeframe_boundaries(timeframe)
+    
     stmt = (
         select(
             MenuItem.name,
@@ -252,6 +310,8 @@ async def get_best_sellers(
         .join(TransactionItem, TransactionItem.menu_item_id == MenuItem.id)
         .join(Transaction, TransactionItem.transaction_id == Transaction.id)
         .where(Transaction.status == StatusEnum.Completed)
+        .where(Transaction.timestamp >= start_utc)
+        .where(Transaction.timestamp <= end_utc)
         .group_by(MenuItem.id)
         .order_by(func.sum(TransactionItem.quantity).desc())
         .limit(5)
@@ -265,9 +325,12 @@ async def get_best_sellers(
 
 @router.get("/analytics/heatmap-data", response_model=List[HeatmapDataPoint])
 async def get_heatmap_data(
+    timeframe: str = "last_7_days",
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(role_required([RoleEnum.Manager]))
 ):
+    start_utc, end_utc, _, _ = get_timeframe_boundaries(timeframe)
+    
     # Convert UTC to local store timezone (e.g. Asia/Jakarta)
     local_timestamp = Transaction.timestamp.op('AT TIME ZONE')('UTC').op('AT TIME ZONE')('Asia/Jakarta')
     
@@ -278,6 +341,8 @@ async def get_heatmap_data(
             func.count(Transaction.id).label('count')
         )
         .where(Transaction.status == StatusEnum.Completed)
+        .where(Transaction.timestamp >= start_utc)
+        .where(Transaction.timestamp <= end_utc)
         .group_by(
             func.extract('dow', local_timestamp),
             func.extract('hour', local_timestamp)
@@ -296,9 +361,12 @@ async def get_heatmap_data(
 
 @router.get("/analytics/basket-analysis", response_model=List[BasketAnalysisItem])
 async def get_basket_analysis(
+    timeframe: str = "last_7_days",
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(role_required([RoleEnum.Manager]))
 ):
+    start_utc, end_utc, _, _ = get_timeframe_boundaries(timeframe)
+    
     ti1 = aliased(TransactionItem)
     ti2 = aliased(TransactionItem)
     mi1 = aliased(MenuItem)
@@ -316,6 +384,8 @@ async def get_basket_analysis(
         .join(mi1, ti1.menu_item_id == mi1.id)
         .join(mi2, ti2.menu_item_id == mi2.id)
         .where(Transaction.status == StatusEnum.Completed)
+        .where(Transaction.timestamp >= start_utc)
+        .where(Transaction.timestamp <= end_utc)
         .where(ti1.menu_item_id < ti2.menu_item_id)
         .group_by(mi1.id, mi2.id)
         .order_by(func.count().desc())
@@ -355,10 +425,11 @@ async def get_order_history(
         query = query.where(func.date(Transaction.timestamp) <= date_to)
         
     # Count total and sum total_revenue
+    subq = query.subquery()
     agg_query = select(
         func.count(),
-        func.coalesce(func.sum(Transaction.total_amount), 0.0)
-    ).select_from(query.subquery())
+        func.coalesce(func.sum(subq.c.total_amount), 0.0)
+    ).select_from(subq)
     
     result = await db.execute(agg_query)
     total, total_revenue = result.first()

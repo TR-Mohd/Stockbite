@@ -27,7 +27,13 @@ const CalendarIcon = () => (
 );
 
 export const ManagerDashboard = () => {
-  const [dateRange, setDateRange] = useState('Last 7 Days');
+  const [dateRange, setDateRange] = useState(() => {
+    return localStorage.getItem('managerDashboardTimeframe') || 'Last 7 Days';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('managerDashboardTimeframe', dateRange);
+  }, [dateRange]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [kpiData, setKpiData] = useState(null);
   
@@ -44,6 +50,16 @@ export const ManagerDashboard = () => {
   const fetchDashboardData = async () => {
     setIsRefreshing(true);
     try {
+      const timeframeMap = {
+        'Today': 'today',
+        'Yesterday': 'yesterday',
+        'Last 7 Days': 'last_7_days',
+        'Last 30 Days': 'last_30_days',
+        'This Month': 'this_month'
+      };
+      const timeframeParam = timeframeMap[dateRange] || 'last_7_days';
+      const params = { timeframe: timeframeParam };
+
       const [
         kpiRes, 
         revRes, 
@@ -51,20 +67,33 @@ export const ManagerDashboard = () => {
         heatRes, 
         basketRes
       ] = await Promise.all([
-        api.get('/manager/dashboard/kpis'),
-        api.get('/manager/analytics/revenue-trend'),
-        api.get('/manager/analytics/best-sellers'),
-        api.get('/manager/analytics/heatmap-data'),
-        api.get('/manager/analytics/basket-analysis')
+        api.get('/manager/dashboard/kpis', { params }),
+        api.get('/manager/analytics/revenue-trend', { params }),
+        api.get('/manager/analytics/best-sellers', { params }),
+        api.get('/manager/analytics/heatmap-data', { params }),
+        api.get('/manager/analytics/basket-analysis', { params })
       ]);
       
       setKpiData(kpiRes.data);
       
       // Transform Revenue Trend
-      setRevenueTrend(revRes.data.map(d => ({
-         name: new Date(d.date).toLocaleDateString('en-US', { weekday: 'short' }),
-         revenue: d.revenue
-      })));
+      setRevenueTrend(revRes.data.map(d => {
+         const dateObj = new Date(d.date.replace(' ', 'T')); // Handle "YYYY-MM-DD HH:mm:ss" cross-browser
+         let formattedName = '';
+         
+         if (dateRange === 'Today' || dateRange === 'Yesterday') {
+            formattedName = `${dateObj.getHours().toString().padStart(2, '0')}:00`;
+         } else if (dateRange === 'Last 7 Days') {
+            formattedName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+         } else {
+            formattedName = dateObj.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+         }
+         
+         return {
+            name: formattedName,
+            revenue: d.revenue
+         };
+      }));
       
       // Transform Best Sellers
       setBestSellers(bestRes.data.map((b, idx) => ({
@@ -93,8 +122,18 @@ export const ManagerDashboard = () => {
       heatRes.data.forEach(item => {
          const mappedDay = (item.day_of_week + 6) % 7;
          const mappedHour = item.hour_of_day;
+         
+         let opacity = 0;
+         if (item.transaction_count > 0) {
+            const ratio = item.transaction_count / maxCount;
+            if (ratio <= 0.25) opacity = 0.3;
+            else if (ratio <= 0.50) opacity = 0.5;
+            else if (ratio <= 0.75) opacity = 0.75;
+            else opacity = 1.0;
+         }
+
          newGrid[mappedDay][mappedHour] = {
-           intensity: item.transaction_count / maxCount,
+           intensity: opacity,
            count: item.transaction_count
          };
       });
@@ -110,7 +149,7 @@ export const ManagerDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [dateRange]);
 
   console.log("Heatmap data from API:", heatmapGrid);
 
@@ -202,7 +241,7 @@ export const ManagerDashboard = () => {
             <div className={styles.chartCard}>
               <h3 className={styles.cardTitle}>Revenue Trend ({dateRange})</h3>
               <div className={styles.chartWrapper}>
-                {revenueTrend.length < 2 ? (
+                {revenueTrend.length === 0 ? (
                   <div className={styles.emptyState}>
                     <svg className={styles.emptyStateIcon} xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
