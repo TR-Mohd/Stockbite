@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -26,10 +26,10 @@ def get_password_hash(password):
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
+        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+    to_encode.update({"exp": int(expire.timestamp())})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
@@ -44,10 +44,12 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         username: str = payload.get("sub")
         role: str = payload.get("role")
         if username is None:
-            raise credentials_exception
+            raise HTTPException(status_code=401, detail="Could not validate credentials: Username is None")
         token_data = TokenData(username=username, role=role)
-    except JWTError:
-        raise credentials_exception
+    except JWTError as e:
+        raise HTTPException(status_code=401, detail=f"Could not validate credentials: JWTError - {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Could not validate credentials: Exception - {str(e)}")
     
     result = await db.execute(select(User).where(User.username == token_data.username))
     user = result.scalars().first()
@@ -97,7 +99,6 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     )
     db.add(audit_log)
     await db.commit()
-
     return {
         "access_token": access_token,
         "token_type": "bearer",
