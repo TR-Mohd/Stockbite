@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axiosInstance from '../../core/api/axios';
 import '../../styles/POS/CheckoutModal.css';
 import qrisLogoLight from '../../assets/qris-logo-lightmode.svg';
@@ -56,8 +56,15 @@ const CheckoutModal = ({ isOpen, onClose, cartItems, total, onCheckoutSuccess })
   const [whatsapp, setWhatsapp] = useState('');
   const [email, setEmail] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const [orderType, setOrderType] = useState('Takeaway');
+  const [routingNumber, setRoutingNumber] = useState('');
+  const [tenderedAmount, setTenderedAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const parsedTendered = parseInt(tenderedAmount.replace(/\D/g, ''), 10) || 0;
+  const changeDue = parsedTendered - total;
+  const isCashInvalid = paymentMethod === 'Cash' && parsedTendered < total;
 
   if (!isOpen) return null;
 
@@ -71,14 +78,22 @@ const CheckoutModal = ({ isOpen, onClose, cartItems, total, onCheckoutSuccess })
           menu_item_id: String(item.id),
           quantity: item.qty,
           notes: item.notes || '',
+          modifier_ids: item.modifier_ids || []
         })),
         payment_method: paymentMethod,
         customer_contact: [whatsapp, email].filter(Boolean).join(', ') || undefined,
+        order_type: orderType,
+        routing_number: routingNumber || undefined,
+        amount_tendered: paymentMethod === 'Cash' ? parsedTendered : undefined,
+        change_due: paymentMethod === 'Cash' ? changeDue : undefined
       };
 
       await axiosInstance.post('/pos/checkout', payload);
       setWhatsapp('');
       setEmail('');
+      setOrderType('Takeaway');
+      setRoutingNumber('');
+      setTenderedAmount('');
       onCheckoutSuccess();
     } catch (err) {
       console.error('Checkout failed', err);
@@ -123,6 +138,53 @@ const CheckoutModal = ({ isOpen, onClose, cartItems, total, onCheckoutSuccess })
           <div className="checkout-error-banner" role="alert">
             <ErrorIcon />
             <span>{error}</span>
+          </div>
+        )}
+
+        {/* Order Routing Options */}
+        <div className="checkout-form-group">
+          <label className="checkout-form-label">
+            Order Type: <span className="required">*</span>
+          </label>
+          <div className="checkout-segmented-control">
+            <div 
+              data-testid="btn-takeaway"
+              className={`checkout-segment ${orderType === 'Takeaway' ? 'active' : ''}`}
+              onClick={() => setOrderType('Takeaway')}
+              role="button"
+              tabIndex={0}
+            >
+              🛍️ Takeaway
+            </div>
+            <div 
+              data-testid="btn-dine-in"
+              className={`checkout-segment ${orderType === 'Dine-In' ? 'active' : ''}`}
+              onClick={() => setOrderType('Dine-In')}
+              role="button"
+              tabIndex={0}
+            >
+              🍽️ Dine-In
+            </div>
+          </div>
+        </div>
+
+        {orderType === 'Dine-In' && (
+          <div className="checkout-form-group">
+            <label className="checkout-form-label" htmlFor="checkout-routing">
+              Table Number <span className="required">*</span>
+            </label>
+            <div className="checkout-input-wrapper">
+              <input
+                data-testid="input-table-number"
+                id="checkout-routing"
+                type="text"
+                className="checkout-form-input"
+                placeholder="Enter table number..."
+                value={routingNumber}
+                onChange={(e) => setRoutingNumber(e.target.value)}
+                style={{ paddingLeft: '12px' }}
+              />
+            </div>
           </div>
         )}
 
@@ -188,19 +250,41 @@ const CheckoutModal = ({ isOpen, onClose, cartItems, total, onCheckoutSuccess })
           </div>
         </div>
 
+        {/* Cash Tendered Input */}
+        {paymentMethod === 'Cash' && (
+          <div className="checkout-form-group">
+            <label className="checkout-form-label" htmlFor="checkout-tendered">
+              Amount Tendered <span className="required">*</span>
+            </label>
+            <div className="checkout-input-wrapper">
+              <input
+                id="checkout-tendered"
+                type="text"
+                className="checkout-form-input"
+                placeholder="0"
+                value={tenderedAmount ? `Rp ${parseInt(tenderedAmount.replace(/\D/g, '') || 0, 10).toLocaleString('id-ID')}` : ''}
+                onChange={(e) => setTenderedAmount(e.target.value)}
+                style={{ paddingLeft: '12px', fontSize: 'var(--font-size-lg)', fontWeight: 'bold' }}
+              />
+            </div>
+            {parsedTendered > 0 && (
+              <span className="change-due-label">
+                Change Due: <span className="change-due-value" style={{ color: changeDue >= 0 ? 'var(--color-success)' : 'var(--color-error)' }}>Rp {changeDue.toLocaleString('id-ID')}</span>
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="checkout-modal-actions">
-          <button
-            className="btn-modal-cancel"
-            onClick={onClose}
-            disabled={loading}
-          >
+          <button className="btn-modal-cancel" onClick={onClose} disabled={loading}>
             Cancel
           </button>
           <button
+            data-testid="btn-confirm-checkout"
             className="btn-modal-confirm"
             onClick={handleCheckout}
-            disabled={loading}
+            disabled={loading || (orderType === 'Dine-In' && !routingNumber.trim()) || isCashInvalid}
           >
             {loading ? 'Processing...' : 'Confirm'}
           </button>

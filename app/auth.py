@@ -104,3 +104,44 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         "token_type": "bearer",
         "user": {"username": user.name, "role": user.role.value}
     }
+
+from .schemas import PinAuthRequest
+
+@router.post("/pin-auth")
+async def authorize_manager_pin(pin_request: PinAuthRequest, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User).where(User.role == RoleEnum.Manager, User.is_active == True))
+    managers = result.scalars().all()
+    
+    authorized_manager = None
+    for manager in managers:
+        if manager.hashed_pin and verify_password(pin_request.pin, manager.hashed_pin):
+            authorized_manager = manager
+            break
+            
+    if not authorized_manager:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid manager PIN",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        
+    access_token_expires = timedelta(minutes=5)
+    access_token = create_access_token(
+        data={"sub": authorized_manager.username, "role": authorized_manager.role.value, "scopes": ["void", "refund"]},
+        expires_delta=access_token_expires
+    )
+    
+    audit_log = AuditLog(
+        user_id=authorized_manager.id,
+        action="pin_auth",
+        resource="auth",
+        outcome="success"
+    )
+    db.add(audit_log)
+    await db.commit()
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {"username": authorized_manager.name, "role": authorized_manager.role.value}
+    }

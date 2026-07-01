@@ -1,4 +1,3 @@
-import React from 'react';
 import '../../styles/POS/ShoppingCart.css';
 
 const ShoppingCart = ({ cartItems, updateQuantity, removeItem }) => {
@@ -23,7 +22,7 @@ const ShoppingCart = ({ cartItems, updateQuantity, removeItem }) => {
         {cartItems.map((item) => {
           const formattedTotal = (item.price * item.qty).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
           return (
-            <li key={item.id} className="cart-item">
+            <li key={item.cartItemId} className="cart-item" data-testid={`cart-item-${item.id}`}>
               {/* Thumbnail */}
               <div className="cart-item-thumb">
                 <img
@@ -39,7 +38,7 @@ const ShoppingCart = ({ cartItems, updateQuantity, removeItem }) => {
                   <p className="cart-item-name">{item.name}</p>
                   <button
                     className="btn-remove-item"
-                    onClick={() => removeItem(item.id)}
+                    onClick={() => removeItem(item.cartItemId)}
                     aria-label={`Remove ${item.name} from cart`}
                     title="Remove item"
                   >
@@ -51,15 +50,15 @@ const ShoppingCart = ({ cartItems, updateQuantity, removeItem }) => {
                   <div className="cart-qty-controls">
                     <button
                       className="btn-qty btn-minus"
-                      onClick={() => updateQuantity(item.id, item.qty - 1)}
+                      onClick={() => updateQuantity(item.cartItemId, item.qty - 1)}
                       aria-label={`Decrease quantity of ${item.name}`}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     </button>
-                    <span className="cart-qty-value">{item.qty}</span>
+                    <span data-testid="cart-item-qty" className="cart-qty-value">{item.qty}</span>
                     <button
                       className="btn-qty btn-plus"
-                      onClick={() => updateQuantity(item.id, item.qty + 1)}
+                      onClick={() => updateQuantity(item.cartItemId, item.qty + 1)}
                       aria-label={`Increase quantity of ${item.name}`}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import MenuItemCard from './MenuItemCard';
 import axiosInstance from '../../core/api/axios';
 import '../../styles/POS/MenuGrid.css';
@@ -22,17 +22,8 @@ const MenuGrid = ({ onAddToCart, onUpdateQuantity, searchQuery, cartItems }) => 
         setMenuItems(response.data);
       } catch (error) {
         console.error('Failed to fetch menu data:', error);
-        // Fallback data for development
-        setMenuItems([
-          { id: 1, name: 'Special Burger', price: 45000, stock: 10, category: 'food', image: null },
-          { id: 2, name: 'French Fries', price: 20000, stock: 5, category: 'food', image: null },
-          { id: 3, name: 'Iced Coffee', price: 18000, stock: 0, category: 'beverage', image: null },
-          { id: 4, name: 'Grilled Chicken', price: 35000, stock: 20, category: 'food', image: null },
-          { id: 5, name: 'Mineral Water', price: 8000, stock: 50, category: 'beverage', image: null },
-          { id: 6, name: 'Chocolate Cake', price: 28000, stock: 8, category: 'food', image: null },
-          { id: 7, name: 'Orange Juice', price: 15000, stock: 12, category: 'beverage', image: null },
-          { id: 8, name: 'Napkins Pack', price: 5000, stock: 100, category: 'other', image: null },
-        ]);
+        // Do not use stale mock data with integer IDs.
+        // Let it be empty or show error.
       } finally {
         setLoading(false);
       }
@@ -83,10 +74,7 @@ const MenuGrid = ({ onAddToCart, onUpdateQuantity, searchQuery, cartItems }) => 
     return items;
   }, [menuItems, activeCategory, searchQuery]);
 
-  // Check if item is in cart for the blue border highlight
-  const isItemInCart = (itemId) => {
-    return cartItems.some(cartItem => cartItem.id === itemId);
-  };
+
 
   if (loading) {
     return <div className="menu-loading-state">Loading menu...</div>;
@@ -117,8 +105,8 @@ const MenuGrid = ({ onAddToCart, onUpdateQuantity, searchQuery, cartItems }) => 
           <div className="menu-empty-state">No items found.</div>
         ) : (
           filteredItems.map((item) => {
-            const cartItem = cartItems.find((c) => c.id === item.id);
-            const cartQty = cartItem ? cartItem.qty : 0;
+            const matchingCartItems = cartItems.filter((c) => c.id === item.id);
+            const cartQty = matchingCartItems.reduce((sum, c) => sum + c.qty, 0);
             return (
               <MenuItemCard
                 key={item.id}

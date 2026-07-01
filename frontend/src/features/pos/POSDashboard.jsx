@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import MenuGrid from './MenuGrid';
 import ShoppingCart from './ShoppingCart';
 import CheckoutModal from './CheckoutModal';
 import ConfirmModal from './ConfirmModal';
+import ItemCustomizationModal from './ItemCustomizationModal';
 import { useAuthStore } from '../../core/store/authStore';
+import { usePosStore } from '../../core/store/posStore';
 import '../../styles/POS/POSDashboard.css';
 
 const SearchIcon = () => (
@@ -59,38 +61,48 @@ const TrashIcon = () => (
 );
 
 const POSDashboard = () => {
-  const [cartItems, setCartItems] = useState([]);
+  const cartItems = usePosStore((state) => state.cartItems);
+  const addToCart = usePosStore((state) => state.addToCart);
+  const updateQuantity = usePosStore((state) => state.updateQuantity);
+  const removeItem = usePosStore((state) => state.removeItem);
+  const clearCart = usePosStore((state) => state.clearCart);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmClearModalOpen, setIsConfirmClearModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const [customizingItem, setCustomizingItem] = useState(null);
+  
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
 
   const handleAddToCart = (item) => {
-    setCartItems((prevCart) => {
-      const existingItem = prevCart.find((cartItem) => cartItem.id === item.id);
-      if (existingItem) {
-        return prevCart.map((cartItem) =>
-          cartItem.id === item.id ? { ...cartItem, qty: cartItem.qty + 1 } : cartItem
-        );
-      } else {
-        return [...prevCart, { ...item, qty: 1, notes: '' }];
-      }
-    });
-  };
-
-  const handleUpdateQuantity = (id, newQty) => {
-    if (newQty <= 0) {
-      handleRemoveItem(id);
-      return;
+    if (item.modifier_groups && item.modifier_groups.length > 0) {
+      setCustomizingItem(item);
+    } else {
+      addToCart(item);
     }
-    setCartItems((prevCart) =>
-      prevCart.map((item) => (item.id === id ? { ...item, qty: newQty } : item))
-    );
   };
 
-  const handleRemoveItem = (id) => {
-    setCartItems((prevCart) => prevCart.filter((item) => item.id !== id));
+  const handleConfirmCustomization = (item, modifierIds, priceAdjustment) => {
+    addToCart(item, modifierIds, priceAdjustment);
+    setCustomizingItem(null);
+  };
+
+  const handleUpdateQuantity = (cartItemId, newQty) => {
+    updateQuantity(cartItemId, newQty);
+  };
+
+  const handleGridRemoveOne = (baseItemId) => {
+    const matchingItems = cartItems.filter(c => c.id === baseItemId);
+    if (matchingItems.length > 0) {
+      const lastItem = matchingItems[matchingItems.length - 1];
+      updateQuantity(lastItem.cartItemId, lastItem.qty - 1);
+    }
+  };
+
+  const handleRemoveItem = (cartItemId) => {
+    removeItem(cartItemId);
   };
 
   const handleEmptyCart = () => {
@@ -98,7 +110,8 @@ const POSDashboard = () => {
   };
 
   const confirmEmptyCart = () => {
-    setCartItems([]);
+    clearCart();
+    setIsConfirmClearModalOpen(false);
   };
 
   const subtotal = cartItems.reduce((total, item) => total + item.price * item.qty, 0);
@@ -108,7 +121,7 @@ const POSDashboard = () => {
 
   const handleCheckoutSuccess = () => {
     setIsModalOpen(false);
-    setCartItems([]);
+    clearCart();
     alert('Payment Successful! Order has been processed.');
   };
 
@@ -151,7 +164,7 @@ const POSDashboard = () => {
 
           <MenuGrid 
             onAddToCart={handleAddToCart} 
-            onUpdateQuantity={handleUpdateQuantity}
+            onUpdateQuantity={handleGridRemoveOne}
             searchQuery={searchQuery}
             cartItems={cartItems}
           />
@@ -162,7 +175,7 @@ const POSDashboard = () => {
           <div className="pos-cart-header">
             <h2 className="pos-cart-title">Order Details</h2>
             {cartItems.length > 0 && (
-              <button className="btn-empty-cart" onClick={handleEmptyCart} title="Empty Cart">
+              <button data-testid="btn-empty-cart" className="btn-empty-cart" onClick={handleEmptyCart} title="Empty Cart">
                 <TrashIcon />
                 <span>Empty Cart</span>
               </button>
@@ -193,6 +206,7 @@ const POSDashboard = () => {
 
           {/* Make Order CTA */}
           <button
+            data-testid="btn-make-order"
             className="btn-make-order"
             onClick={() => setIsModalOpen(true)}
             disabled={cartItems.length === 0}
@@ -209,6 +223,15 @@ const POSDashboard = () => {
         cartItems={cartItems}
         total={cartTotal}
         onCheckoutSuccess={handleCheckoutSuccess}
+      />
+
+      {/* Item Customization Modal */}
+      <ItemCustomizationModal
+        key={customizingItem ? customizingItem.id : 'empty'}
+        isOpen={!!customizingItem}
+        onClose={() => setCustomizingItem(null)}
+        item={customizingItem}
+        onConfirm={handleConfirmCustomization}
       />
 
       {/* Clear Cart Confirmation Modal */}

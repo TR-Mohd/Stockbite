@@ -1,7 +1,10 @@
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime
-from .models import RoleEnum, StatusEnum, POStatusEnum, PaymentMethodEnum
+from .models import RoleEnum, StatusEnum, POStatusEnum, PaymentMethodEnum, OrderTypeEnum
+
+class PinAuthRequest(BaseModel):
+    pin: str
 
 class Token(BaseModel):
     access_token: str
@@ -64,6 +67,21 @@ class BulkReceiveItem(BaseModel):
 class BulkReceiveRequest(BaseModel):
     items: List[BulkReceiveItem]
 
+class ModifierResponse(BaseModel):
+    id: str
+    name: str
+    price_adjustment: float
+    model_config = ConfigDict(from_attributes=True)
+
+class ModifierGroupResponse(BaseModel):
+    id: str
+    name: str
+    is_required: bool
+    min_selections: int
+    max_selections: Optional[int]
+    modifiers: List[ModifierResponse] = []
+    model_config = ConfigDict(from_attributes=True)
+
 class MenuItemResponse(BaseModel):
     id: str
     name: str
@@ -72,17 +90,21 @@ class MenuItemResponse(BaseModel):
     category: Optional[str] = None
     image: Optional[str] = None
     is_active: bool
+    modifier_groups: List[ModifierGroupResponse] = []
     model_config = ConfigDict(from_attributes=True)
 
 class CartItemCreate(BaseModel):
     menu_item_id: str
     quantity: int
     notes: Optional[str] = None
+    modifier_ids: List[str] = []
 
 class TransactionCreate(BaseModel):
     payment_method: PaymentMethodEnum
     amount_tendered: Optional[float] = None
     customer_contact: Optional[str] = None
+    order_type: OrderTypeEnum
+    routing_number: Optional[str] = None
     items: List[CartItemCreate]
 
 class TransactionResponse(BaseModel):
@@ -93,6 +115,8 @@ class TransactionResponse(BaseModel):
     change: Optional[float]
     timestamp: datetime
     status: StatusEnum
+    order_type: OrderTypeEnum
+    routing_number: Optional[str]
     model_config = ConfigDict(from_attributes=True)
 
 class SupplierBase(BaseModel):

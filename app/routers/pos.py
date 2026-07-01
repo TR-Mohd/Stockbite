@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 from ..database import get_db
 from ..auth import get_current_user, role_required
 from typing import List
-from ..models import User, RoleEnum, Transaction, TransactionItem, MenuItem, Ingredient, Recipe, AuditLog
+from ..models import User, RoleEnum, Transaction, TransactionItem, MenuItem, Ingredient, Recipe, AuditLog, OrderTypeEnum, ItemModifier, TransactionItemModifier
 from ..schemas import TransactionCreate, TransactionResponse, MenuItemResponse
 
 router = APIRouter(prefix="/pos", tags=["POS"])
@@ -23,10 +23,20 @@ async def checkout(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(role_required([RoleEnum.Cashier]))
 ):
+    if order.order_type == OrderTypeEnum.DineIn and not order.routing_number:
+        raise HTTPException(status_code=400, detail="Table number is required for Dine-In orders")
+
     # Retrieve all menu items in the cart
     menu_item_ids = [item.menu_item_id for item in order.items]
     result = await db.execute(select(MenuItem).options(selectinload(MenuItem.recipes)).where(MenuItem.id.in_(menu_item_ids)))
     menu_items = {mi.id: mi for mi in result.scalars().all()}
+    
+    # Retrieve all selected modifiers
+    modifier_ids_nested = [m_id for item in order.items for m_id in item.modifier_ids]
+    modifiers = {}
+    if modifier_ids_nested:
+        result_mods = await db.execute(select(ItemModifier).where(ItemModifier.id.in_(modifier_ids_nested)))
+        modifiers = {m.id: m for m in result_mods.scalars().all()}
 
     total_amount = 0.0
     ingredient_deductions = {}
@@ -39,7 +49,15 @@ async def checkout(
         if not mi.is_active:
             raise HTTPException(status_code=400, detail=f"Menu item {mi.name} is inactive")
         
-        total_amount += mi.price * item.quantity
+        item_price = mi.price
+        
+        # Process modifiers
+        for m_id in item.modifier_ids:
+            if m_id not in modifiers:
+                raise HTTPException(status_code=400, detail=f"Modifier {m_id} not found")
+            item_price += modifiers[m_id].price_adjustment
+            
+        total_amount += item_price * item.quantity
 
         for recipe in mi.recipes:
             if recipe.ingredient_id not in ingredient_deductions:
@@ -74,7 +92,9 @@ async def checkout(
         amount_tendered=order.amount_tendered,
         change=change,
         customer_contact=order.customer_contact,
-        cashier_id=current_user.id
+        cashier_id=current_user.id,
+        order_type=order.order_type,
+        routing_number=order.routing_number
     )
     db.add(db_txn)
 
@@ -88,6 +108,16 @@ async def checkout(
             price_at_time=mi.price
         )
         db.add(db_txn_item)
+        
+        # Add modifier records
+        for m_id in item.modifier_ids:
+            mod = modifiers[m_id]
+            txn_mod = TransactionItemModifier(
+                transaction_item=db_txn_item,
+                modifier_id=m_id,
+                price_at_time=mod.price_adjustment
+            )
+            db.add(txn_mod)
 
     # Audit log
     audit = AuditLog(
