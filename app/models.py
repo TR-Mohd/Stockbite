@@ -74,6 +74,7 @@ class Ingredient(Base):
     unit = Column(String, nullable=False)
     reorder_point = Column(Float, default=0.0)
     category = Column(String, default="Uncategorized")
+    unit_cost = Column(Float, default=0.0)
     last_updated = Column(DateTime, default=datetime.utcnow)
     preferred_supplier_id = Column(String, ForeignKey("suppliers.id"), nullable=True)
     version_id = Column(Integer, nullable=False, default=1)
@@ -116,6 +117,17 @@ class ItemModifier(Base):
     price_adjustment = Column(Float, default=0.0)
     
     group = relationship("ItemModifierGroup", back_populates="modifiers")
+    modifier_recipes = relationship("ModifierRecipe", back_populates="modifier")
+
+class ModifierRecipe(Base):
+    __tablename__ = "modifier_recipes"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    modifier_id = Column(String, ForeignKey("item_modifiers.id"))
+    ingredient_id = Column(String, ForeignKey("ingredients.id"))
+    quantity = Column(Float, nullable=False)
+
+    modifier = relationship("ItemModifier", back_populates="modifier_recipes")
+    ingredient = relationship("Ingredient")
 
 class Recipe(Base):
     __tablename__ = "recipes"
@@ -153,6 +165,7 @@ class TransactionItem(Base):
     quantity = Column(Integer, nullable=False)
     notes = Column(String, nullable=True)
     price_at_time = Column(Float, nullable=False)
+    cogs_per_unit = Column(Float, nullable=False, server_default="0.0")
 
     transaction = relationship("Transaction", back_populates="items")
     menu_item = relationship("MenuItem")
@@ -164,6 +177,7 @@ class TransactionItemModifier(Base):
     transaction_item_id = Column(String, ForeignKey("transaction_items.id"), nullable=False)
     modifier_id = Column(String, ForeignKey("item_modifiers.id"), nullable=False)
     price_at_time = Column(Float, nullable=False)
+    cogs_per_unit = Column(Float, nullable=False, server_default="0.0")
 
     transaction_item = relationship("TransactionItem", back_populates="selected_modifiers")
     modifier = relationship("ItemModifier")

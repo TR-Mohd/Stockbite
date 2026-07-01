@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 
 from ..database import get_db
 from ..auth import role_required, get_password_hash
-from ..models import User, RoleEnum, Transaction, TransactionItem, StatusEnum, AuditLog, MenuItem
+from ..models import User, RoleEnum, Transaction, TransactionItem, StatusEnum, AuditLog, MenuItem, TransactionItemModifier
 
 from sqlalchemy.orm import aliased
 from datetime import datetime, timedelta
@@ -232,9 +232,30 @@ async def get_kpis(
     )
     gross_revenue = result.scalar() or 0.0
 
-    # For an MVP, we can simulate COGS as a percentage or compute from ingredient costs if available
-    # Assuming 35% COGS for prototype
-    cogs = gross_revenue * 0.35
+    # Calculate base COGS from TransactionItems
+    cogs_items_res = await db.execute(
+        select(func.sum(TransactionItem.quantity * TransactionItem.cogs_per_unit))
+        .select_from(TransactionItem)
+        .join(Transaction)
+        .where(Transaction.status == StatusEnum.Completed)
+        .where(Transaction.timestamp >= start_utc)
+        .where(Transaction.timestamp <= end_utc)
+    )
+    cogs_items = cogs_items_res.scalar() or 0.0
+
+    # Calculate modifier COGS from TransactionItemModifiers
+    cogs_mods_res = await db.execute(
+        select(func.sum(TransactionItem.quantity * TransactionItemModifier.cogs_per_unit))
+        .select_from(TransactionItemModifier)
+        .join(TransactionItem)
+        .join(Transaction)
+        .where(Transaction.status == StatusEnum.Completed)
+        .where(Transaction.timestamp >= start_utc)
+        .where(Transaction.timestamp <= end_utc)
+    )
+    cogs_mods = cogs_mods_res.scalar() or 0.0
+
+    cogs = cogs_items + cogs_mods
     net_revenue = gross_revenue - cogs
     profit_margin = (net_revenue / gross_revenue * 100) if gross_revenue > 0 else 0.0
 

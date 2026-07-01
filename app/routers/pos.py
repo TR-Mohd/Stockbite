@@ -41,7 +41,11 @@ async def checkout(
     modifier_ids_nested = [m_id for item in order.items for m_id in item.modifier_ids]
     modifiers = {}
     if modifier_ids_nested:
-        result_mods = await db.execute(select(ItemModifier).where(ItemModifier.id.in_(modifier_ids_nested)))
+        result_mods = await db.execute(
+            select(ItemModifier)
+            .options(selectinload(ItemModifier.modifier_recipes))
+            .where(ItemModifier.id.in_(modifier_ids_nested))
+        )
         modifiers = {m.id: m for m in result_mods.scalars().all()}
 
     total_amount = 0.0
@@ -62,6 +66,11 @@ async def checkout(
             if m_id not in modifiers:
                 raise HTTPException(status_code=400, detail=f"Modifier {m_id} not found")
             item_price += modifiers[m_id].price_adjustment
+            
+            for m_recipe in modifiers[m_id].modifier_recipes:
+                if m_recipe.ingredient_id not in ingredient_deductions:
+                    ingredient_deductions[m_recipe.ingredient_id] = 0.0
+                ingredient_deductions[m_recipe.ingredient_id] += m_recipe.quantity * item.quantity
             
         total_amount += item_price * item.quantity
 
@@ -109,22 +118,36 @@ async def checkout(
 
     for item in order.items:
         mi = menu_items[item.menu_item_id]
+        
+        item_cogs = sum(
+            recipe.quantity * ingredients[recipe.ingredient_id].unit_cost 
+            for recipe in mi.recipes
+        )
+        
         db_txn_item = TransactionItem(
             transaction=db_txn,
             menu_item_id=mi.id,
             quantity=item.quantity,
             notes=item.notes,
-            price_at_time=mi.price
+            price_at_time=mi.price,
+            cogs_per_unit=item_cogs
         )
         db.add(db_txn_item)
         
         # Add modifier records
         for m_id in item.modifier_ids:
             mod = modifiers[m_id]
+            
+            mod_cogs = sum(
+                m_recipe.quantity * ingredients[m_recipe.ingredient_id].unit_cost 
+                for m_recipe in mod.modifier_recipes
+            )
+            
             txn_mod = TransactionItemModifier(
                 transaction_item=db_txn_item,
                 modifier_id=m_id,
-                price_at_time=mod.price_adjustment
+                price_at_time=mod.price_adjustment,
+                cogs_per_unit=mod_cogs
             )
             db.add(txn_mod)
 
