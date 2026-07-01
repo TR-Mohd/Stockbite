@@ -1,6 +1,7 @@
 import React from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../core/store/authStore';
+import { Outlet, NavLink } from 'react-router-dom';
+import { GlobalHeader } from './GlobalHeader';
+import headerStyles from './GlobalHeader.module.css';
 import styles from './ManagerLayout.module.css';
 
 // --- ICONS ---
@@ -13,52 +14,37 @@ const LogoutIcon = () => (
 );
 
 export const ManagerLayout = () => {
-  const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
   // TODO: role guard - add explicit role checking here if not fully covered by routing level guard
 
   return (
     <div className={styles.layoutContainer}>
       {/* Global Header / Top Navigation for Manager */}
-      <header className={styles.topNav}>
-        <div className={styles.navBrand}>Stockbite BI</div>
-        
-        <nav className={styles.navLinks}>
-          <NavLink 
-            to="/manager/dashboard" 
-            className={({ isActive }) => isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink}
-          >
-            Dashboard
-          </NavLink>
-          <NavLink 
-            to="/manager/suppliers" 
-            className={({ isActive }) => isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink}
-          >
-            Suppliers
-          </NavLink>
-          <NavLink 
-            to="/manager/staff" 
-            className={({ isActive }) => isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink}
-          >
-            Staff Management
-          </NavLink>
-        </nav>
-
-        <div className={styles.navUser}>
-          <span className={styles.userName}>
-            Hi, {user?.username || 'Manager'}
-          </span>
-          <button className={styles.logoutBtn} onClick={handleLogout} title="Logout">
-            <LogoutIcon />
-          </button>
-        </div>
-      </header>
+      <GlobalHeader title="Stockbite BI">
+        <NavLink 
+          to="/manager/dashboard" 
+          className={({ isActive }) => isActive ? `${headerStyles.navLink} ${headerStyles.activeLink}` : headerStyles.navLink}
+        >
+          Dashboard
+        </NavLink>
+        <NavLink 
+          to="/manager/suppliers" 
+          className={({ isActive }) => isActive ? `${headerStyles.navLink} ${headerStyles.activeLink}` : headerStyles.navLink}
+        >
+          Suppliers
+        </NavLink>
+        <NavLink 
+          to="/manager/staff" 
+          className={({ isActive }) => isActive ? `${headerStyles.navLink} ${headerStyles.activeLink}` : headerStyles.navLink}
+        >
+          Staff Management
+        </NavLink>
+        <NavLink 
+          to="/manager/orders" 
+          className={({ isActive }) => isActive ? `${headerStyles.navLink} ${headerStyles.activeLink}` : headerStyles.navLink}
+        >
+          Order History
+        </NavLink>
+      </GlobalHeader>
 
       <main className={styles.mainContent}>
         <Outlet />

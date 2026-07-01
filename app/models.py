@@ -18,6 +18,10 @@ class StatusEnum(str, enum.Enum):
     Completed = "Completed"
     Voided = "Voided"
 
+class OrderTypeEnum(str, enum.Enum):
+    DineIn = "Dine-In"
+    Takeaway = "Takeaway"
+
 class POStatusEnum(str, enum.Enum):
     Draft = "Draft"
     Sent = "Sent"
@@ -31,8 +35,12 @@ class User(Base):
     __tablename__ = "users"
     id = Column(String, primary_key=True, default=generate_uuid)
     name = Column(String, nullable=False)
+    username = Column(String, nullable=True)
     role = Column(Enum(RoleEnum), nullable=False)
     hashed_password = Column(String, nullable=False)
+    hashed_pin = Column(String, nullable=True)
+    phone_number = Column(String, nullable=True)
+    email = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
 
 class Shift(Base):
@@ -66,6 +74,7 @@ class Ingredient(Base):
     unit = Column(String, nullable=False)
     reorder_point = Column(Float, default=0.0)
     category = Column(String, default="Uncategorized")
+    unit_cost = Column(Float, default=0.0)
     last_updated = Column(DateTime, default=datetime.utcnow)
     preferred_supplier_id = Column(String, ForeignKey("suppliers.id"), nullable=True)
     version_id = Column(Integer, nullable=False, default=1)
@@ -86,6 +95,39 @@ class MenuItem(Base):
     is_active = Column(Boolean, default=True)
 
     recipes = relationship("Recipe", back_populates="menu_item")
+    modifier_groups = relationship("ItemModifierGroup", back_populates="menu_item")
+
+class ItemModifierGroup(Base):
+    __tablename__ = "item_modifier_groups"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    menu_item_id = Column(String, ForeignKey("menu_items.id"), nullable=False)
+    name = Column(String, nullable=False)
+    is_required = Column(Boolean, default=False)
+    min_selections = Column(Integer, default=0)
+    max_selections = Column(Integer, nullable=True)
+
+    menu_item = relationship("MenuItem", back_populates="modifier_groups")
+    modifiers = relationship("ItemModifier", back_populates="group", cascade="all, delete-orphan")
+
+class ItemModifier(Base):
+    __tablename__ = "item_modifiers"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    group_id = Column(String, ForeignKey("item_modifier_groups.id"), nullable=False)
+    name = Column(String, nullable=False)
+    price_adjustment = Column(Float, default=0.0)
+    
+    group = relationship("ItemModifierGroup", back_populates="modifiers")
+    modifier_recipes = relationship("ModifierRecipe", back_populates="modifier")
+
+class ModifierRecipe(Base):
+    __tablename__ = "modifier_recipes"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    modifier_id = Column(String, ForeignKey("item_modifiers.id"))
+    ingredient_id = Column(String, ForeignKey("ingredients.id"))
+    quantity = Column(Float, nullable=False)
+
+    modifier = relationship("ItemModifier", back_populates="modifier_recipes")
+    ingredient = relationship("Ingredient")
 
 class Recipe(Base):
     __tablename__ = "recipes"
@@ -105,9 +147,12 @@ class Transaction(Base):
     amount_tendered = Column(Float, nullable=True)
     change = Column(Float, nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
-    customer_contact = Column(String, nullable=True)
+    whatsapp = Column(String, nullable=True)
+    email = Column(String, nullable=True)
     cashier_id = Column(String, ForeignKey("users.id"))
     status = Column(Enum(StatusEnum), default=StatusEnum.Completed)
+    order_type = Column(Enum(OrderTypeEnum, values_callable=lambda obj: [e.value for e in obj]), nullable=False, default=OrderTypeEnum.Takeaway)
+    routing_number = Column(String, nullable=True)
 
     items = relationship("TransactionItem", back_populates="transaction")
     cashier = relationship("User")
@@ -120,9 +165,22 @@ class TransactionItem(Base):
     quantity = Column(Integer, nullable=False)
     notes = Column(String, nullable=True)
     price_at_time = Column(Float, nullable=False)
+    cogs_per_unit = Column(Float, nullable=False, server_default="0.0")
 
     transaction = relationship("Transaction", back_populates="items")
     menu_item = relationship("MenuItem")
+    selected_modifiers = relationship("TransactionItemModifier", back_populates="transaction_item")
+
+class TransactionItemModifier(Base):
+    __tablename__ = "transaction_item_modifiers"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    transaction_item_id = Column(String, ForeignKey("transaction_items.id"), nullable=False)
+    modifier_id = Column(String, ForeignKey("item_modifiers.id"), nullable=False)
+    price_at_time = Column(Float, nullable=False)
+    cogs_per_unit = Column(Float, nullable=False, server_default="0.0")
+
+    transaction_item = relationship("TransactionItem", back_populates="selected_modifiers")
+    modifier = relationship("ItemModifier")
 
 class PurchaseOrder(Base):
     __tablename__ = "purchase_orders"

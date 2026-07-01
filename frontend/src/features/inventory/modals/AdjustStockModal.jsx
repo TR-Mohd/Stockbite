@@ -1,56 +1,79 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import '../../../styles/inventory/modals/InventoryModals.css';
 
-export const AdjustStockModal = ({ isOpen, onClose, ingredient, onSubmit }) => {
+export const AdjustStockModal = ({ isOpen, onClose, inventoryData, onSubmit, initialIngredientId = '' }) => {
+  const [selectedIngredientId, setSelectedIngredientId] = useState(initialIngredientId);
   const [newStock, setNewStock] = useState('');
   const [reason, setReason] = useState('');
   const [notes, setNotes] = useState('');
 
+  const selectedIngredient = useMemo(() => {
+    return inventoryData?.find(item => item.id === selectedIngredientId) || null;
+  }, [inventoryData, selectedIngredientId]);
+
   useEffect(() => {
-    if (isOpen && ingredient) {
-      setNewStock(ingredient.stock.toString());
+    if (isOpen) {
+      setSelectedIngredientId(initialIngredientId);
+      setNewStock('');
       setReason('');
       setNotes('');
     }
-  }, [isOpen, ingredient]);
-
-  if (!ingredient) return null;
+  }, [isOpen, initialIngredientId]);
 
   const handleSubmit = () => {
-    if (newStock === '' || !reason) return;
-    onSubmit({ ingredientId: ingredient.id, newStock: Number(newStock), reason, notes });
+    if (!selectedIngredient || newStock === '' || !reason) return;
+    onSubmit({ ingredientId: selectedIngredient.id, newStock: Number(newStock), reason, notes });
     onClose();
   };
 
   const footer = (
     <>
       <Button variant="outline" onClick={onClose}>Cancel</Button>
-      <Button variant="primary" onClick={handleSubmit} disabled={newStock === '' || !reason}>
+      <Button variant="primary" onClick={handleSubmit} disabled={!selectedIngredient || newStock === '' || !reason}>
         Confirm Adjustment
       </Button>
     </>
   );
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Adjust Stock: ${ingredient.name}`} footer={footer}>
-      <div className="modal-info-panel">
-        <div className="modal-info-row">
-          <span className="modal-info-label">Current System Stock:</span>
-          <span className="modal-info-value">{ingredient.stock} {ingredient.uom}</span>
-        </div>
+    <Modal isOpen={isOpen} onClose={onClose} title="Adjust Stock" footer={footer}>
+      <div className="modal-form-group">
+        <label className="modal-label">Ingredient *</label>
+        <select 
+          className="modal-select" 
+          value={selectedIngredientId}
+          onChange={(e) => setSelectedIngredientId(e.target.value)}
+        >
+          <option value="">Select ingredient...</option>
+          {inventoryData?.map(item => (
+            <option key={item.id} value={item.id}>
+              {item.name}
+            </option>
+          ))}
+        </select>
       </div>
 
+      {selectedIngredient && (
+        <div className="modal-info-panel" style={{ marginBottom: '16px' }}>
+          <div className="modal-info-row">
+            <span className="modal-info-label">Current System Stock:</span>
+            <span className="modal-info-value">{selectedIngredient.stock} {selectedIngredient.uom}</span>
+          </div>
+        </div>
+      )}
+
       <div className="modal-form-group">
-        <label className="modal-label">New Actual Stock ({ingredient.uom}) *</label>
+        <label className="modal-label">New Actual Stock {selectedIngredient ? `(${selectedIngredient.uom})` : ''} *</label>
         <input 
           type="number" 
           className="modal-input" 
           value={newStock}
           onChange={(e) => setNewStock(e.target.value)}
           min="0"
+          disabled={!selectedIngredient}
         />
       </div>
 
@@ -60,6 +83,7 @@ export const AdjustStockModal = ({ isOpen, onClose, ingredient, onSubmit }) => {
           className="modal-select" 
           value={reason}
           onChange={(e) => setReason(e.target.value)}
+          disabled={!selectedIngredient}
         >
           <option value="">Select reason...</option>
           <option value="Physical count correction">Physical count correction</option>
@@ -83,3 +107,4 @@ export const AdjustStockModal = ({ isOpen, onClose, ingredient, onSubmit }) => {
     </Modal>
   );
 };
+

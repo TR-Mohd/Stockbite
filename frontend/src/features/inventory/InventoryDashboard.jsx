@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../../styles/inventory/InventoryDashboard.css';
 import { InventoryTable } from './InventoryTable';
 import { Button } from '../../components/ui/Button';
+import { GlobalHeader } from '../../components/layout/GlobalHeader';
 import { useAuthStore } from '../../core/store/authStore';
 import api from '../../core/api/axios'; // Use pre-configured Axios
 
@@ -25,6 +26,7 @@ export const InventoryDashboard = () => {
 
   // Modal Visibility State
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
+  const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
   const [draftPOContext, setDraftPOContext] = useState(null);
   const [adjustContext, setAdjustContext] = useState(null);
   const [wasteContext, setWasteContext] = useState(null);
@@ -125,39 +127,11 @@ export const InventoryDashboard = () => {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
+  const uniqueCategories = ['All', ...new Set(inventoryData.map(item => item.category).filter(Boolean))].sort();
+
   return (
     <div className="inventory-dashboard">
-      <header className="inventory-header">
-        <div className="header-container">
-          <h1>Inventory Management</h1>
-          <div className="header-actions">
-            {/* Add Item button removed per Warehouse role restrictions */}
-            <Button variant="primary" onClick={() => setIsReceiveModalOpen(true)}>Receive Stock</Button>
-            
-            <div className="header-user-actions">
-              <span className="user-greeting">Hi, {user?.username || 'User'}</span>
-              <button className="logout-button" aria-label="Log out" onClick={logout}>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="18" 
-                  height="18" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  className="logout-icon"
-                >
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                  <polyline points="16 17 21 12 16 7"></polyline>
-                  <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <GlobalHeader title="Inventory Management" />
 
       <div className="inventory-main-container">
         <div className="summary-strip">
@@ -181,14 +155,17 @@ export const InventoryDashboard = () => {
 
         <div className="inventory-table-section">
           <div className="search-filter-bar">
-            <div className="search-input">
+            <div className="search-action-group">
               <input 
                 type="text" 
                 placeholder="Search ingredients..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="inventory-input"
+                className="inventory-input search-input"
               />
+              <span className="search-divider">|</span>
+              <Button variant="outline" onClick={() => setIsAdjustModalOpen(true)}>Adjust Stock</Button>
+              <Button variant="primary" onClick={() => setIsReceiveModalOpen(true)}>Receive Stock</Button>
             </div>
             <div className="filter-group">
               <select 
@@ -196,10 +173,9 @@ export const InventoryDashboard = () => {
                 onChange={(e) => setFilterCategory(e.target.value)}
                 className="inventory-select"
               >
-                <option value="All">All Categories</option>
-                <option value="Meat">Meat</option>
-                <option value="Bakery">Bakery</option>
-                <option value="Produce">Produce</option>
+                {uniqueCategories.map(cat => (
+                  <option key={cat} value={cat}>{cat === 'All' ? 'All Categories' : cat}</option>
+                ))}
               </select>
               <select 
                 value={filterStatus} 
@@ -218,7 +194,10 @@ export const InventoryDashboard = () => {
             <InventoryTable 
               data={filteredData} 
               onDraftPO={setDraftPOContext}
-              onAdjustStock={setAdjustContext}
+              onAdjustStock={(item) => {
+                setAdjustContext(item);
+                setIsAdjustModalOpen(true);
+              }}
               onLogWaste={setWasteContext}
             />
           </div>
@@ -241,9 +220,13 @@ export const InventoryDashboard = () => {
       />
 
       <AdjustStockModal
-        isOpen={!!adjustContext}
-        onClose={() => setAdjustContext(null)}
-        ingredient={adjustContext}
+        isOpen={isAdjustModalOpen}
+        onClose={() => {
+          setIsAdjustModalOpen(false);
+          setAdjustContext(null);
+        }}
+        inventoryData={inventoryData}
+        initialIngredientId={adjustContext?.id || ''}
         onSubmit={handleAdjustStock}
       />
 

@@ -462,6 +462,202 @@
 }
 
 .modalFooter {
+}
+
+.heatmapContent {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.heatmapGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 8px 4px 4px; /* Space for the cell hover scale (1.2x) to prevent scrollbar */
+}
+
+.heatmapRow {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  gap: 4px;
+  height: 24px;
+}
+
+.heatmapCell {
+  border-radius: 2px;
+  transition: transform 0.1s ease;
+  min-width: 12px;
+}
+
+.heatmapCell:hover {
+  transform: scale(1.2);
+  z-index: 10;
+}
+
+.heatmapXAxis {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  gap: 4px;
+  margin-top: 0.5rem;
+}
+
+.heatmapLabelX {
+  font-size: 0.7rem;
+  color: #9B958F;
+  text-align: left;
+}
+
+
+/* Best Sellers Styles */
+.bestSellersList {
+  display: flex;
+  flex-direction: column;
+}
+
+.bestSellerItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.bestSellerItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.itemThumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  object-fit: cover;
+  background-color: var(--color-border);
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.itemName {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.itemQty {
+  color: var(--color-text-secondary, #9ca3af);
+  font-size: 0.8rem;
+}
+
+.itemRevenue {
+  font-weight: 700;
+  color: var(--color-brand, #E0782E);
+}
+
+/* Market Basket Analysis Styles */
+.marketBasketList {
+  display: flex;
+  flex-direction: column;
+}
+
+.marketBasketItem {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--color-border);
+  gap: 0.5rem;
+}
+
+.marketBasketItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.basketPair {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.basketMetrics {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+}
+
+.basketTimes {
+  color: #9ca3af;
+}
+
+.basketConfidence {
+  color: #10b981;
+  font-weight: 600;
+  background-color: rgba(16, 185, 129, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .chartsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Staff Management & Modal Classes */
+.dashboardContainerAuto {
+  min-height: auto;
+}
+
+.tableSection {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.inactiveRow {
+  opacity: 0.6;
+}
+
+.statusInactive {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background-color: var(--color-error-bg, rgba(239, 68, 68, 0.1));
+  color: var(--color-error, #ef4444);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.editActionBtn {
+  border: 1px solid var(--color-border);
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  background: transparent;
+}
+
+.toggleActionBtn {
+  border: 1px solid var(--color-error, #ef4444);
+  padding: 0.25rem 0;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-error, #ef4444);
+  width: 85px;
+  text-align: center;
+  background: transparent;
+}
+
+.modalFooter {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
@@ -471,4 +667,34 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-tertiary, #9ca3af);
+  text-align: center;
+  padding: 2rem;
+  background-color: var(--color-bg-base);
+  border-radius: 8px;
+  border: 1px dashed var(--color-border);
+}
+
+.emptyStateIcon {
+  margin-bottom: 0.5rem;
+  opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .dashboardContent {
+    padding: 1rem;
+  }
 }

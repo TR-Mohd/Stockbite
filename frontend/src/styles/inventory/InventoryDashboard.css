@@ -7,35 +7,7 @@
   overflow-y: auto;
 }
 
-.inventory-header {
-  background-color: var(--color-bg-surface);
-  border-bottom: 1px solid var(--color-border);
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
 
-.header-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1.5rem 2rem;
-  width: 100%;
-}
-
-.inventory-header h1 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.header-actions {
-  display: flex;
-  gap: 0.75rem;
-}
 
 .inventory-main-container {
   max-width: 1200px;
@@ -100,9 +72,23 @@
   gap: 10px;
 }
 
+.search-action-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  max-width: 600px;
+}
+
 .search-input {
   flex: 1;
-  max-width: 400px;
+}
+
+.search-divider {
+  color: var(--color-border);
+  font-weight: 300;
+  font-size: 1.25rem;
+  margin: 0 4px;
 }
 
 .inventory-input,
@@ -137,43 +123,56 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-/* Container to group the greeting and button */
-.header-user-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-left: 1rem;
-  padding-left: 1rem;
-  border-left: 1px solid var(--color-border);
+
+
+/* --- Responsive Layout --- */
+
+@media (max-width: 1024px) {
+  .inventory-main-container {
+    padding: 1.5rem;
+  }
 }
 
-/* Greeting text */
-.user-greeting {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--color-text-secondary); 
+@media (max-width: 768px) {
+  .summary-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .search-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .search-action-group {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .search-input {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .search-divider {
+    display: none;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+  
+  .inventory-select {
+    flex: 1;
+  }
 }
 
-/* Logout ghost button */
-.logout-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: 8px; /* Rounded square */
-  color: var(--color-error); /* Red icon color */
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
+@media (max-width: 480px) {
+  .summary-strip {
+    grid-template-columns: 1fr;
+  }
 
-.logout-button:hover {
-  background-color: rgba(239, 68, 68, 0.1); /* Subtle red tint on hover */
-  border-color: var(--color-error);
-}
-
-.logout-icon {
-  flex-shrink: 0;
+  .filter-group {
+    flex-direction: column;
+  }
 }

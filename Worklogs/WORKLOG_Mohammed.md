@@ -101,3 +101,19 @@
 | 2026-06-29 13:50Z | Codebase Audit & Cleanup | Audited `/scripts` folder. Deleted orphaned standalone scripts (`clean_db_for_prod.py`, `seed_inventory.py`, `test_rev.py`, `verify_analytics.py`) to maintain a clean repository structure. | ✅ [COMPLETED] | N/A |
 | 2026-06-29 13:55Z | Pytest Migration | Refactored core analytics and security verification scripts into standard `pytest` suite. Created `test_analytics_endpoints.py`, `test_dashboard_pipeline.py`, and `test_firing_logic.py`. Solved `asyncpg` engine connection lifecycle issues on Windows. All tests successfully passed. | ✅ [COMPLETED] | N/A |
 | 2026-06-29 15:15Z | Automated Task | feat(ui): implement adaptive 3D inline notification queue and fix layout clipping | ✅ [COMPLETED] | Automate Worklog Consolidation |
+| 2026-06-30 05:46Z | Database Update | Fixed Heatmap UTC timezone discrepancies and corrected ID formatting for users and suppliers. Removed dummy users and populated database with real connected supplier data. | ✅ [COMPLETED] | N/A |
+| 2026-06-30 07:12Z | Staff Management Features | Added Contact info fields (phone/email) to DB and UI, implemented 11-digit max auto-formatting, capitalized names, and added overflow tooltips. | ✅ [COMPLETED] | N/A |
+
+## Update: July 2026 - POS Architecture & Order History
+
+| Timestamp | Task | Description | Status | Prompts & Commands Used |
+| :--- | :--- | :--- | :--- | :--- |
+| 2026-07-01 11:52Z | POS Commercial Backend | Architected Phase 1 commercial backend foundations (modifiers, PIN auth, routing). | ✅ [COMPLETED] | "Set up the POS commercial backend with modifiers, PIN authentication, and routing." |
+| 2026-07-01 11:57Z | DB Migrations & Endpoints | Applied DB migrations and built backend endpoints for modifiers and routing. | ✅ [COMPLETED] | "Create DB migrations and endpoints for the POS backend." |
+| 2026-07-01 12:14Z | POS Frontend UI & State | Implemented Checkout Modal, MenuGrid, ShoppingCart, and PIN Auth modal integrations. | ✅ [COMPLETED] | "Build the POS frontend UI, including checkout, menu grid, shopping cart, and PIN auth." |
+| 2026-07-01 12:26Z | Playwright E2E Suite | Implemented Playwright E2E Test Suite for POS Cashier workflows. | ✅ [COMPLETED] | "Add Playwright end-to-end tests for the cashier flow." |
+| 2026-07-01 12:46Z | Database Seeding | Implemented 3-phase database seeding strategy for menu testing. | ✅ [COMPLETED] | "Seed the database with sample menu data for testing." |
+| 2026-07-01 16:00Z | Checkout Modal Redesign | Redesigned POS Checkout Modal into a responsive two-column grid with animated inputs. | ✅ [COMPLETED] | "Redesign the checkout modal layout to be a two-column responsive grid." |
+| 2026-07-01 16:30Z | Order History Dashboard | Built minimal read-only Order History page for Manager module with API pagination, date/type filters, and UI polish. | ✅ [COMPLETED] | "Build an order history page for managers with filtering and pagination." |
+| 2026-07-01 23:55Z | Dashboard Metrics Fixes | Fixed Order History total revenue calculation (Cartesian product bug), Revenue Trend empty state bug for single-day timeframes, and resolved Heatmap hover scrollbar flicker via grid padding. | ✅ [COMPLETED] | "Fix the dashboard revenue calculation bugs and resolve the heatmap scrollbar flicker." |
+| 2026-07-02 00:15Z | Real COGS Implementation | Implemented industry-standard 'Frozen at Checkout' COGS model. Added ingredient unit costs and modifier recipes, optimized KPI queries, and seeded backfill data. | ✅ [COMPLETED] | "Redesign modifiers to have their own ingredients and calculate real COGS frozen at checkout time using a FIFO approach." |

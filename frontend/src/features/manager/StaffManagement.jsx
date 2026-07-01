@@ -169,7 +169,9 @@ export const StaffManagement = () => {
               <thead>
                 <tr>
                   <th>Employee ID</th>
-                  <th>Name</th>
+                  <th>Username</th>
+                  <th>Full Name</th>
+                  <th>Contact</th>
                   <th>Role</th>
                   <th>Last Active</th>
                   <th>Status</th>
@@ -179,7 +181,7 @@ export const StaffManagement = () => {
               <tbody>
                 {sortedStaffList.length === 0 ? (
                   <tr>
-                    <td colSpan="6">
+                    <td colSpan="8">
                       <div className="empty-state-container">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="empty-state-icon">
                           <circle cx="11" cy="11" r="8"></circle>
@@ -194,8 +196,20 @@ export const StaffManagement = () => {
                   sortedStaffList.map((staff) => (
                     <tr key={staff.id} className={staff.status === 'Inactive' ? styles.inactiveRow : ''}>
                       <td className="text-muted font-medium">{staff.id}</td>
+                      <td className="text-muted font-medium">
+                        {staff.username || '-'}
+                      </td>
                       <td className="font-medium">
-                        {staff.name}
+                        <div className="tooltip-container" style={{ display: 'block', maxWidth: '200px' }}>
+                          <div className="truncate-text">{staff.name ? staff.name.charAt(0).toUpperCase() + staff.name.slice(1) : ''}</div>
+                          <div className="custom-tooltip">{staff.name ? staff.name.charAt(0).toUpperCase() + staff.name.slice(1) : ''}</div>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                          <span style={{ fontWeight: '600' }}>{staff.phone_number || '-'}</span>
+                          <span className="text-muted text-sm">{staff.email || ''}</span>
+                        </div>
                       </td>
                       <td><span className="category-tag">{staff.role}</span></td>
                       <td className="text-muted text-sm">

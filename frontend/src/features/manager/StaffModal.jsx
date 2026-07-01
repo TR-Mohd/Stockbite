@@ -4,12 +4,16 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import inputStyles from '../../components/ui/Input.module.css';
 import styles from '../../styles/manager/ManagerDashboard.module.css';
+import { formatPhoneNumber } from '../../utils/formatters';
 
 export const StaffModal = ({ isOpen, onClose, onSave, staff = null }) => {
   const [formData, setFormData] = useState({
     name: '',
+    username: '',
     role: '',
     password: '',
+    phone_number: '',
+    email: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -19,14 +23,20 @@ export const StaffModal = ({ isOpen, onClose, onSave, staff = null }) => {
     if (staff) {
       setFormData({
         name: staff.name,
+        username: staff.username || '',
         role: staff.role,
         password: '',
+        phone_number: staff.phone_number || '',
+        email: staff.email || '',
       });
     } else {
       setFormData({
         name: '',
+        username: '',
         role: '',
         password: '',
+        phone_number: '',
+        email: '',
       });
     }
     setErrors({});
@@ -35,7 +45,11 @@ export const StaffModal = ({ isOpen, onClose, onSave, staff = null }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    let finalValue = value;
+    if (name === 'phone_number') {
+      finalValue = formatPhoneNumber(value, true);
+    }
+    setFormData(prev => ({ ...prev, [name]: finalValue }));
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: null }));
     }
@@ -44,7 +58,11 @@ export const StaffModal = ({ isOpen, onClose, onSave, staff = null }) => {
   const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if (!formData.username.trim()) newErrors.username = 'Username is required';
     if (!formData.role) newErrors.role = 'Role is required';
+    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Invalid email address';
+    }
     
     // Only require password when adding a new staff member
     if (!staff && !formData.password.trim()) {
@@ -83,12 +101,21 @@ export const StaffModal = ({ isOpen, onClose, onSave, staff = null }) => {
     >
       <form onSubmit={handleSubmit} className={styles.modalForm} style={{ paddingBottom: '1rem' }}>
         <Input
-          label="Name / Username"
+          label="Full Name"
           id="name"
           name="name"
           value={formData.name}
           onChange={handleChange}
           error={errors.name}
+          placeholder="Enter full name"
+        />
+        <Input
+          label="Username"
+          id="username"
+          name="username"
+          value={formData.username}
+          onChange={handleChange}
+          error={errors.username}
           placeholder="Enter username"
         />
         
@@ -137,6 +164,27 @@ export const StaffModal = ({ isOpen, onClose, onSave, staff = null }) => {
           onChange={handleChange}
           error={errors.password}
           placeholder={staff ? "Enter new password" : "Enter temporary password"}
+        />
+        
+        <Input
+          label="Phone Number"
+          id="phone_number"
+          name="phone_number"
+          value={formData.phone_number}
+          onChange={handleChange}
+          error={errors.phone_number}
+          placeholder="+62 8xx-xxxx-xxxx"
+        />
+        
+        <Input
+          label="Email"
+          id="email"
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={handleChange}
+          error={errors.email}
+          placeholder="employee@example.com"
         />
       </form>
     </Modal>

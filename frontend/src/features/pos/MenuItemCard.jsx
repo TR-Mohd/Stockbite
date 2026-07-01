@@ -1,4 +1,3 @@
-import React from 'react';
 import '../../styles/POS/MenuItemCard.css';
 
 const MenuItemCard = ({ item, onAddToCart, onUpdateQuantity, cartQty, isSelected }) => {
@@ -12,17 +11,13 @@ const MenuItemCard = ({ item, onAddToCart, onUpdateQuantity, cartQty, isSelected
 
   const handlePlus = (e) => {
     e.stopPropagation();
-    if (cartQty === 0) {
-      onAddToCart(item);
-    } else {
-      onUpdateQuantity(item.id, cartQty + 1);
-    }
+    onAddToCart(item);
   };
 
   const handleMinus = (e) => {
     e.stopPropagation();
     if (cartQty > 0) {
-      onUpdateQuantity(item.id, cartQty - 1);
+      onUpdateQuantity(item.id);
     }
   };
 
@@ -37,6 +32,7 @@ const MenuItemCard = ({ item, onAddToCart, onUpdateQuantity, cartQty, isSelected
 
   return (
     <div
+      data-testid={`menu-item-${item.id}`}
       className={cardClasses}
       onClick={() => {
         if (!isOutOfStock && cartQty === 0) onAddToCart(item);
@@ -54,6 +50,12 @@ const MenuItemCard = ({ item, onAddToCart, onUpdateQuantity, cartQty, isSelected
           src={item.image || getPlaceholderImage(item.category)}
           alt={item.name}
           loading="lazy"
+          onError={(e) => {
+            const fallback = getPlaceholderImage(item.category);
+            if (!e.target.src.includes(fallback)) {
+              e.target.src = fallback;
+            }
+          }}
         />
       </div>
 
@@ -72,11 +74,11 @@ const MenuItemCard = ({ item, onAddToCart, onUpdateQuantity, cartQty, isSelected
               <span className="menu-item-out-of-stock-text">Out of stock</span>
             ) : (
               <div className="qty-controls">
-                <button className="btn-qty btn-minus" onClick={handleMinus} aria-label="Decrease quantity">
+                <button data-testid="btn-minus" className="btn-qty btn-minus" onClick={handleMinus} aria-label="Decrease quantity">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </button>
-                <span className="qty-value">{cartQty}</span>
-                <button className="btn-qty btn-plus" onClick={handlePlus} aria-label="Increase quantity">
+                <span data-testid="item-qty" className="qty-value">{cartQty}</span>
+                <button data-testid="btn-plus" className="btn-qty btn-plus" onClick={handlePlus} aria-label="Increase quantity">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </button>
               </div>

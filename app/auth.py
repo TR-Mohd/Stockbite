@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -26,10 +26,10 @@ def get_password_hash(password):
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
+        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+    to_encode.update({"exp": int(expire.timestamp())})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
@@ -44,12 +44,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         username: str = payload.get("sub")
         role: str = payload.get("role")
         if username is None:
-            raise credentials_exception
+            raise HTTPException(status_code=401, detail="Could not validate credentials: Username is None")
         token_data = TokenData(username=username, role=role)
-    except JWTError:
-        raise credentials_exception
+    except JWTError as e:
+        raise HTTPException(status_code=401, detail=f"Could not validate credentials: JWTError - {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Could not validate credentials: Exception - {str(e)}")
     
-    result = await db.execute(select(User).where(User.name == token_data.username))
+    result = await db.execute(select(User).where(User.username == token_data.username))
     user = result.scalars().first()
     if user is None:
         raise credentials_exception
@@ -69,7 +71,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/token")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.name == form_data.username))
+    result = await db.execute(select(User).where(User.username == form_data.username))
     user = result.scalars().first()
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
@@ -85,7 +87,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.name, "role": user.role.value}, expires_delta=access_token_expires
+        data={"sub": user.username, "role": user.role.value}, expires_delta=access_token_expires
     )
     
     # Record login activity
@@ -97,9 +99,49 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     )
     db.add(audit_log)
     await db.commit()
-
     return {
         "access_token": access_token,
         "token_type": "bearer",
         "user": {"username": user.name, "role": user.role.value}
+    }
+
+from .schemas import PinAuthRequest
+
+@router.post("/pin-auth")
+async def authorize_manager_pin(pin_request: PinAuthRequest, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User).where(User.role == RoleEnum.Manager, User.is_active == True))
+    managers = result.scalars().all()
+    
+    authorized_manager = None
+    for manager in managers:
+        if manager.hashed_pin and verify_password(pin_request.pin, manager.hashed_pin):
+            authorized_manager = manager
+            break
+            
+    if not authorized_manager:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid manager PIN",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        
+    access_token_expires = timedelta(minutes=5)
+    access_token = create_access_token(
+        data={"sub": authorized_manager.username, "role": authorized_manager.role.value, "scopes": ["void", "refund"]},
+        expires_delta=access_token_expires
+    )
+    
+    audit_log = AuditLog(
+        user_id=authorized_manager.id,
+        action="pin_auth",
+        resource="auth",
+        outcome="success"
+    )
+    db.add(audit_log)
+    await db.commit()
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {"username": authorized_manager.name, "role": authorized_manager.role.value}
     }

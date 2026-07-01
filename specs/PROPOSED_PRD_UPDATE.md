@@ -38,3 +38,13 @@ The following requirements should be formally appended to the `specs/project-bri
 | NFR ID | Actor | The system shall… | Condition / Trigger | Priority | MoSCoW |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **NFR-019** | System | **Security Protocol:** The authentication service explicitly verifies the 'is_active' status flag during the login sequence. Deactivated staff members are instantly intercepted and rejected with an HTTP 401. | Every time a user attempts to log in. | Critical | M |
+
+### 5.2 FR Table : Warehouse Staff - Proposed Additions (Inventory Management)
+
+| FR ID | Actor | The system shall… | Condition / Trigger | Priority | MoSCoW |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **F-036** | Warehouse Staff | Track ingredient stock by distinct batches, requiring an expiration date upon receipt and automatically prioritizing the oldest batch for deduction (FIFO). | When receiving new stock or finalizing a transaction. | High | S |
+| **F-037** | System | Calculate and display the total financial valuation of current inventory based on the moving average cost of received batches. | When the manager or warehouse staff views the master inventory dashboard. | Medium | S |
+| **F-038** | Warehouse Staff | Perform partial cycle count reconciliations without freezing the entire inventory, automatically generating a variance report for discrepancies. | When a warehouse staff initiates a cycle count for a specific category. | Medium | C |
+| **F-039** | System | Distinguish between a Reorder Point (trigger threshold) and a Par Level (target maximum stock), using both to accurately suggest Draft PO quantities. | When generating a Draft Purchase Order for low stock items. | High | S |
+| **F-040** | System | Support automatic unit-of-measure conversions (e.g., purchasing by 'Box', inventorying by 'Kg', deducting by 'Grams'). | When receiving stock or deducting stock via a digital recipe. | High | M |

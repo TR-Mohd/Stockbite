@@ -7,14 +7,20 @@ from sqlalchemy.orm import selectinload
 from ..database import get_db
 from ..auth import get_current_user, role_required
 from typing import List
-from ..models import User, RoleEnum, Transaction, TransactionItem, MenuItem, Ingredient, Recipe, AuditLog
+from ..models import User, RoleEnum, Transaction, TransactionItem, MenuItem, Ingredient, Recipe, AuditLog, OrderTypeEnum, ItemModifierGroup, ItemModifier, TransactionItemModifier
 from ..schemas import TransactionCreate, TransactionResponse, MenuItemResponse
 
 router = APIRouter(prefix="/pos", tags=["POS"])
 
 @router.get("/menu", response_model=List[MenuItemResponse])
 async def get_menu(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(MenuItem).where(MenuItem.is_active == True))
+    result = await db.execute(
+        select(MenuItem)
+        .options(
+            selectinload(MenuItem.modifier_groups).selectinload(ItemModifierGroup.modifiers)
+        )
+        .where(MenuItem.is_active == True)
+    )
     return result.scalars().all()
 
 @router.post("/checkout", response_model=TransactionResponse)
@@ -23,10 +29,24 @@ async def checkout(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(role_required([RoleEnum.Cashier]))
 ):
+    if order.order_type == OrderTypeEnum.DineIn and not order.routing_number:
+        raise HTTPException(status_code=400, detail="Table number is required for Dine-In orders")
+
     # Retrieve all menu items in the cart
     menu_item_ids = [item.menu_item_id for item in order.items]
     result = await db.execute(select(MenuItem).options(selectinload(MenuItem.recipes)).where(MenuItem.id.in_(menu_item_ids)))
     menu_items = {mi.id: mi for mi in result.scalars().all()}
+    
+    # Retrieve all selected modifiers
+    modifier_ids_nested = [m_id for item in order.items for m_id in item.modifier_ids]
+    modifiers = {}
+    if modifier_ids_nested:
+        result_mods = await db.execute(
+            select(ItemModifier)
+            .options(selectinload(ItemModifier.modifier_recipes))
+            .where(ItemModifier.id.in_(modifier_ids_nested))
+        )
+        modifiers = {m.id: m for m in result_mods.scalars().all()}
 
     total_amount = 0.0
     ingredient_deductions = {}
@@ -39,7 +59,20 @@ async def checkout(
         if not mi.is_active:
             raise HTTPException(status_code=400, detail=f"Menu item {mi.name} is inactive")
         
-        total_amount += mi.price * item.quantity
+        item_price = mi.price
+        
+        # Process modifiers
+        for m_id in item.modifier_ids:
+            if m_id not in modifiers:
+                raise HTTPException(status_code=400, detail=f"Modifier {m_id} not found")
+            item_price += modifiers[m_id].price_adjustment
+            
+            for m_recipe in modifiers[m_id].modifier_recipes:
+                if m_recipe.ingredient_id not in ingredient_deductions:
+                    ingredient_deductions[m_recipe.ingredient_id] = 0.0
+                ingredient_deductions[m_recipe.ingredient_id] += m_recipe.quantity * item.quantity
+            
+        total_amount += item_price * item.quantity
 
         for recipe in mi.recipes:
             if recipe.ingredient_id not in ingredient_deductions:
@@ -62,7 +95,9 @@ async def checkout(
 
     # Calculate change
     change = 0.0
-    if order.payment_method == "Cash" and order.amount_tendered is not None:
+    if order.payment_method == "Cash":
+        if order.amount_tendered is None:
+            raise HTTPException(status_code=400, detail="Amount tendered is required for Cash payments")
         if order.amount_tendered < total_amount:
             raise HTTPException(status_code=400, detail="Insufficient amount tendered")
         change = order.amount_tendered - total_amount
@@ -73,21 +108,48 @@ async def checkout(
         payment_method=order.payment_method,
         amount_tendered=order.amount_tendered,
         change=change,
-        customer_contact=order.customer_contact,
-        cashier_id=current_user.id
+        whatsapp=order.whatsapp,
+        email=order.email,
+        cashier_id=current_user.id,
+        order_type=order.order_type,
+        routing_number=order.routing_number
     )
     db.add(db_txn)
 
     for item in order.items:
         mi = menu_items[item.menu_item_id]
+        
+        item_cogs = sum(
+            recipe.quantity * ingredients[recipe.ingredient_id].unit_cost 
+            for recipe in mi.recipes
+        )
+        
         db_txn_item = TransactionItem(
             transaction=db_txn,
             menu_item_id=mi.id,
             quantity=item.quantity,
             notes=item.notes,
-            price_at_time=mi.price
+            price_at_time=mi.price,
+            cogs_per_unit=item_cogs
         )
         db.add(db_txn_item)
+        
+        # Add modifier records
+        for m_id in item.modifier_ids:
+            mod = modifiers[m_id]
+            
+            mod_cogs = sum(
+                m_recipe.quantity * ingredients[m_recipe.ingredient_id].unit_cost 
+                for m_recipe in mod.modifier_recipes
+            )
+            
+            txn_mod = TransactionItemModifier(
+                transaction_item=db_txn_item,
+                modifier_id=m_id,
+                price_at_time=mod.price_adjustment,
+                cogs_per_unit=mod_cogs
+            )
+            db.add(txn_mod)
 
     # Audit log
     audit = AuditLog(
