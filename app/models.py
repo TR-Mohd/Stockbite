@@ -135,10 +135,11 @@ class Transaction(Base):
     amount_tendered = Column(Float, nullable=True)
     change = Column(Float, nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
-    customer_contact = Column(String, nullable=True)
+    whatsapp = Column(String, nullable=True)
+    email = Column(String, nullable=True)
     cashier_id = Column(String, ForeignKey("users.id"))
     status = Column(Enum(StatusEnum), default=StatusEnum.Completed)
-    order_type = Column(Enum(OrderTypeEnum), nullable=False, default=OrderTypeEnum.Takeaway)
+    order_type = Column(Enum(OrderTypeEnum, values_callable=lambda obj: [e.value for e in obj]), nullable=False, default=OrderTypeEnum.Takeaway)
     routing_number = Column(String, nullable=True)
 
     items = relationship("TransactionItem", back_populates="transaction")

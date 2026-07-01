@@ -21,10 +21,36 @@
   background-color: var(--color-bg-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-8);
+  padding: var(--spacing-6);
   max-width: 420px;
   width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   animation: modalSlideUp 0.3s ease;
+}
+
+/* Scrollable Body */
+.checkout-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  padding-right: var(--spacing-2);
+  margin-right: calc(var(--spacing-2) * -1);
+}
+
+/* Custom scrollbar for webkit */
+.checkout-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+.checkout-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.checkout-modal-body::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 10px;
 }
 
 @keyframes modalSlideUp {
@@ -43,14 +69,16 @@
   color: var(--color-text-primary);
   font-size: var(--font-size-lg);
   font-weight: 700;
-  margin: 0 0 var(--spacing-6) 0;
+  margin: 0 0 var(--spacing-1) 0; /* Trimmed from 8px to 4px */
   text-align: center;
+  flex-shrink: 0;
 }
 
 /* Total Amount Display */
 .checkout-modal-amount {
   text-align: center;
-  margin-bottom: var(--spacing-6);
+  margin-bottom: var(--spacing-2); /* Trimmed from 12px to 8px */
+  flex-shrink: 0;
 }
 
 .checkout-modal-amount-value {
@@ -73,6 +101,7 @@
   font-size: var(--font-size-sm);
   font-weight: 500;
   line-height: 1.4;
+  flex-shrink: 0;
 }
 
 .checkout-error-banner-icon {
@@ -83,7 +112,7 @@
 
 /* Form Groups */
 .checkout-form-group {
-  margin-bottom: var(--spacing-4);
+  margin-bottom: 10px; /* Trimmed from 12px */
 }
 
 .checkout-form-label {
@@ -91,7 +120,7 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
   font-weight: 500;
-  margin-bottom: var(--spacing-2);
+  margin-bottom: 6px; /* Trimmed from 8px */
 }
 
 /* Input with icon */
@@ -112,7 +141,7 @@
 
 .checkout-form-input {
   width: 100%;
-  padding: var(--spacing-3) var(--spacing-4) var(--spacing-3) calc(var(--spacing-3) + 24px);
+  padding: var(--spacing-3) var(--spacing-4) var(--spacing-3) var(--spacing-4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   font-family: var(--font-family-sans);
@@ -120,6 +149,10 @@
   color: var(--color-text-primary);
   background-color: var(--color-bg-surface);
   transition: border-color var(--transition-fast);
+}
+
+.checkout-input-wrapper .checkout-form-input {
+  padding-left: calc(var(--spacing-3) + 24px);
 }
 
 .checkout-form-input:focus {
@@ -138,7 +171,7 @@
 
 /* Payment Method Cards */
 .checkout-payment-group {
-  margin-bottom: var(--spacing-6);
+  margin-bottom: var(--spacing-3); /* Trimmed from 16px to 12px */
 }
 
 .payment-cards-container {
@@ -198,7 +231,8 @@
 .checkout-modal-actions {
   display: flex;
   gap: var(--spacing-3);
-  margin-top: var(--spacing-6);
+  margin-top: var(--spacing-3); /* Trimmed from 16px to 12px */
+  flex-shrink: 0;
 }
 
 .btn-modal-cancel,
@@ -263,37 +297,32 @@
   }
 }
 
-/* Segmented Control */
-.checkout-segmented-control {
-  display: flex;
-  background-color: var(--color-bg-surface-hover, #f3f4f6);
-  border-radius: 24px;
-  padding: 4px;
-  gap: 4px;
-  border: 1px solid var(--color-border);
-}
-
-.checkout-segment {
+/* Order Type Cards */
+.order-type-card {
   flex: 1;
-  padding: 8px 12px;
-  text-align: center;
-  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
   cursor: pointer;
+  transition: all var(--transition-fast);
+  height: 38px;
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--color-text-secondary);
-  transition: all 0.2s ease;
 }
 
-.checkout-segment:hover:not(.active) {
-  color: var(--color-text-primary);
-  background-color: rgba(0,0,0,0.05);
+.order-type-card:hover {
+  border-color: var(--color-text-tertiary);
 }
 
-.checkout-segment.active {
-  background-color: var(--color-primary);
-  color: var(--color-text-inverse, #fff);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.order-type-card.active {
+  border-color: var(--color-success-border);
+  border-width: 2px;
+  background-color: var(--color-success-bg);
 }
 
 .change-due-label {
@@ -308,3 +337,68 @@
   color: var(--color-primary);
 }
 
+/* Animation classes */
+.animated-row {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.3s ease, opacity 0.3s ease;
+}
+.animated-row.expanded {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.animated-row-content {
+  overflow: hidden;
+}
+
+.checkout-row {
+  display: flex;
+  margin-bottom: 10px; /* Trimmed from 12px */
+  transition: gap 0.3s ease;
+}
+.checkout-row.has-gap {
+  gap: var(--spacing-3);
+}
+.checkout-col {
+  flex: 1;
+  min-width: 0;
+}
+.animated-col {
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-width 0.3s ease, opacity 0.2s ease;
+}
+.animated-col.expanded {
+  max-width: 50%;
+  opacity: 1;
+}
+
+/* Email button */
+.btn-add-email {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  padding: var(--spacing-2) 0;
+  display: flex;
+  align-items: center;
+  transition: opacity 0.3s ease, max-height 0.3s ease;
+  max-height: 40px;
+  overflow: hidden;
+  margin-bottom: var(--spacing-2);
+}
+.btn-add-email:hover {
+  color: var(--color-primary);
+}
+.btn-add-email.hidden {
+  opacity: 0;
+  max-height: 0;
+  padding: 0;
+  margin: 0;
+  pointer-events: none;
+}

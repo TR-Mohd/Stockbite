@@ -10,11 +10,15 @@ from ..models import User, RoleEnum, Transaction, TransactionItem, StatusEnum, A
 
 from sqlalchemy.orm import aliased
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Optional
+from datetime import date
+from sqlalchemy.orm import joinedload
 from ..schemas import (
     StaffResponse, UserCreate, UserUpdate, 
-    RevenueTrendItem, BestSellerItem, HeatmapDataPoint, BasketAnalysisItem
+    RevenueTrendItem, BestSellerItem, HeatmapDataPoint, BasketAnalysisItem,
+    PaginatedOrderHistory, OrderHistoryItem
 )
+from ..models import OrderTypeEnum
 
 router = APIRouter(prefix="/manager", tags=["Manager BI"])
 
@@ -328,3 +332,63 @@ async def get_basket_analysis(
         for row in result.all()
     ]
 
+
+@router.get("/orders", response_model=PaginatedOrderHistory)
+async def get_order_history(
+    page: int = 1,
+    size: int = 20,
+    order_type: Optional[OrderTypeEnum] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    query = select(Transaction).options(joinedload(Transaction.cashier))
+    
+    if order_type:
+        query = query.where(Transaction.order_type == order_type)
+    
+    if date_from:
+        query = query.where(func.date(Transaction.timestamp) >= date_from)
+        
+    if date_to:
+        query = query.where(func.date(Transaction.timestamp) <= date_to)
+        
+    # Count total and sum total_revenue
+    agg_query = select(
+        func.count(),
+        func.coalesce(func.sum(Transaction.total_amount), 0.0)
+    ).select_from(query.subquery())
+    
+    result = await db.execute(agg_query)
+    total, total_revenue = result.first()
+    
+    # Paginate and sort newest first
+    query = query.order_by(Transaction.timestamp.desc())
+    query = query.offset((page - 1) * size).limit(size)
+    
+    result = await db.execute(query)
+    transactions = result.unique().scalars().all()
+    
+    items = []
+    for txn in transactions:
+        cashier_name = txn.cashier.name if txn.cashier else None
+        
+        items.append(OrderHistoryItem(
+            id=txn.id,
+            timestamp=txn.timestamp,
+            order_type=txn.order_type,
+            routing_number=txn.routing_number,
+            payment_method=txn.payment_method,
+            total_amount=txn.total_amount,
+            status=txn.status,
+            cashier_name=cashier_name
+        ))
+        
+    return PaginatedOrderHistory(
+        items=items,
+        total=total or 0,
+        total_revenue=total_revenue or 0.0,
+        page=page,
+        size=size
+    )

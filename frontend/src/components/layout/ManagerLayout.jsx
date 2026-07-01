@@ -38,6 +38,12 @@ export const ManagerLayout = () => {
         >
           Staff Management
         </NavLink>
+        <NavLink 
+          to="/manager/orders" 
+          className={({ isActive }) => isActive ? `${headerStyles.navLink} ${headerStyles.activeLink}` : headerStyles.navLink}
+        >
+          Order History
+        </NavLink>
       </GlobalHeader>
 
       <main className={styles.mainContent}>

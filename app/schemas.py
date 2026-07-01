@@ -102,7 +102,8 @@ class CartItemCreate(BaseModel):
 class TransactionCreate(BaseModel):
     payment_method: PaymentMethodEnum
     amount_tendered: Optional[float] = None
-    customer_contact: Optional[str] = None
+    whatsapp: Optional[str] = None
+    email: Optional[str] = None
     order_type: OrderTypeEnum
     routing_number: Optional[str] = None
     items: List[CartItemCreate]
@@ -117,7 +118,28 @@ class TransactionResponse(BaseModel):
     status: StatusEnum
     order_type: OrderTypeEnum
     routing_number: Optional[str]
+    whatsapp: Optional[str]
+    email: Optional[str]
     model_config = ConfigDict(from_attributes=True)
+
+class OrderHistoryItem(BaseModel):
+    id: str
+    timestamp: datetime
+    order_type: OrderTypeEnum
+    routing_number: Optional[str]
+    payment_method: PaymentMethodEnum
+    total_amount: float
+    status: StatusEnum
+    cashier_name: Optional[str]
+    
+    model_config = ConfigDict(from_attributes=True)
+
+class PaginatedOrderHistory(BaseModel):
+    items: List[OrderHistoryItem]
+    total: int
+    total_revenue: float
+    page: int
+    size: int
 
 class SupplierBase(BaseModel):
     name: str

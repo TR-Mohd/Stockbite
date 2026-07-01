@@ -8,6 +8,7 @@ import { ManagerDashboard } from './features/manager/ManagerDashboard';
 import { useAuthStore } from './core/store/authStore';
 
 import { ManagerLayout } from './components/layout/ManagerLayout';
+import { OrderHistory } from './features/manager/OrderHistory/OrderHistory';
 import { SupplierDirectory } from './features/manager/SupplierDirectory';
 import { StaffManagement } from './features/manager/StaffManagement';
 
@@ -40,6 +41,7 @@ function App() {
             <Route path="dashboard" element={<ManagerDashboard />} />
             <Route path="suppliers" element={<SupplierDirectory />} />
             <Route path="staff" element={<StaffManagement />} />
+            <Route path="orders" element={<OrderHistory />} />
           </Route>
         </Route>
 

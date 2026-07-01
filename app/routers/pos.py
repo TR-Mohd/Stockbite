@@ -86,7 +86,9 @@ async def checkout(
 
     # Calculate change
     change = 0.0
-    if order.payment_method == "Cash" and order.amount_tendered is not None:
+    if order.payment_method == "Cash":
+        if order.amount_tendered is None:
+            raise HTTPException(status_code=400, detail="Amount tendered is required for Cash payments")
         if order.amount_tendered < total_amount:
             raise HTTPException(status_code=400, detail="Insufficient amount tendered")
         change = order.amount_tendered - total_amount
@@ -97,7 +99,8 @@ async def checkout(
         payment_method=order.payment_method,
         amount_tendered=order.amount_tendered,
         change=change,
-        customer_contact=order.customer_contact,
+        whatsapp=order.whatsapp,
+        email=order.email,
         cashier_id=current_user.id,
         order_type=order.order_type,
         routing_number=order.routing_number
