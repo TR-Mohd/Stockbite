@@ -7,14 +7,20 @@ from sqlalchemy.orm import selectinload
 from ..database import get_db
 from ..auth import get_current_user, role_required
 from typing import List
-from ..models import User, RoleEnum, Transaction, TransactionItem, MenuItem, Ingredient, Recipe, AuditLog, OrderTypeEnum, ItemModifier, TransactionItemModifier
+from ..models import User, RoleEnum, Transaction, TransactionItem, MenuItem, Ingredient, Recipe, AuditLog, OrderTypeEnum, ItemModifierGroup, ItemModifier, TransactionItemModifier
 from ..schemas import TransactionCreate, TransactionResponse, MenuItemResponse
 
 router = APIRouter(prefix="/pos", tags=["POS"])
 
 @router.get("/menu", response_model=List[MenuItemResponse])
 async def get_menu(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(MenuItem).where(MenuItem.is_active == True))
+    result = await db.execute(
+        select(MenuItem)
+        .options(
+            selectinload(MenuItem.modifier_groups).selectinload(ItemModifierGroup.modifiers)
+        )
+        .where(MenuItem.is_active == True)
+    )
     return result.scalars().all()
 
 @router.post("/checkout", response_model=TransactionResponse)

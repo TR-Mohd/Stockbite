@@ -44,6 +44,19 @@ async def seed():
         item4 = MenuItem(name="Triple Whopper Jr with Cheese", price=45000, category="Foods")
         foods.append(item4)
 
+        item5 = MenuItem(name="Nasi Goreng Spesial", price=20000, category="Foods")
+        group5 = ItemModifierGroup(menu_item=item5, name="Heat Level", is_required=True, min_selections=1, max_selections=1)
+        mod5_1 = ItemModifier(group=group5, name="Not Spicy", price_adjustment=0)
+        mod5_2 = ItemModifier(group=group5, name="Medium", price_adjustment=0)
+        mod5_3 = ItemModifier(group=group5, name="Very Spicy", price_adjustment=0)
+        foods.extend([item5, group5, mod5_1, mod5_2, mod5_3])
+
+        item6 = MenuItem(name="Sate Ayam (10 pcs)", price=25000, category="Foods")
+        group6 = ItemModifierGroup(menu_item=item6, name="Sauce Type", is_required=True, min_selections=1, max_selections=1)
+        mod6_1 = ItemModifier(group=group6, name="Peanut Sauce", price_adjustment=0)
+        mod6_2 = ItemModifier(group=group6, name="Sweet Soy Sauce", price_adjustment=0)
+        foods.extend([item6, group6, mod6_1, mod6_2])
+
         for f in foods:
             session.add(f)
             
@@ -52,7 +65,9 @@ async def seed():
             MenuItem(name="Thai Tea", price=10000, category="Beverage"),
             MenuItem(name="Thai Green Tea", price=12000, category="Beverage"),
             MenuItem(name="Milo", price=8000, category="Beverage"),
-            MenuItem(name="Teh Tarik", price=10000, category="Beverage")
+            MenuItem(name="Teh Tarik", price=10000, category="Beverage"),
+            MenuItem(name="Es Jeruk", price=12000, category="Beverage"),
+            MenuItem(name="Iced Lemon Tea", price=15000, category="Beverage")
         ]
         
         for bev in beverages:
