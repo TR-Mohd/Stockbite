@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Optional
 from datetime import datetime
 from .models import RoleEnum, StatusEnum, POStatusEnum, PaymentMethodEnum, OrderTypeEnum
@@ -58,7 +58,25 @@ class IngredientResponse(BaseModel):
     last_updated: datetime
     preferred_supplier_id: Optional[str] = None
     version_id: int
+    unit_cost: float = 0.0
     model_config = ConfigDict(from_attributes=True)
+
+class IngredientCreate(BaseModel):
+    name: str
+    unit: str
+    stock_level: float = Field(default=0.0, ge=0.0)
+    reorder_point: float = Field(default=0.0, ge=0.0)
+    category: Optional[str] = "Uncategorized"
+    unit_cost: float = Field(default=0.0, ge=0.0)
+    preferred_supplier_id: Optional[str] = None
+
+class IngredientUpdate(BaseModel):
+    name: Optional[str] = None
+    unit: Optional[str] = None
+    reorder_point: Optional[float] = Field(default=None, ge=0.0)
+    category: Optional[str] = None
+    unit_cost: Optional[float] = Field(default=None, ge=0.0)
+    preferred_supplier_id: Optional[str] = None
 
 class BulkReceiveItem(BaseModel):
     ingredient_id: str
@@ -130,6 +148,8 @@ class OrderHistoryItem(BaseModel):
     order_type: OrderTypeEnum
     routing_number: Optional[str]
     payment_method: PaymentMethodEnum
+    subtotal: float
+    tax: float
     total_amount: float
     status: StatusEnum
     cashier_name: Optional[str]

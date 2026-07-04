@@ -32,7 +32,7 @@ async def seed():
         mod1_2 = ItemModifier(group=group1, name="Level 8", price_adjustment=0)
         foods.extend([item1, group1, mod1_1, mod1_2])
 
-        item2 = MenuItem(name="Udang Keju", price=12000, category="Foods")
+        item2 = MenuItem(name="Udang Keju", price=20000, category="Foods")
         foods.append(item2)
 
         item3 = MenuItem(name="Chicken Shawarma", price=25000, category="Foods")
@@ -64,7 +64,7 @@ async def seed():
         beverages = [
             MenuItem(name="Thai Tea", price=10000, category="Beverage"),
             MenuItem(name="Thai Green Tea", price=12000, category="Beverage"),
-            MenuItem(name="Milo", price=8000, category="Beverage"),
+            MenuItem(name="Milo", price=10000, category="Beverage"),
             MenuItem(name="Teh Tarik", price=10000, category="Beverage"),
             MenuItem(name="Es Jeruk", price=12000, category="Beverage"),
             MenuItem(name="Iced Lemon Tea", price=15000, category="Beverage")

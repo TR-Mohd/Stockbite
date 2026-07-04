@@ -208,12 +208,18 @@ export const ManagerDashboard = () => {
           {/* Left Column: Trend & Heatmap */}
           <div className={styles.leftColumn}>
             
-            {/* KPI Grid (Now with 4 cards including Net Revenue) */}
+            {/* KPI Grid (Now with 5 cards including Tax Collected) */}
             <div className={styles.kpiGrid}>
               <KPICard 
                 title="Gross Revenue" 
                 value={kpiData ? `Rp ${kpiData.gross_revenue.toLocaleString('id-ID')}` : "Loading..."} 
                 trend="+14.5%" 
+                trendUp={true} 
+              />
+              <KPICard 
+                title="Tax Collected" 
+                value={kpiData ? `Rp ${kpiData.tax_collected.toLocaleString('id-ID')}` : "Loading..."} 
+                trend="+10.2%" 
                 trendUp={true} 
               />
               <KPICard 

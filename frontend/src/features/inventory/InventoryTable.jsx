@@ -31,6 +31,7 @@ export const InventoryTable = ({ data, onDraftPO, onAdjustStock, onLogWaste }) =
           <tr>
             <th>Ingredient</th>
             <th>Category</th>
+            <th className="text-right">Unit Cost</th>
             <th className="text-right" style={{ width: '120px' }}>Stock Level</th>
             <th>UoM</th>
             <th className="text-right">ROP</th>
@@ -68,6 +69,7 @@ export const InventoryTable = ({ data, onDraftPO, onAdjustStock, onLogWaste }) =
                 <tr key={item.id} className={isWarning ? 'row-warning' : ''}>
                   <td className="font-medium">{item.name}</td>
                   <td><span className="category-tag">{item.category}</span></td>
+                  <td className="text-right font-medium">Rp {item.unitCost?.toLocaleString('id-ID') || 0}</td>
                   <td>
                     <div className="stock-level-cell">
                       <span className="stock-value">{item.stock}</span>

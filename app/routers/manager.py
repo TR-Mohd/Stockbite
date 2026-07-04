@@ -232,6 +232,14 @@ async def get_kpis(
     )
     gross_revenue = result.scalar() or 0.0
 
+    tax_result = await db.execute(
+        select(func.sum(Transaction.tax))
+        .where(Transaction.status == StatusEnum.Completed)
+        .where(Transaction.timestamp >= start_utc)
+        .where(Transaction.timestamp <= end_utc)
+    )
+    tax_collected = tax_result.scalar() or 0.0
+
     # Calculate base COGS from TransactionItems
     cogs_items_res = await db.execute(
         select(func.sum(TransactionItem.quantity * TransactionItem.cogs_per_unit))
@@ -261,6 +269,7 @@ async def get_kpis(
 
     return {
         "gross_revenue": round(gross_revenue, 2),
+        "tax_collected": round(tax_collected, 2),
         "cogs": round(cogs, 2),
         "net_revenue": round(net_revenue, 2),
         "profit_margin_percent": round(profit_margin, 2)
@@ -472,6 +481,8 @@ async def get_order_history(
             order_type=txn.order_type,
             routing_number=txn.routing_number,
             payment_method=txn.payment_method,
+            subtotal=txn.subtotal,
+            tax=txn.tax,
             total_amount=txn.total_amount,
             status=txn.status,
             cashier_name=cashier_name

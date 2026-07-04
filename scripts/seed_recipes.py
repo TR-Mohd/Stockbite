@@ -55,7 +55,7 @@ RECIPES = [
     ("d25c9bed", "a24b3b3d", 0.3),  # Onions 0.3kg
     ("d25c9bed", "1bf5a0f5", 0.1),  # Salt 0.1kg
 
-    # Udang Keju (price=12000, target COGS≈3500)
+    # Udang Keju (price=20000, target COGS≈3500)
     ("089a4740", "73dcc39f", 0.4),  # Cheddar Cheese 0.4kg
     ("089a4740", "3de170f3", 0.15), # Mayonnaise 0.15 tub
 
@@ -91,7 +91,7 @@ RECIPES = [
     ("5b1cc1a0", "95f689d7", 0.3),  # Milk 0.3L
     ("5b1cc1a0", "ca63c82a", 0.05), # Butter 0.05kg
 
-    # Milo (price=8000, target COGS≈2000)
+    # Milo (price=10000, target COGS≈2000)
     ("b4c11d3a", "95f689d7", 0.2),  # Milk 0.2L
     ("b4c11d3a", "ca63c82a", 0.02), # Butter 0.02kg
 
