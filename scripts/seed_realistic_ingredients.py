@@ -28,6 +28,8 @@ INGREDIENTS_DATA = [
     {"name": "Onions (Bawang Bombay)", "unit": "kg", "unit_cost": 30000.0, "category": "Produce"},
     {"name": "Garlic (Bawang Putih)", "unit": "kg", "unit_cost": 40000.0, "category": "Produce"},
     {"name": "Salt", "unit": "kg", "unit_cost": 10000.0, "category": "Dry Goods"},
+    {"name": "Pickles (Acar Timun)", "unit": "kg", "unit_cost": 11100.0, "category": "Produce"},
+    {"name": "Chili Powder (Bubuk Cabai)", "unit": "kg", "unit_cost": 80000.0, "category": "Dry Goods"},
     {"name": "Thai Tea Mix (Leaves)", "unit": "kg", "unit_cost": 150000.0, "category": "Beverage"},
     {"name": "Thai Green Tea Mix", "unit": "kg", "unit_cost": 150000.0, "category": "Beverage"},
     {"name": "Milo Powder", "unit": "kg", "unit_cost": 80000.0, "category": "Beverage"},
@@ -54,6 +56,11 @@ RECIPE_MAPPINGS = {
         ("Cheddar Cheese (Block)", 0.02),
         ("Mayonnaise", 0.01),
     ],
+    "Udang Keju": [
+        ("Peeled Shrimp (Udang Kupas)", 0.15),
+        ("Cheddar Cheese (Block)", 0.05),
+        ("Mayonnaise", 0.02),
+    ],
     "Chicken Shawarma": [
         ("Chicken Breast Fillet", 0.15),
         ("Tortilla Wraps", 1.0),
@@ -79,8 +86,6 @@ RECIPE_MAPPINGS = {
     ],
     "Sate Ayam": [
         ("Chicken Breast Fillet", 0.2),
-        ("Peanut Sauce Base (Kacang)", 0.05),
-        ("Sweet Soy Sauce (Kecap Manis)", 0.03),
         ("Onions (Bawang Bombay)", 0.02),
     ],
     "Thai Tea": [
@@ -114,13 +119,50 @@ RECIPE_MAPPINGS = {
     ]
 }
 
+MODIFIER_RECIPE_MAPPINGS = {
+    "peanut sauce": [
+        ("Peanut Sauce Base (Kacang)", 0.05)
+    ],
+    "sweet soy sauce": [
+        ("Sweet Soy Sauce (Kecap Manis)", 0.03)
+    ],
+    "extra garlic sauce": [
+        ("Mayonnaise", 0.027),
+        ("Garlic (Bawang Putih)", 0.003)
+    ],
+    "extra pickles": [
+        ("Pickles (Acar Timun)", 0.03)
+    ],
+    "level 6": [
+        ("Chili Powder (Bubuk Cabai)", 0.002)
+    ],
+    "medium": [
+        ("Chili Powder (Bubuk Cabai)", 0.002)
+    ],
+    "level 8": [
+        ("Chili Powder (Bubuk Cabai)", 0.005)
+    ],
+    "very spicy": [
+        ("Chili Powder (Bubuk Cabai)", 0.005)
+    ]
+}
+
+INTENTIONALLY_FREE_MODIFIERS = {
+    "not spicy",
+    "normal ice",
+    "less ice",
+    "no ice"
+}
+
 async def seed_realistic():
     engine = create_async_engine(DATABASE_URL)
     async_session = sessionmaker(engine, class_=AsyncSession)
-
+    
     async with async_session() as session:
         # Step 1: Clear existing Recipes & Ingredients
         print("Clearing old recipes and ingredients...")
+        from sqlalchemy import text
+        await session.execute(text("DELETE FROM modifier_recipes"))
         await session.execute(Recipe.__table__.delete())
         await session.execute(Ingredient.__table__.delete())
         
@@ -168,6 +210,40 @@ async def seed_realistic():
                     
         await session.commit()
         print(f"\nSuccessfully inserted {len(INGREDIENTS_DATA)} ingredients and {recipe_count} recipe links!")
+
+        # Step 4: Link Modifiers in 'modifier_recipes' table
+        print("\nInserting links into 'modifier_recipes' table...")
+        from app.models import ItemModifier, ModifierRecipe
+        mod_result = await session.execute(select(ItemModifier))
+        modifiers = mod_result.scalars().all()
+        
+        mod_recipe_count = 0
+        for mod in modifiers:
+            mod_name_normalized = mod.name.strip().lower()
+            
+            if mod_name_normalized in MODIFIER_RECIPE_MAPPINGS:
+                recipe_list = MODIFIER_RECIPE_MAPPINGS[mod_name_normalized]
+                for (ing_name, qty) in recipe_list:
+                    ing_id = ing_map.get(ing_name)
+                    if ing_id:
+                        session.add(ModifierRecipe(
+                            modifier_id=mod.id,
+                            ingredient_id=ing_id,
+                            quantity=qty
+                        ))
+                        mod_recipe_count += 1
+                    else:
+                        print(f"  [ERROR] Ingredient '{ing_name}' not found for modifier '{mod.name}'")
+                print(f"  [MAPPED] Successfully mapped '{mod.name}'.")
+                
+            elif mod_name_normalized in INTENTIONALLY_FREE_MODIFIERS:
+                print(f"  [FREE] Intentionally unmapped modifier '{mod.name}'.")
+                
+            else:
+                print(f"  [WARNING] Unexpected unmapped modifier found in database: '{mod.name}'")
+                
+        await session.commit()
+        print(f"\nSuccessfully inserted {mod_recipe_count} modifier recipe links!")
 
 if __name__ == "__main__":
     asyncio.run(seed_realistic())

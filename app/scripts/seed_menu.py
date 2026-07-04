@@ -19,6 +19,7 @@ async def seed():
         # Wait, the easiest way to avoid FK violation is just clear them:
         await session.execute(text("DELETE FROM transaction_item_modifiers"))
         await session.execute(text("DELETE FROM transaction_items"))
+        await session.execute(text("DELETE FROM modifier_recipes"))
         await session.execute(text("DELETE FROM recipes"))
         await session.execute(text("DELETE FROM menu_items"))
         await session.commit()
