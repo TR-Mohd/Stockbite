@@ -50,7 +50,7 @@ async def test_analytics_endpoints():
 
         temp_manager_id = str(uuid.uuid4())
         from app.auth import get_password_hash
-        temp_manager = User(id=temp_manager_id, name="analytics_tester", role=RoleEnum.Manager, hashed_password=get_password_hash("testpass"), is_active=True)
+        temp_manager = User(id=temp_manager_id, name="analytics_tester", username="analytics_tester", role=RoleEnum.Manager, hashed_password=get_password_hash("testpass"), is_active=True)
         db.add(temp_manager)
         
         res_mi = await db.execute(select(MenuItem))
@@ -119,4 +119,3 @@ async def test_analytics_endpoints():
         await db.execute(text("DELETE FROM transactions"))
         await db.execute(text("DELETE FROM users WHERE name = 'analytics_tester'"))
         await db.commit()
-    await engine.dispose()

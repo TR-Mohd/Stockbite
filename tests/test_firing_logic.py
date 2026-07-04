@@ -27,7 +27,7 @@ def get_staff(token):
 def create_staff(token, username, role, password):
     req = urllib.request.Request(
         f"{BASE_URL}/manager/staff", 
-        data=json.dumps({"name": username, "role": role, "password": password}).encode(),
+        data=json.dumps({"name": username, "username": username, "role": role, "password": password}).encode(),
         headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
         method="POST"
     )
@@ -60,7 +60,7 @@ def toggle_status(token, user_id):
 def update_password(token, user_id, username, role, new_password):
     req = urllib.request.Request(
         f"{BASE_URL}/manager/staff/{user_id}", 
-        data=json.dumps({"name": username, "role": role, "password": new_password}).encode(),
+        data=json.dumps({"name": username, "username": username, "role": role, "password": new_password}).encode(),
         headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
         method="PUT"
     )

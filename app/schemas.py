@@ -110,6 +110,8 @@ class TransactionCreate(BaseModel):
 
 class TransactionResponse(BaseModel):
     id: str
+    subtotal: float
+    tax: float
     total_amount: float
     payment_method: PaymentMethodEnum
     amount_tendered: Optional[float]
@@ -178,4 +180,3 @@ class BasketAnalysisItem(BaseModel):
     item1_name: str
     item2_name: str
     frequency: int
-
