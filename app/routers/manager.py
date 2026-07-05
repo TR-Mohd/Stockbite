@@ -267,12 +267,29 @@ async def get_kpis(
     net_revenue = gross_revenue - cogs
     profit_margin = (net_revenue / gross_revenue * 100) if gross_revenue > 0 else 0.0
 
+    # Calculate Total Orders and Subtotal for ATS
+    orders_result = await db.execute(
+        select(
+            func.count(Transaction.id),
+            func.sum(Transaction.subtotal)
+        )
+        .where(Transaction.status == StatusEnum.Completed)
+        .where(Transaction.timestamp >= start_utc)
+        .where(Transaction.timestamp <= end_utc)
+    )
+    orders_row = orders_result.first()
+    total_orders = orders_row[0] or 0
+    total_subtotal = orders_row[1] or 0.0
+    average_ticket_size = (total_subtotal / total_orders) if total_orders > 0 else 0.0
+
     return {
         "gross_revenue": round(gross_revenue, 2),
         "tax_collected": round(tax_collected, 2),
         "cogs": round(cogs, 2),
         "net_revenue": round(net_revenue, 2),
-        "profit_margin_percent": round(profit_margin, 2)
+        "profit_margin_percent": round(profit_margin, 2),
+        "average_ticket_size": round(average_ticket_size, 2),
+        "total_orders": total_orders
     }
 
 @router.get("/analytics/revenue-trend", response_model=List[RevenueTrendItem])
@@ -404,6 +421,7 @@ async def get_basket_analysis(
     
     stmt = (
         select(
+            mi1.id.label("item1_id"),
             mi1.name.label("item1_name"),
             mi2.name.label("item2_name"),
             func.count().label("frequency")
@@ -423,14 +441,31 @@ async def get_basket_analysis(
     )
     result = await db.execute(stmt)
     
-    return [
-        {
+    response = []
+    for row in result.all():
+        confidence = None
+        if row.frequency >= 5:
+            # Query total volume for item1 in this timeframe
+            item1_vol_stmt = (
+                select(func.count(TransactionItem.transaction_id))
+                .join(Transaction, TransactionItem.transaction_id == Transaction.id)
+                .where(Transaction.status == StatusEnum.Completed)
+                .where(Transaction.timestamp >= start_utc)
+                .where(Transaction.timestamp <= end_utc)
+                .where(TransactionItem.menu_item_id == row.item1_id)
+            )
+            item1_vol_res = await db.execute(item1_vol_stmt)
+            item1_vol = item1_vol_res.scalar() or 0
+            if item1_vol > 0:
+                confidence = round((row.frequency / item1_vol) * 100, 2)
+                
+        response.append({
             "item1_name": row.item1_name,
             "item2_name": row.item2_name,
-            "frequency": int(row.frequency)
-        }
-        for row in result.all()
-    ]
+            "frequency": int(row.frequency),
+            "confidence": confidence
+        })
+    return response
 
 
 @router.get("/orders", response_model=PaginatedOrderHistory)

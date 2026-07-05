@@ -200,3 +200,4 @@ class BasketAnalysisItem(BaseModel):
     item1_name: str
     item2_name: str
     frequency: int
+    confidence: Optional[float] = None

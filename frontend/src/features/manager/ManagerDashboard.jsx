@@ -109,7 +109,7 @@ export const ManagerDashboard = () => {
          id: idx,
          pair: `${b.item1_name} + ${b.item2_name}`,
          timesBought: b.frequency,
-         confidence: ''
+         confidence: b.confidence !== null && b.confidence !== undefined ? `${b.confidence}%` : null
       })));
       
       // Transform Heatmap Grid
@@ -208,8 +208,14 @@ export const ManagerDashboard = () => {
           {/* Left Column: Trend & Heatmap */}
           <div className={styles.leftColumn}>
             
-            {/* KPI Grid (Now with 5 cards including Tax Collected) */}
+            {/* KPI Grid */}
             <div className={styles.kpiGrid}>
+              <div title="Calculated Pre-Tax">
+                <KPICard 
+                  title="Avg Ticket Size" 
+                  value={kpiData ? `Rp ${kpiData.average_ticket_size.toLocaleString('id-ID')}` : "Loading..."} 
+                />
+              </div>
               <KPICard 
                 title="Gross Revenue" 
                 value={kpiData ? `Rp ${kpiData.gross_revenue.toLocaleString('id-ID')}` : "Loading..."} 
