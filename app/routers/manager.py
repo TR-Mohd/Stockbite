@@ -43,7 +43,8 @@ def get_timeframe_boundaries(timeframe: str):
 from ..schemas import (
     StaffResponse, UserCreate, UserUpdate, 
     RevenueTrendItem, BestSellerItem, HeatmapDataPoint, BasketAnalysisItem,
-    PaginatedOrderHistory, OrderHistoryItem
+    PaginatedOrderHistory, OrderHistoryItem, OrderVelocityDataPoint,
+    MenuEngineeringResponse, MenuEngineeringItem
 )
 from ..models import OrderTypeEnum
 
@@ -267,12 +268,29 @@ async def get_kpis(
     net_revenue = gross_revenue - cogs
     profit_margin = (net_revenue / gross_revenue * 100) if gross_revenue > 0 else 0.0
 
+    # Calculate Total Orders and Subtotal for ATS
+    orders_result = await db.execute(
+        select(
+            func.count(Transaction.id),
+            func.sum(Transaction.subtotal)
+        )
+        .where(Transaction.status == StatusEnum.Completed)
+        .where(Transaction.timestamp >= start_utc)
+        .where(Transaction.timestamp <= end_utc)
+    )
+    orders_row = orders_result.first()
+    total_orders = orders_row[0] or 0
+    total_subtotal = orders_row[1] or 0.0
+    average_ticket_size = (total_subtotal / total_orders) if total_orders > 0 else 0.0
+
     return {
         "gross_revenue": round(gross_revenue, 2),
         "tax_collected": round(tax_collected, 2),
         "cogs": round(cogs, 2),
         "net_revenue": round(net_revenue, 2),
-        "profit_margin_percent": round(profit_margin, 2)
+        "profit_margin_percent": round(profit_margin, 2),
+        "average_ticket_size": round(average_ticket_size, 2),
+        "total_orders": total_orders
     }
 
 @router.get("/analytics/revenue-trend", response_model=List[RevenueTrendItem])
@@ -353,6 +371,160 @@ async def get_best_sellers(
         for row in result.all()
     ]
 
+@router.get("/analytics/order-velocity", response_model=List[OrderVelocityDataPoint])
+async def get_order_velocity(
+    timeframe: str = "last_7_days",
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    start_utc, end_utc, _, _ = get_timeframe_boundaries(timeframe)
+    local_timestamp = Transaction.timestamp.op('AT TIME ZONE')('UTC').op('AT TIME ZONE')('Asia/Jakarta')
+    
+    # 1. Get distinct active days
+    active_days_stmt = (
+        select(func.count(func.distinct(func.date(local_timestamp))))
+        .where(Transaction.status == StatusEnum.Completed)
+        .where(Transaction.timestamp >= start_utc)
+        .where(Transaction.timestamp <= end_utc)
+    )
+    active_days_res = await db.execute(active_days_stmt)
+    total_active_days = active_days_res.scalar() or 1
+    
+    # 2. Get counts grouped by hour
+    stmt = (
+        select(
+            func.extract('hour', local_timestamp).label('hour'),
+            func.count(Transaction.id).label('count')
+        )
+        .where(Transaction.status == StatusEnum.Completed)
+        .where(Transaction.timestamp >= start_utc)
+        .where(Transaction.timestamp <= end_utc)
+        .group_by(func.extract('hour', local_timestamp))
+    )
+    result = await db.execute(stmt)
+    
+    hour_counts = {int(row.hour): int(row.count) for row in result.all()}
+    
+    # 3. Format response (0-23 hours)
+    response = []
+    for h in range(24):
+        avg_orders = hour_counts.get(h, 0) / total_active_days
+        hour_str = f"{h:02d}:00"
+        response.append({"hour": hour_str, "avg_orders": round(avg_orders, 2)})
+        
+    return response
+
+@router.get("/analytics/menu-engineering", response_model=MenuEngineeringResponse)
+async def get_menu_engineering(
+    timeframe: str = "last_30_days",
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    start_utc, end_utc, _, _ = get_timeframe_boundaries(timeframe)
+    
+    # 1. Check total orders threshold (50)
+    total_orders_stmt = (
+        select(func.count(Transaction.id))
+        .where(Transaction.status == StatusEnum.Completed)
+        .where(Transaction.timestamp >= start_utc)
+        .where(Transaction.timestamp <= end_utc)
+    )
+    total_orders_res = await db.execute(total_orders_stmt)
+    total_orders = total_orders_res.scalar() or 0
+    
+    insufficient_data = total_orders < 50
+    bypass_threshold = False # Disabled by default. Change to True only for local testing of classification logic with sparse data.
+    
+    if insufficient_data and not bypass_threshold:
+        return MenuEngineeringResponse(
+            insufficient_data=True, total_orders=total_orders,
+            average_volume=0, average_margin=0, items=[]
+        )
+        
+    # 2. Get fully-loaded margin and volume per menu item
+    query = text("""
+        WITH ModStats AS (
+            SELECT transaction_item_id,
+                   sum(price_at_time) as mod_revenue_per_unit,
+                   sum(cogs_per_unit) as mod_cogs_per_unit
+            FROM transaction_item_modifiers
+            GROUP BY transaction_item_id
+        )
+        SELECT 
+            ti.menu_item_id, 
+            mi.name,
+            sum(ti.quantity) as units_sold,
+            sum(ti.quantity * ti.price_at_time) as base_revenue,
+            sum(ti.quantity * ti.cogs_per_unit) as base_cogs,
+            sum(ti.quantity * COALESCE(m.mod_revenue_per_unit, 0)) as total_mod_revenue,
+            sum(ti.quantity * COALESCE(m.mod_cogs_per_unit, 0)) as total_mod_cogs
+        FROM transaction_items ti
+        JOIN transactions t ON t.id = ti.transaction_id
+        JOIN menu_items mi ON mi.id = ti.menu_item_id
+        LEFT JOIN ModStats m ON m.transaction_item_id = ti.id
+        WHERE t.status = 'Completed' 
+          AND t.timestamp >= :start_utc 
+          AND t.timestamp <= :end_utc
+        GROUP BY ti.menu_item_id, mi.name
+    """)
+    result = await db.execute(query, {"start_utc": start_utc, "end_utc": end_utc})
+    
+    items = []
+    classified_vols = []
+    classified_margins = []
+    
+    # 3. Calculate per-unit margin
+    for row in result.all():
+        units_sold = int(row.units_sold)
+        total_revenue = float(row.base_revenue) + float(row.total_mod_revenue)
+        total_cogs = float(row.base_cogs) + float(row.total_mod_cogs)
+        
+        avg_margin_per_unit = (total_revenue - total_cogs) / units_sold if units_sold > 0 else 0
+        
+        items.append({
+            "menu_item_id": row.menu_item_id,
+            "menu_item_name": row.name,
+            "units_sold": units_sold,
+            "avg_contribution_margin_per_unit": round(avg_margin_per_unit, 2),
+            "category": "Insufficient Data"
+        })
+        
+        if units_sold >= 5:
+            classified_vols.append(units_sold)
+            classified_margins.append(avg_margin_per_unit)
+            
+    # 4. Compute averages (excluding < 5 unit items)
+    avg_vol = sum(classified_vols) / len(classified_vols) if classified_vols else 0
+    avg_mar = sum(classified_margins) / len(classified_margins) if classified_margins else 0
+    
+    # 5. Classify
+    final_items = []
+    for item in items:
+        if item["units_sold"] < 5:
+            item["category"] = "Insufficient Data"
+        else:
+            is_high_vol = item["units_sold"] >= avg_vol
+            is_high_mar = item["avg_contribution_margin_per_unit"] >= avg_mar
+            
+            if is_high_vol and is_high_mar:
+                item["category"] = "Star"
+            elif is_high_vol and not is_high_mar:
+                item["category"] = "Plowhorse"
+            elif not is_high_vol and is_high_mar:
+                item["category"] = "Puzzle"
+            else:
+                item["category"] = "Dog"
+                
+        final_items.append(MenuEngineeringItem(**item))
+        
+    return MenuEngineeringResponse(
+        insufficient_data=False if bypass_threshold else insufficient_data,
+        total_orders=total_orders,
+        average_volume=round(avg_vol, 2),
+        average_margin=round(avg_mar, 2),
+        items=final_items
+    )
+
 @router.get("/analytics/heatmap-data", response_model=List[HeatmapDataPoint])
 async def get_heatmap_data(
     timeframe: str = "last_7_days",
@@ -404,6 +576,7 @@ async def get_basket_analysis(
     
     stmt = (
         select(
+            mi1.id.label("item1_id"),
             mi1.name.label("item1_name"),
             mi2.name.label("item2_name"),
             func.count().label("frequency")
@@ -423,14 +596,31 @@ async def get_basket_analysis(
     )
     result = await db.execute(stmt)
     
-    return [
-        {
+    response = []
+    for row in result.all():
+        confidence = None
+        if row.frequency >= 5:
+            # Query total volume for item1 in this timeframe
+            item1_vol_stmt = (
+                select(func.count(TransactionItem.transaction_id))
+                .join(Transaction, TransactionItem.transaction_id == Transaction.id)
+                .where(Transaction.status == StatusEnum.Completed)
+                .where(Transaction.timestamp >= start_utc)
+                .where(Transaction.timestamp <= end_utc)
+                .where(TransactionItem.menu_item_id == row.item1_id)
+            )
+            item1_vol_res = await db.execute(item1_vol_stmt)
+            item1_vol = item1_vol_res.scalar() or 0
+            if item1_vol > 0:
+                confidence = round((row.frequency / item1_vol) * 100, 2)
+                
+        response.append({
             "item1_name": row.item1_name,
             "item2_name": row.item2_name,
-            "frequency": int(row.frequency)
-        }
-        for row in result.all()
-    ]
+            "frequency": int(row.frequency),
+            "confidence": confidence
+        })
+    return response
 
 
 @router.get("/orders", response_model=PaginatedOrderHistory)

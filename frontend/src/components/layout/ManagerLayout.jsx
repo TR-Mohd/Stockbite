@@ -44,6 +44,12 @@ export const ManagerLayout = () => {
         >
           Order History
         </NavLink>
+        <NavLink 
+          to="/manager/menu-engineering" 
+          className={({ isActive }) => isActive ? `${headerStyles.navLink} ${headerStyles.activeLink}` : headerStyles.navLink}
+        >
+          Menu Engineering
+        </NavLink>
       </GlobalHeader>
 
       <main className={styles.mainContent}>

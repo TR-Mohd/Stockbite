@@ -200,3 +200,22 @@ class BasketAnalysisItem(BaseModel):
     item1_name: str
     item2_name: str
     frequency: int
+    confidence: Optional[float] = None
+
+class OrderVelocityDataPoint(BaseModel):
+    hour: str
+    avg_orders: float
+
+class MenuEngineeringItem(BaseModel):
+    menu_item_id: str
+    menu_item_name: str
+    units_sold: int
+    avg_contribution_margin_per_unit: float
+    category: str # "Star", "Plowhorse", "Puzzle", "Dog", or "Insufficient Data"
+
+class MenuEngineeringResponse(BaseModel):
+    insufficient_data: bool
+    total_orders: int
+    average_volume: float
+    average_margin: float
+    items: List[MenuEngineeringItem]
