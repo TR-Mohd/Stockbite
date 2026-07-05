@@ -7,6 +7,7 @@
   flex-direction: column;
   transition: all 0.2s ease;
   overflow: visible !important;
+  min-width: 220px;
 }
 
 .highlighted {
@@ -37,9 +38,7 @@
 .valueContainer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   margin-top: auto;
-  gap: 0.5rem;
 }
 
 .value {
@@ -47,6 +46,7 @@
   font-size: 1.15rem;
   font-weight: 700;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .trend {
@@ -69,6 +69,13 @@
 }
 
 .titleContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.titleWithIcon {
   display: flex;
   align-items: center;
   gap: 0.35rem;
