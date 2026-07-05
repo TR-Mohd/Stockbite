@@ -7,6 +7,7 @@ import '../../../styles/inventory/modals/InventoryModals.css';
 export const AdjustStockModal = ({ isOpen, onClose, inventoryData, onSubmit, initialIngredientId = '' }) => {
   const [selectedIngredientId, setSelectedIngredientId] = useState(initialIngredientId);
   const [newStock, setNewStock] = useState('');
+  const [newUnitCost, setNewUnitCost] = useState('');
   const [reason, setReason] = useState('');
   const [notes, setNotes] = useState('');
 
@@ -18,21 +19,36 @@ export const AdjustStockModal = ({ isOpen, onClose, inventoryData, onSubmit, ini
     if (isOpen) {
       setSelectedIngredientId(initialIngredientId);
       setNewStock('');
+      setNewUnitCost('');
       setReason('');
       setNotes('');
     }
   }, [isOpen, initialIngredientId]);
 
+  useEffect(() => {
+    if (selectedIngredient) {
+      setNewUnitCost(selectedIngredient.unitCost || 0);
+    } else {
+      setNewUnitCost('');
+    }
+  }, [selectedIngredient]);
+
   const handleSubmit = () => {
-    if (!selectedIngredient || newStock === '' || !reason) return;
-    onSubmit({ ingredientId: selectedIngredient.id, newStock: Number(newStock), reason, notes });
+    if (!selectedIngredient || newStock === '' || newUnitCost === '' || !reason) return;
+    onSubmit({ 
+      ingredientId: selectedIngredient.id, 
+      newStock: Number(newStock), 
+      newUnitCost: Number(newUnitCost),
+      reason, 
+      notes 
+    });
     onClose();
   };
 
   const footer = (
     <>
       <Button variant="outline" onClick={onClose}>Cancel</Button>
-      <Button variant="primary" onClick={handleSubmit} disabled={!selectedIngredient || newStock === '' || !reason}>
+      <Button variant="primary" onClick={handleSubmit} disabled={!selectedIngredient || newStock === '' || newUnitCost === '' || !reason}>
         Confirm Adjustment
       </Button>
     </>
@@ -72,6 +88,18 @@ export const AdjustStockModal = ({ isOpen, onClose, inventoryData, onSubmit, ini
           className="modal-input" 
           value={newStock}
           onChange={(e) => setNewStock(e.target.value)}
+          min="0"
+          disabled={!selectedIngredient}
+        />
+      </div>
+
+      <div className="modal-form-group">
+        <label className="modal-label">Unit Cost (Rp) *</label>
+        <input 
+          type="number" 
+          className="modal-input" 
+          value={newUnitCost}
+          onChange={(e) => setNewUnitCost(e.target.value)}
           min="0"
           disabled={!selectedIngredient}
         />

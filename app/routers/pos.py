@@ -48,7 +48,7 @@ async def checkout(
         )
         modifiers = {m.id: m for m in result_mods.scalars().all()}
 
-    total_amount = 0.0
+    subtotal = 0.0
     ingredient_deductions = {}
 
     # Calculate total and required ingredients
@@ -72,7 +72,7 @@ async def checkout(
                     ingredient_deductions[m_recipe.ingredient_id] = 0.0
                 ingredient_deductions[m_recipe.ingredient_id] += m_recipe.quantity * item.quantity
             
-        total_amount += item_price * item.quantity
+        subtotal += item_price * item.quantity
 
         for recipe in mi.recipes:
             if recipe.ingredient_id not in ingredient_deductions:
@@ -93,6 +93,10 @@ async def checkout(
         # Deduct stock (will trigger Optimistic Locking version_id bump on commit)
         ing.stock_level -= required_qty
 
+    # Calculate tax and final total
+    tax = subtotal * 0.11
+    total_amount = subtotal + tax
+
     # Calculate change
     change = 0.0
     if order.payment_method == "Cash":
@@ -104,6 +108,8 @@ async def checkout(
 
     # Create Transaction
     db_txn = Transaction(
+        subtotal=subtotal,
+        tax=tax,
         total_amount=total_amount,
         payment_method=order.payment_method,
         amount_tendered=order.amount_tendered,

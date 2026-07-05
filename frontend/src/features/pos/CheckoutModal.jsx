@@ -3,6 +3,7 @@ import axiosInstance from '../../core/api/axios';
 import '../../styles/POS/CheckoutModal.css';
 import qrisLogoLight from '../../assets/qris-logo-lightmode.svg';
 import qrisLogoDark from '../../assets/qris-logo-darkmode.png';
+import { formatPhoneNumber } from '../../utils/formatters';
 
 const PhoneIcon = () => (
   <svg
@@ -63,9 +64,13 @@ const CheckoutModal = ({ isOpen, onClose, cartItems, total, onCheckoutSuccess })
   const [error, setError] = useState('');
   const [showEmail, setShowEmail] = useState(false);
 
+  const subtotal = total;
+  const tax = subtotal * 0.11;
+  const finalTotal = subtotal + tax;
+
   const parsedTendered = parseInt(tenderedAmount.replace(/\D/g, ''), 10) || 0;
-  const changeDue = parsedTendered - total;
-  const isCashInvalid = paymentMethod === 'Cash' && parsedTendered < total;
+  const changeDue = parsedTendered - finalTotal;
+  const isCashInvalid = paymentMethod === 'Cash' && parsedTendered < finalTotal;
 
   if (!isOpen) return null;
   const isDineIn = orderType === 'Dine-In';
@@ -129,10 +134,22 @@ const CheckoutModal = ({ isOpen, onClose, cartItems, total, onCheckoutSuccess })
           Confirm Order
         </h2>
 
+        {/* Breakdown */}
+        <div className="checkout-modal-breakdown">
+          <div className="checkout-modal-breakdown-row">
+            <span>Subtotal</span>
+            <span>Rp {subtotal.toLocaleString('id-ID')}</span>
+          </div>
+          <div className="checkout-modal-breakdown-row">
+            <span>Tax (11%)</span>
+            <span>Rp {tax.toLocaleString('id-ID')}</span>
+          </div>
+        </div>
+
         {/* Total Amount */}
         <div className="checkout-modal-amount">
           <span className="checkout-modal-amount-value">
-            Rp {total.toLocaleString('id-ID')}
+            Rp {finalTotal.toLocaleString('id-ID')}
           </span>
         </div>
 
@@ -212,7 +229,7 @@ const CheckoutModal = ({ isOpen, onClose, cartItems, total, onCheckoutSuccess })
                     className="checkout-form-input"
                     placeholder={isDineIn ? "WhatsApp no." : "Enter WhatsApp number..."}
                     value={whatsapp}
-                    onChange={(e) => setWhatsapp(e.target.value)}
+                    onChange={(e) => setWhatsapp(formatPhoneNumber(e.target.value, true).replace(/-/g, ''))}
                   />
                 </div>
               </div>

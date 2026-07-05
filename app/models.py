@@ -142,6 +142,8 @@ class Recipe(Base):
 class Transaction(Base):
     __tablename__ = "transactions"
     id = Column(String, primary_key=True, default=generate_uuid)
+    subtotal = Column(Float, nullable=False, server_default="0.0")
+    tax = Column(Float, nullable=False, server_default="0.0")
     total_amount = Column(Float, nullable=False)
     payment_method = Column(Enum(PaymentMethodEnum), nullable=False)
     amount_tendered = Column(Float, nullable=True)

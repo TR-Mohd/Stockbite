@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Optional
 from datetime import datetime
 from .models import RoleEnum, StatusEnum, POStatusEnum, PaymentMethodEnum, OrderTypeEnum
@@ -58,7 +58,25 @@ class IngredientResponse(BaseModel):
     last_updated: datetime
     preferred_supplier_id: Optional[str] = None
     version_id: int
+    unit_cost: float = 0.0
     model_config = ConfigDict(from_attributes=True)
+
+class IngredientCreate(BaseModel):
+    name: str
+    unit: str
+    stock_level: float = Field(default=0.0, ge=0.0)
+    reorder_point: float = Field(default=0.0, ge=0.0)
+    category: Optional[str] = "Uncategorized"
+    unit_cost: float = Field(default=0.0, ge=0.0)
+    preferred_supplier_id: Optional[str] = None
+
+class IngredientUpdate(BaseModel):
+    name: Optional[str] = None
+    unit: Optional[str] = None
+    reorder_point: Optional[float] = Field(default=None, ge=0.0)
+    category: Optional[str] = None
+    unit_cost: Optional[float] = Field(default=None, ge=0.0)
+    preferred_supplier_id: Optional[str] = None
 
 class BulkReceiveItem(BaseModel):
     ingredient_id: str
@@ -110,6 +128,8 @@ class TransactionCreate(BaseModel):
 
 class TransactionResponse(BaseModel):
     id: str
+    subtotal: float
+    tax: float
     total_amount: float
     payment_method: PaymentMethodEnum
     amount_tendered: Optional[float]
@@ -128,6 +148,8 @@ class OrderHistoryItem(BaseModel):
     order_type: OrderTypeEnum
     routing_number: Optional[str]
     payment_method: PaymentMethodEnum
+    subtotal: float
+    tax: float
     total_amount: float
     status: StatusEnum
     cashier_name: Optional[str]
@@ -178,4 +200,22 @@ class BasketAnalysisItem(BaseModel):
     item1_name: str
     item2_name: str
     frequency: int
+    confidence: Optional[float] = None
 
+class OrderVelocityDataPoint(BaseModel):
+    hour: str
+    avg_orders: float
+
+class MenuEngineeringItem(BaseModel):
+    menu_item_id: str
+    menu_item_name: str
+    units_sold: int
+    avg_contribution_margin_per_unit: float
+    category: str # "Star", "Plowhorse", "Puzzle", "Dog", or "Insufficient Data"
+
+class MenuEngineeringResponse(BaseModel):
+    insufficient_data: bool
+    total_orders: int
+    average_volume: float
+    average_margin: float
+    items: List[MenuEngineeringItem]

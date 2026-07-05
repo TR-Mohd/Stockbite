@@ -41,7 +41,9 @@ async def test_analytics_endpoints():
     expected_mi1_qty = 3
     expected_mi2_qty = 1
     total_expected_revenue = 0
-    today_str = datetime.utcnow().strftime("%Y-%m-%d")
+    from zoneinfo import ZoneInfo
+    now_utc = datetime.utcnow().replace(tzinfo=ZoneInfo("UTC"))
+    today_str = now_utc.astimezone(ZoneInfo("Asia/Jakarta")).strftime("%Y-%m-%d 00:00:00")
     
     async with AsyncSessionLocal() as db:
         await db.execute(text("TRUNCATE TABLE transaction_items CASCADE"))
@@ -50,7 +52,7 @@ async def test_analytics_endpoints():
 
         temp_manager_id = str(uuid.uuid4())
         from app.auth import get_password_hash
-        temp_manager = User(id=temp_manager_id, name="analytics_tester", role=RoleEnum.Manager, hashed_password=get_password_hash("testpass"), is_active=True)
+        temp_manager = User(id=temp_manager_id, name="analytics_tester", username="analytics_tester", role=RoleEnum.Manager, hashed_password=get_password_hash("testpass"), is_active=True)
         db.add(temp_manager)
         
         res_mi = await db.execute(select(MenuItem))
@@ -82,6 +84,7 @@ async def test_analytics_endpoints():
     
     # Best Sellers
     best_sellers = fetch_endpoint("analytics/best-sellers", token)
+    print("BEST SELLERS:", best_sellers)
     mi1_result_qty = 0
     for bs in best_sellers:
         if bs["menu_item_name"] == mi1_name:
@@ -91,6 +94,7 @@ async def test_analytics_endpoints():
     
     # Revenue Trend
     revenue_trend = fetch_endpoint("analytics/revenue-trend", token)
+    print("REVENUE TREND:", revenue_trend)
     today_revenue = 0
     for rt in revenue_trend:
         if rt["date"] == today_str:
@@ -119,4 +123,3 @@ async def test_analytics_endpoints():
         await db.execute(text("DELETE FROM transactions"))
         await db.execute(text("DELETE FROM users WHERE name = 'analytics_tester'"))
         await db.commit()
-    await engine.dispose()

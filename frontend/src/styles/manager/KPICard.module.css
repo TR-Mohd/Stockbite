@@ -6,6 +6,7 @@
   display: flex;
   flex-direction: column;
   transition: all 0.2s ease;
+  overflow: visible !important;
 }
 
 .highlighted {
@@ -65,4 +66,48 @@
 .trendDown {
   color: #ef4444;
   background-color: rgba(239, 68, 68, 0.1);
+}
+
+.titleContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.infoIcon {
+  color: var(--color-text-tertiary, #d1d5db);
+  cursor: help;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.infoIcon:hover {
+  color: var(--color-text-secondary, #9ca3af);
+}
+
+.tooltip {
+  visibility: hidden;
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 4px;
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+.infoIcon:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
 }

@@ -43,7 +43,8 @@ export const InventoryDashboard = () => {
         stock: item.stock_level,
         uom: item.unit,
         rop: item.reorder_point,
-        lastUpdated: item.last_updated
+        lastUpdated: item.last_updated,
+        unitCost: item.unit_cost
       }));
       setInventoryData(formattedData);
     } catch (error) {
@@ -89,14 +90,26 @@ export const InventoryDashboard = () => {
     try {
       const item = inventoryData.find(i => i.id === data.ingredientId);
       if (!item) return;
-      const amount = data.newStock - item.stock; // Difference
       
-      await api.post(`/inventory/${data.ingredientId}/adjust`, null, {
-        params: { amount, reason: data.reason }
-      });
+      // Update stock if changed
+      if (data.newStock !== item.stock) {
+        const amount = data.newStock - item.stock;
+        await api.post(`/inventory/${data.ingredientId}/adjust`, null, {
+          params: { amount, reason: data.reason }
+        });
+      }
+      
+      // Update unit cost if changed
+      const currentUnitCost = item.unitCost || 0;
+      if (data.newUnitCost !== currentUnitCost) {
+        await api.put(`/inventory/${data.ingredientId}`, {
+          unit_cost: data.newUnitCost
+        });
+      }
+      
       await fetchInventory();
     } catch (error) {
-      console.error("Failed to adjust stock:", error);
+      console.error("Failed to adjust stock or update cost:", error);
     }
   };
 

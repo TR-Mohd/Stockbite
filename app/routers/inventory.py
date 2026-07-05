@@ -6,7 +6,7 @@ from typing import List
 from ..database import get_db
 from ..auth import role_required
 from ..models import User, RoleEnum, Ingredient, AuditLog
-from ..schemas import IngredientResponse, BulkReceiveRequest
+from ..schemas import IngredientResponse, BulkReceiveRequest, IngredientCreate, IngredientUpdate
 
 router = APIRouter(prefix="/inventory", tags=["Inventory"])
 
@@ -17,6 +17,56 @@ async def get_inventory(
 ):
     result = await db.execute(select(Ingredient))
     return result.scalars().all()
+
+@router.post("/", response_model=IngredientResponse, status_code=201)
+async def create_ingredient(
+    ingredient_in: IngredientCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager, RoleEnum.Warehouse]))
+):
+    new_ingredient = Ingredient(**ingredient_in.model_dump())
+    db.add(new_ingredient)
+    
+    audit = AuditLog(
+        user_id=current_user.id,
+        action="Create Ingredient",
+        resource=f"Ingredient:{new_ingredient.name}",
+        outcome="Success"
+    )
+    db.add(audit)
+    
+    await db.commit()
+    await db.refresh(new_ingredient)
+    return new_ingredient
+
+@router.put("/{ingredient_id}", response_model=IngredientResponse)
+async def update_ingredient(
+    ingredient_id: str,
+    ingredient_in: IngredientUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager, RoleEnum.Warehouse]))
+):
+    result = await db.execute(select(Ingredient).where(Ingredient.id == ingredient_id))
+    ingredient = result.scalars().first()
+    
+    if not ingredient:
+        raise HTTPException(status_code=404, detail="Ingredient not found")
+    
+    update_data = ingredient_in.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(ingredient, key, value)
+        
+    audit = AuditLog(
+        user_id=current_user.id,
+        action="Update Ingredient",
+        resource=f"Ingredient:{ingredient.name}",
+        outcome="Success"
+    )
+    db.add(audit)
+    
+    await db.commit()
+    await db.refresh(ingredient)
+    return ingredient
 
 @router.get("/alerts", response_model=List[IngredientResponse])
 async def get_low_stock_alerts(

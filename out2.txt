@@ -1,0 +1,87 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\JC\Desktop\stockbite-workspace\worktrees\mohammed
+plugins: anyio-4.14.0, asyncio-1.4.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 1 item
+
+tests\test_analytics_endpoints.py F                                      [100%]
+
+================================== FAILURES ===================================
+__________________________ test_analytics_endpoints ___________________________
+tests\test_analytics_endpoints.py:99: in test_analytics_endpoints
+    assert today_revenue == total_expected_revenue
+E   assert 0 == 57000.0
+---------------------------- Captured stdout call -----------------------------
+2026-07-05 01:46:59,034 INFO sqlalchemy.engine.Engine select pg_catalog.version()
+2026-07-05 01:46:59,035 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-07-05 01:46:59,037 INFO sqlalchemy.engine.Engine select current_schema()
+2026-07-05 01:46:59,037 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-07-05 01:46:59,040 INFO sqlalchemy.engine.Engine show standard_conforming_strings
+2026-07-05 01:46:59,040 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-07-05 01:46:59,042 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-05 01:46:59,042 INFO sqlalchemy.engine.Engine TRUNCATE TABLE transaction_items CASCADE
+2026-07-05 01:46:59,042 INFO sqlalchemy.engine.Engine [generated in 0.00014s] ()
+2026-07-05 01:46:59,071 INFO sqlalchemy.engine.Engine TRUNCATE TABLE transactions CASCADE
+2026-07-05 01:46:59,071 INFO sqlalchemy.engine.Engine [generated in 0.00052s] ()
+2026-07-05 01:46:59,131 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-05 01:46:59,683 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-05 01:46:59,684 INFO sqlalchemy.engine.Engine INSERT INTO users (id, name, username, role, hashed_password, hashed_pin, phone_number, email, is_active) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::roleenum, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::VARCHAR, $9::BOOLEAN)
+2026-07-05 01:46:59,684 INFO sqlalchemy.engine.Engine [generated in 0.00018s] ('cf580816-b9d0-4761-b316-b9929b883387', 'analytics_tester', 'analytics_tester', 'Manager', '$2b$12$bnnEkYpWfF0GSy0M7mUdcuuPnXJs0FPqAONdfHvM/NDc5ooCLhUMe', None, None, None, True)
+2026-07-05 01:46:59,701 INFO sqlalchemy.engine.Engine SELECT menu_items.id, menu_items.name, menu_items.price, menu_items.category, menu_items.image, menu_items.is_active 
+FROM menu_items
+2026-07-05 01:46:59,701 INFO sqlalchemy.engine.Engine [generated in 0.00017s] ()
+2026-07-05 01:46:59,705 INFO sqlalchemy.engine.Engine INSERT INTO transactions (id, total_amount, payment_method, amount_tendered, change, timestamp, whatsapp, email, cashier_id, status, order_type, routing_number) VALUES ($1::VARCHAR, $2::FLOAT, $3::paymentmethodenum, $4::FLOAT, $5::FLOAT, $6::TIMESTAM ... 280 characters truncated ... $23::ordertypeenum, $24::VARCHAR) RETURNING transactions.subtotal, transactions.tax, transactions.id
+2026-07-05 01:46:59,705 INFO sqlalchemy.engine.Engine [generated in 0.00011s (insertmanyvalues) 1/1 (ordered)] ('4aa11401-6356-42bc-a1ca-0025bfe46230', 42000.0, 'Cash', None, None, datetime.datetime(2026, 7, 4, 18, 46, 59, 703493), None, None, 'cf580816-b9d0-4761-b316-b9929b883387', 'Completed', 'Takeaway', None, '31db1149-abb2-4fd8-9ca5-e2cdf62cc319', 15000.0, 'Cash', None, None, datetime.datetime(2026, 7, 4, 18, 46, 59, 703591), None, None, 'cf580816-b9d0-4761-b316-b9929b883387', 'Completed', 'Takeaway', None)
+2026-07-05 01:46:59,714 INFO sqlalchemy.engine.Engine INSERT INTO transaction_items (id, transaction_id, menu_item_id, quantity, notes, price_at_time) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::INTEGER, $5::VARCHAR, $6::FLOAT), ($7::VARCHAR, $8::VARCHAR, $9::VARCHAR, $10::INTEGER, $11::VARCHAR, $12::FLOAT), ($13::VARCHAR, $14::VARCHAR, $15::VARCHAR, $16::INTEGER, $17::VARCHAR, $18::FLOAT) RETURNING transaction_items.cogs_per_unit, transaction_items.id
+2026-07-05 01:46:59,714 INFO sqlalchemy.engine.Engine [generated in 0.00008s (insertmanyvalues) 1/1 (ordered)] ('70ac07ab-e87f-48c2-b29b-0d1fcffa2846', '4aa11401-6356-42bc-a1ca-0025bfe46230', 'd25c9bed-2282-465f-a2c7-8276b70d84d3', 2, None, 15000.0, '23483ca2-bbf2-41b1-ad78-f73053e46c79', '4aa11401-6356-42bc-a1ca-0025bfe46230', '089a4740-7bc6-497d-b97b-768c5cdbef20', 1, None, 12000.0, 'a874b6be-29a4-43a2-b5cd-8fec2b8a196e', '31db1149-abb2-4fd8-9ca5-e2cdf62cc319', 'd25c9bed-2282-465f-a2c7-8276b70d84d3', 1, None, 15000.0)
+2026-07-05 01:46:59,716 INFO sqlalchemy.engine.Engine COMMIT
+------------------------------ Captured log call ------------------------------
+INFO     sqlalchemy.engine.Engine:base.py:1848 select pg_catalog.version()
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 select current_schema()
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 show standard_conforming_strings
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:2712 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1848 TRUNCATE TABLE transaction_items CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1848 [generated in 0.00014s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 TRUNCATE TABLE transactions CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1848 [generated in 0.00052s] ()
+INFO     sqlalchemy.engine.Engine:base.py:2718 COMMIT
+INFO     sqlalchemy.engine.Engine:base.py:2712 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1848 INSERT INTO users (id, name, username, role, hashed_password, hashed_pin, phone_number, email, is_active) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::roleenum, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::VARCHAR, $9::BOOLEAN)
+INFO     sqlalchemy.engine.Engine:base.py:1848 [generated in 0.00018s] ('cf580816-b9d0-4761-b316-b9929b883387', 'analytics_tester', 'analytics_tester', 'Manager', '$2b$12$bnnEkYpWfF0GSy0M7mUdcuuPnXJs0FPqAONdfHvM/NDc5ooCLhUMe', None, None, None, True)
+INFO     sqlalchemy.engine.Engine:base.py:1848 SELECT menu_items.id, menu_items.name, menu_items.price, menu_items.category, menu_items.image, menu_items.is_active 
+FROM menu_items
+INFO     sqlalchemy.engine.Engine:base.py:1848 [generated in 0.00017s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 INSERT INTO transactions (id, total_amount, payment_method, amount_tendered, change, timestamp, whatsapp, email, cashier_id, status, order_type, routing_number) VALUES ($1::VARCHAR, $2::FLOAT, $3::paymentmethodenum, $4::FLOAT, $5::FLOAT, $6::TIMESTAM ... 280 characters truncated ... $23::ordertypeenum, $24::VARCHAR) RETURNING transactions.subtotal, transactions.tax, transactions.id
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00011s (insertmanyvalues) 1/1 (ordered)] ('4aa11401-6356-42bc-a1ca-0025bfe46230', 42000.0, 'Cash', None, None, datetime.datetime(2026, 7, 4, 18, 46, 59, 703493), None, None, 'cf580816-b9d0-4761-b316-b9929b883387', 'Completed', 'Takeaway', None, '31db1149-abb2-4fd8-9ca5-e2cdf62cc319', 15000.0, 'Cash', None, None, datetime.datetime(2026, 7, 4, 18, 46, 59, 703591), None, None, 'cf580816-b9d0-4761-b316-b9929b883387', 'Completed', 'Takeaway', None)
+INFO     sqlalchemy.engine.Engine:base.py:1846 INSERT INTO transaction_items (id, transaction_id, menu_item_id, quantity, notes, price_at_time) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::INTEGER, $5::VARCHAR, $6::FLOAT), ($7::VARCHAR, $8::VARCHAR, $9::VARCHAR, $10::INTEGER, $11::VARCHAR, $12::FLOAT), ($13::VARCHAR, $14::VARCHAR, $15::VARCHAR, $16::INTEGER, $17::VARCHAR, $18::FLOAT) RETURNING transaction_items.cogs_per_unit, transaction_items.id
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s (insertmanyvalues) 1/1 (ordered)] ('70ac07ab-e87f-48c2-b29b-0d1fcffa2846', '4aa11401-6356-42bc-a1ca-0025bfe46230', 'd25c9bed-2282-465f-a2c7-8276b70d84d3', 2, None, 15000.0, '23483ca2-bbf2-41b1-ad78-f73053e46c79', '4aa11401-6356-42bc-a1ca-0025bfe46230', '089a4740-7bc6-497d-b97b-768c5cdbef20', 1, None, 12000.0, 'a874b6be-29a4-43a2-b5cd-8fec2b8a196e', '31db1149-abb2-4fd8-9ca5-e2cdf62cc319', 'd25c9bed-2282-465f-a2c7-8276b70d84d3', 1, None, 15000.0)
+INFO     sqlalchemy.engine.Engine:base.py:2718 COMMIT
+============================== warnings summary ===============================
+tests\test_analytics_endpoints.py:19
+  C:\Users\JC\Desktop\stockbite-workspace\worktrees\mohammed\tests\test_analytics_endpoints.py:19: DeprecationWarning: 'asyncio.WindowsSelectorEventLoopPolicy' is deprecated and slated for removal in Python 3.16
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+tests\test_analytics_endpoints.py:19
+  C:\Users\JC\Desktop\stockbite-workspace\worktrees\mohammed\tests\test_analytics_endpoints.py:19: DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+tests/test_analytics_endpoints.py::test_analytics_endpoints
+  C:\Users\JC\Desktop\stockbite-workspace\worktrees\mohammed\tests\test_analytics_endpoints.py:44: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    today_str = datetime.utcnow().strftime("%Y-%m-%d")
+
+tests/test_analytics_endpoints.py::test_analytics_endpoints
+  C:\Users\JC\Desktop\stockbite-workspace\worktrees\mohammed\tests\test_analytics_endpoints.py:66: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    t1 = Transaction(id=str(uuid.uuid4()), total_amount=t1_total, payment_method=PaymentMethodEnum.Cash, status=StatusEnum.Completed, timestamp=datetime.utcnow(), cashier_id=temp_manager_id)
+
+tests/test_analytics_endpoints.py::test_analytics_endpoints
+  C:\Users\JC\Desktop\stockbite-workspace\worktrees\mohammed\tests\test_analytics_endpoints.py:71: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    t2 = Transaction(id=str(uuid.uuid4()), total_amount=t2_total, payment_method=PaymentMethodEnum.Cash, status=StatusEnum.Completed, timestamp=datetime.utcnow(), cashier_id=temp_manager_id)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_analytics_endpoints.py::test_analytics_endpoints - assert 0...
+======================== 1 failed, 5 warnings in 7.60s ========================

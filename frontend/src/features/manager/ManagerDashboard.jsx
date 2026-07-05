@@ -41,6 +41,7 @@ export const ManagerDashboard = () => {
   const [revenueTrend, setRevenueTrend] = useState([]);
   const [bestSellers, setBestSellers] = useState([]);
   const [marketBasket, setMarketBasket] = useState([]);
+  const [orderVelocity, setOrderVelocity] = useState([]);
   const [heatmapGrid, setHeatmapGrid] = useState(
     Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => ({ intensity: 0, count: 0 })))
   );
@@ -65,16 +66,19 @@ export const ManagerDashboard = () => {
         revRes, 
         bestRes, 
         heatRes, 
-        basketRes
+        basketRes,
+        velocityRes
       ] = await Promise.all([
         api.get('/manager/dashboard/kpis', { params }),
         api.get('/manager/analytics/revenue-trend', { params }),
         api.get('/manager/analytics/best-sellers', { params }),
         api.get('/manager/analytics/heatmap-data', { params }),
-        api.get('/manager/analytics/basket-analysis', { params })
+        api.get('/manager/analytics/basket-analysis', { params }),
+        api.get('/manager/analytics/order-velocity', { params })
       ]);
       
       setKpiData(kpiRes.data);
+      setOrderVelocity(velocityRes.data);
       
       // Transform Revenue Trend
       setRevenueTrend(revRes.data.map(d => {
@@ -109,7 +113,7 @@ export const ManagerDashboard = () => {
          id: idx,
          pair: `${b.item1_name} + ${b.item2_name}`,
          timesBought: b.frequency,
-         confidence: ''
+         confidence: b.confidence !== null && b.confidence !== undefined ? `${b.confidence}%` : null
       })));
       
       // Transform Heatmap Grid
@@ -208,12 +212,23 @@ export const ManagerDashboard = () => {
           {/* Left Column: Trend & Heatmap */}
           <div className={styles.leftColumn}>
             
-            {/* KPI Grid (Now with 4 cards including Net Revenue) */}
+            {/* KPI Grid */}
             <div className={styles.kpiGrid}>
+              <KPICard 
+                title="Avg Ticket Size" 
+                value={kpiData ? `Rp ${kpiData.average_ticket_size.toLocaleString('id-ID')}` : "Loading..."} 
+                infoTooltip="Calculated Pre-Tax"
+              />
               <KPICard 
                 title="Gross Revenue" 
                 value={kpiData ? `Rp ${kpiData.gross_revenue.toLocaleString('id-ID')}` : "Loading..."} 
                 trend="+14.5%" 
+                trendUp={true} 
+              />
+              <KPICard 
+                title="Tax Collected" 
+                value={kpiData ? `Rp ${kpiData.tax_collected.toLocaleString('id-ID')}` : "Loading..."} 
+                trend="+10.2%" 
                 trendUp={true} 
               />
               <KPICard 
@@ -261,6 +276,32 @@ export const ManagerDashboard = () => {
                     <YAxis width={80} stroke="var(--color-text-tertiary)" tick={{ fill: 'var(--color-text-tertiary)' }} axisLine={false} tickLine={false} tickFormatter={(value) => `Rp ${(value / 1000000).toFixed(1)}M`} />
                     <Tooltip contentStyle={{ backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }} itemStyle={{ color: 'var(--color-primary)' }} formatter={(value) => [`Rp ${value.toLocaleString('id-ID')}`, 'Revenue']} />
                     <Area type="monotone" dataKey="revenue" stroke="var(--color-primary)" fillOpacity={1} fill="url(#colorRevenue)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+            {/* Order Volume Velocity Chart */}
+            <div className={styles.chartCard}>
+              <h3 className={styles.cardTitle}>Order Volume Velocity (Avg / Hour)</h3>
+              <div className={styles.chartWrapper}>
+                {orderVelocity.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    Loading...
+                  </div>
+                ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={orderVelocity} margin={{ top: 10, right: 30, left: 30, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorVelocity" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="hour" stroke="var(--color-text-tertiary)" tick={{ fill: 'var(--color-text-tertiary)' }} axisLine={false} tickLine={false} />
+                    <YAxis width={40} stroke="var(--color-text-tertiary)" tick={{ fill: 'var(--color-text-tertiary)' }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }} itemStyle={{ color: 'var(--color-primary)' }} formatter={(value) => [`${value} Orders`, 'Avg Volume']} />
+                    <Area type="monotone" dataKey="avg_orders" stroke="var(--color-primary)" fillOpacity={1} fill="url(#colorVelocity)" />
                   </AreaChart>
                 </ResponsiveContainer>
                 )}

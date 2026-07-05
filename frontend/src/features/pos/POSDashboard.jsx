@@ -221,7 +221,7 @@ const POSDashboard = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         cartItems={cartItems}
-        total={cartTotal}
+        total={subtotal}
         onCheckoutSuccess={handleCheckoutSuccess}
       />
 

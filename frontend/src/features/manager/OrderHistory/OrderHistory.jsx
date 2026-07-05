@@ -124,6 +124,8 @@ export const OrderHistory = () => {
               <th>Order Type</th>
               <th>Cashier</th>
               <th>Payment</th>
+              <th>Subtotal</th>
+              <th>Tax</th>
               <th>Total Amount</th>
               <th>Status</th>
             </tr>
@@ -149,7 +151,9 @@ export const OrderHistory = () => {
                   </td>
                   <td className={styles.cashierName}>{order.cashier_name || 'System / Unassigned'}</td>
                   <td>{order.payment_method}</td>
-                  <td>{formatCurrency(order.total_amount)}</td>
+                  <td style={{ color: 'var(--color-text-secondary)' }}>{formatCurrency(order.subtotal || 0)}</td>
+                  <td style={{ color: 'var(--color-text-secondary)' }}>{formatCurrency(order.tax || 0)}</td>
+                  <td style={{ fontWeight: 600, color: 'var(--color-brand)' }}>{formatCurrency(order.total_amount)}</td>
                   <td>
                     <span className={`${styles.statusBadge} ${order.status === 'Completed' ? styles.statusCompleted : styles.statusVoided}`}>
                       {order.status}
