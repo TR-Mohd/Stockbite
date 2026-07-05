@@ -11,6 +11,7 @@ import { ManagerLayout } from './components/layout/ManagerLayout';
 import { OrderHistory } from './features/manager/OrderHistory/OrderHistory';
 import { SupplierDirectory } from './features/manager/SupplierDirectory';
 import { StaffManagement } from './features/manager/StaffManagement';
+import { MenuEngineering } from './features/manager/MenuEngineering';
 
 const RoleRedirect = () => {
   const { user } = useAuthStore();
@@ -42,6 +43,7 @@ function App() {
             <Route path="suppliers" element={<SupplierDirectory />} />
             <Route path="staff" element={<StaffManagement />} />
             <Route path="orders" element={<OrderHistory />} />
+            <Route path="menu-engineering" element={<MenuEngineering />} />
           </Route>
         </Route>
 

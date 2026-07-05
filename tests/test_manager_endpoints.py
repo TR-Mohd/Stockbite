@@ -54,6 +54,7 @@ async def run_tests():
 
         # 2. Run validations
         print("\n--- KPIs ---")
+        from app.routers.manager import get_order_velocity
         kpis = await get_kpis(timeframe="last_30_days", db=db, current_user=None)
         print(kpis)
 
@@ -61,6 +62,17 @@ async def run_tests():
         basket = await get_basket_analysis(timeframe="last_30_days", db=db, current_user=None)
         for item in basket:
             print(item)
+
+        print("\n--- Order Velocity ---")
+        from app.routers.manager import get_order_velocity
+        velocity = await get_order_velocity(timeframe="last_30_days", db=db, current_user=None)
+        import json
+        print(json.dumps(velocity, indent=2))
+
+        print("\n--- Menu Engineering ---")
+        from app.routers.manager import get_menu_engineering
+        matrix = await get_menu_engineering(timeframe="last_30_days", db=db, current_user=None)
+        print(json.dumps(matrix.model_dump(), indent=2))
 
 if __name__ == "__main__":
     asyncio.run(run_tests())
