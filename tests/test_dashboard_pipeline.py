@@ -30,8 +30,8 @@ async def setup_test_db():
 async def test_dashboard_pipeline(setup_test_db):
     TestSessionLocal = setup_test_db
     async with TestSessionLocal() as db:
-        cashier_id = str(uuid.uuid4())
-        random_name = f"mock_cashier_{uuid.uuid4().hex[:8]}"
+        cashier_id = "EMP-CSH-99999"
+        random_name = "Cashier Mock..."
         cashier = User(id=cashier_id, name=random_name, role=RoleEnum.Cashier, hashed_password="mock", is_active=True)
         db.add(cashier)
         await db.commit()
@@ -49,7 +49,7 @@ async def test_dashboard_pipeline(setup_test_db):
         expected_cogs = 0.0
         expected_net = expected_gross - expected_cogs
         
-        mock_manager = User(id=str(uuid.uuid4()), name="mock_manager", role=RoleEnum.Manager)
+        mock_manager = User(id="EMP-MGR-99998", name="Manager Mock...", role=RoleEnum.Manager)
         kpis = await get_kpis(timeframe="last_7_days", db=db, current_user=mock_manager)
         
         assert kpis["gross_revenue"] == expected_gross, f"Gross revenue mismatch"

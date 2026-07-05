@@ -31,7 +31,7 @@ async def setup_db():
     
     # Seed data
     async with TestSessionLocal() as session:
-        user = User(id="manager_1", name="analytics_tester", username="analytics_tester", role=RoleEnum.Manager, hashed_password=get_password_hash("testpass"), is_active=True)
+        user = User(id="EMP-MGR-99999", name="Analytics Tester...", username="analyticstester_mock", role=RoleEnum.Manager, hashed_password=get_password_hash("testpass"), is_active=True)
         session.add(user)
         
         mi1 = MenuItem(id="mi_1", name="Item 1", price=10.0, category="Foods", is_active=True)
@@ -42,12 +42,12 @@ async def setup_db():
         now = datetime.now(timezone.utc).replace(tzinfo=None)
         
         t1_total = mi1.price * 2 + mi2.price
-        t1 = Transaction(id="tx_1", total_amount=t1_total, payment_method=PaymentMethodEnum.Cash, status=StatusEnum.Completed, timestamp=now, cashier_id="manager_1")
+        t1 = Transaction(id="tx_1", total_amount=t1_total, payment_method=PaymentMethodEnum.Cash, status=StatusEnum.Completed, timestamp=now, cashier_id="EMP-MGR-99999")
         ti1_1 = TransactionItem(id="ti_1", transaction_id="tx_1", menu_item_id="mi_1", quantity=2, price_at_time=mi1.price)
         ti1_2 = TransactionItem(id="ti_2", transaction_id="tx_1", menu_item_id="mi_2", quantity=1, price_at_time=mi2.price)
         
         t2_total = mi1.price * 1
-        t2 = Transaction(id="tx_2", total_amount=t2_total, payment_method=PaymentMethodEnum.Cash, status=StatusEnum.Completed, timestamp=now, cashier_id="manager_1")
+        t2 = Transaction(id="tx_2", total_amount=t2_total, payment_method=PaymentMethodEnum.Cash, status=StatusEnum.Completed, timestamp=now, cashier_id="EMP-MGR-99999")
         ti2_1 = TransactionItem(id="ti_3", transaction_id="tx_2", menu_item_id="mi_1", quantity=1, price_at_time=mi1.price)
         
         session.add_all([t1, t2, ti1_1, ti1_2, ti2_1])
@@ -62,7 +62,7 @@ async def client():
 
 @pytest_asyncio.fixture
 async def token():
-    return create_access_token(data={"sub": "analytics_tester", "role": "Manager"})
+    return create_access_token(data={"sub": "analyticstester_mock", "role": "Manager"})
 
 @pytest.mark.asyncio
 async def test_analytics_endpoints(client, token):
