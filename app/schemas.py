@@ -80,7 +80,7 @@ class IngredientUpdate(BaseModel):
 
 class BulkReceiveItem(BaseModel):
     ingredient_id: str
-    quantity: float
+    quantity: float = Field(..., gt=0.0)
 
 class BulkReceiveRequest(BaseModel):
     items: List[BulkReceiveItem]
@@ -113,8 +113,8 @@ class MenuItemResponse(BaseModel):
 
 class CartItemCreate(BaseModel):
     menu_item_id: str
-    quantity: int
-    notes: Optional[str] = None
+    quantity: int = Field(..., gt=0)
+    notes: Optional[str] = Field(None, max_length=500)
     modifier_ids: List[str] = []
 
 class TransactionCreate(BaseModel):

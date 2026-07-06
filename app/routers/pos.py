@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -11,9 +12,10 @@ from ..models import User, RoleEnum, Transaction, TransactionItem, MenuItem, Ing
 from ..schemas import TransactionCreate, TransactionResponse, MenuItemResponse
 
 router = APIRouter(prefix="/pos", tags=["POS"])
+logger = logging.getLogger(__name__)
 
 @router.get("/menu", response_model=List[MenuItemResponse])
-async def get_menu(db: AsyncSession = Depends(get_db)):
+async def get_menu(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     result = await db.execute(
         select(MenuItem)
         .options(
@@ -31,6 +33,9 @@ async def checkout(
 ):
     if order.order_type == OrderTypeEnum.DineIn and not order.routing_number:
         raise HTTPException(status_code=400, detail="Table number is required for Dine-In orders")
+
+    if not order.items:
+        raise HTTPException(status_code=400, detail="Cannot process an empty transaction")
 
     # Retrieve all menu items in the cart
     menu_item_ids = [item.menu_item_id for item in order.items]
@@ -53,6 +58,9 @@ async def checkout(
 
     # Calculate total and required ingredients
     for item in order.items:
+        if item.quantity <= 0:
+            raise HTTPException(status_code=400, detail="Item quantity must be positive")
+            
         if item.menu_item_id not in menu_items:
             raise HTTPException(status_code=400, detail=f"Menu item {item.menu_item_id} not found")
         mi = menu_items[item.menu_item_id]
@@ -176,7 +184,8 @@ async def checkout(
         )
     except Exception as e:
         await db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Transaction checkout failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="An internal server error occurred")
     
     await db.refresh(db_txn)
     return db_txn
