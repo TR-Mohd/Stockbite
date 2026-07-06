@@ -1,8 +1,10 @@
 import os
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import declarative_base
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://stockbite_user:stockbite_password@localhost:5432/stockbite")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://localhost/stockbite")
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 
