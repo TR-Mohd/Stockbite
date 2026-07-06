@@ -78,7 +78,23 @@ export const ManagerDashboard = () => {
       ]);
       
       setKpiData(kpiRes.data);
-      setOrderVelocity(velocityRes.data);
+      setOrderVelocity(velocityRes.data.map(d => {
+         const dateObj = new Date(d.date.replace(' ', 'T'));
+         let formattedName = '';
+         
+         if (dateRange === 'Today' || dateRange === 'Yesterday') {
+            formattedName = `${dateObj.getHours().toString().padStart(2, '0')}:00`;
+         } else if (dateRange === 'Last 7 Days') {
+            formattedName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+         } else {
+            formattedName = dateObj.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+         }
+         
+         return {
+            name: formattedName,
+            orders: d.orders
+         };
+      }));
       
       // Transform Revenue Trend
       setRevenueTrend(revRes.data.map(d => {
@@ -272,7 +288,7 @@ export const ManagerDashboard = () => {
             </div>
             {/* Order Volume Velocity Chart */}
             <div className={styles.chartCard}>
-              <h3 className={styles.cardTitle}>Order Volume Velocity (Avg / Hour)</h3>
+              <h3 className={styles.cardTitle}>Order Volume Velocity ({dateRange})</h3>
               <div className={styles.chartWrapper}>
                 {orderVelocity.length === 0 ? (
                   <div className={styles.emptyState}>
@@ -287,10 +303,10 @@ export const ManagerDashboard = () => {
                         <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <XAxis dataKey="hour" stroke="var(--color-text-tertiary)" tick={{ fill: 'var(--color-text-tertiary)' }} axisLine={false} tickLine={false} />
+                    <XAxis dataKey="name" stroke="var(--color-text-tertiary)" tick={{ fill: 'var(--color-text-tertiary)' }} axisLine={false} tickLine={false} />
                     <YAxis width={40} stroke="var(--color-text-tertiary)" tick={{ fill: 'var(--color-text-tertiary)' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }} itemStyle={{ color: 'var(--color-primary)' }} formatter={(value) => [`${value} Orders`, 'Avg Volume']} />
-                    <Area type="monotone" dataKey="avg_orders" stroke="var(--color-primary)" fillOpacity={1} fill="url(#colorVelocity)" />
+                    <Tooltip contentStyle={{ backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }} itemStyle={{ color: 'var(--color-primary)' }} formatter={(value) => [`${value} Orders`, 'Order Volume']} />
+                    <Area type="monotone" dataKey="orders" stroke="var(--color-primary)" fillOpacity={1} fill="url(#colorVelocity)" />
                   </AreaChart>
                 </ResponsiveContainer>
                 )}

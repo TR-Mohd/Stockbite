@@ -203,8 +203,8 @@ class BasketAnalysisItem(BaseModel):
     confidence: Optional[float] = None
 
 class OrderVelocityDataPoint(BaseModel):
-    hour: str
-    avg_orders: float
+    date: str
+    orders: int
 
 class MenuEngineeringItem(BaseModel):
     menu_item_id: str

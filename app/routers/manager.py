@@ -377,40 +377,45 @@ async def get_order_velocity(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(role_required([RoleEnum.Manager]))
 ):
-    start_utc, end_utc, _, _ = get_timeframe_boundaries(timeframe)
-    local_timestamp = Transaction.timestamp.op('AT TIME ZONE')('UTC').op('AT TIME ZONE')('Asia/Jakarta')
+    start_utc, end_utc, start_local, end_local = get_timeframe_boundaries(timeframe)
+    hourly = timeframe in ["today", "yesterday"]
+    interval_td = timedelta(hours=1) if hourly else timedelta(days=1)
     
-    # 1. Get distinct active days
-    active_days_stmt = (
-        select(func.count(func.distinct(func.date(local_timestamp))))
-        .where(Transaction.status == StatusEnum.Completed)
-        .where(Transaction.timestamp >= start_utc)
-        .where(Transaction.timestamp <= end_utc)
-    )
-    active_days_res = await db.execute(active_days_stmt)
-    total_active_days = active_days_res.scalar() or 1
+    series = select(
+        func.generate_series(
+            start_local.replace(tzinfo=None),
+            end_local.replace(tzinfo=None),
+            interval_td
+        ).label("ts")
+    ).subquery("series_ts")
     
-    # 2. Get counts grouped by hour
+    local_tx_ts = Transaction.timestamp.op('AT TIME ZONE')('UTC').op('AT TIME ZONE')('Asia/Jakarta')
+    trunc_tx_ts = func.date_trunc('hour' if hourly else 'day', local_tx_ts)
+    
     stmt = (
         select(
-            func.extract('hour', local_timestamp).label('hour'),
-            func.count(Transaction.id).label('count')
+            series.c.ts.label("date"),
+            func.count(Transaction.id).label("count")
         )
-        .where(Transaction.status == StatusEnum.Completed)
-        .where(Transaction.timestamp >= start_utc)
-        .where(Transaction.timestamp <= end_utc)
-        .group_by(func.extract('hour', local_timestamp))
+        .outerjoin(
+            Transaction,
+            (trunc_tx_ts == series.c.ts) & 
+            (Transaction.status == StatusEnum.Completed) &
+            (Transaction.timestamp >= start_utc) &
+            (Transaction.timestamp <= end_utc)
+        )
+        .group_by(series.c.ts)
+        .order_by(series.c.ts)
     )
+    
     result = await db.execute(stmt)
     
-    hour_counts = {int(row.hour): int(row.count) for row in result.all()}
-    
-    # 3. Format response (0-23 hours)
     response = []
-    for h in range(24):
-        avg_orders = hour_counts.get(h, 0) / total_active_days
-        hour_str = f"{h:02d}:00"
-        response.append({"hour": hour_str, "avg_orders": round(avg_orders, 2)})
+    for row in result.all():
+        response.append({
+            "date": row.date.strftime("%Y-%m-%d %H:%M:%S"),
+            "orders": int(row.count)
+        })
         
     return response
 
