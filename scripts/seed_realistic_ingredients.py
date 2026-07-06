@@ -56,11 +56,6 @@ RECIPE_MAPPINGS = {
         ("Cheddar Cheese (Block)", 0.02),
         ("Mayonnaise", 0.01),
     ],
-    "Udang Keju": [
-        ("Peeled Shrimp (Udang Kupas)", 0.15),
-        ("Cheddar Cheese (Block)", 0.05),
-        ("Mayonnaise", 0.02),
-    ],
     "Chicken Shawarma": [
         ("Chicken Breast Fillet", 0.15),
         ("Tortilla Wraps", 1.0),

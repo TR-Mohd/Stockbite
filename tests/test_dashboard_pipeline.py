@@ -4,28 +4,34 @@ import uuid
 import pytest
 from datetime import datetime
 
-# Ensure we can import app modules from the root of the worktree
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from app.database import AsyncSessionLocal, engine
+from app.database import Base
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.pool import NullPool
 from app.models import Transaction, StatusEnum, PaymentMethodEnum, User, RoleEnum
 from app.routers.manager import get_kpis
-from sqlalchemy import text
+import pytest_asyncio
 
-if sys.platform == 'win32':
-    import asyncio
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+TEST_DATABASE_URL = "postgresql+asyncpg://stockbite_user:stockbite_password@localhost:5432/stockbite_test"
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def setup_test_db():
+    test_engine = create_async_engine(TEST_DATABASE_URL, echo=False, poolclass=NullPool)
+    TestSessionLocal = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
+
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+    
+    return TestSessionLocal
 
 @pytest.mark.asyncio
-async def test_dashboard_pipeline():
-    async with AsyncSessionLocal() as db:
-        await db.execute(text("TRUNCATE TABLE transaction_items CASCADE"))
-        await db.execute(text("TRUNCATE TABLE transactions CASCADE"))
-        await db.commit()
-        
-        # Create a mock cashier for the transactions
-        cashier_id = str(uuid.uuid4())
-        random_name = f"mock_cashier_{uuid.uuid4().hex[:8]}"
+async def test_dashboard_pipeline(setup_test_db):
+    TestSessionLocal = setup_test_db
+    async with TestSessionLocal() as db:
+        cashier_id = "EMP-CSH-99999"
+        random_name = "Cashier Mock..."
         cashier = User(id=cashier_id, name=random_name, role=RoleEnum.Cashier, hashed_password="mock", is_active=True)
         db.add(cashier)
         await db.commit()
@@ -40,14 +46,11 @@ async def test_dashboard_pipeline():
         await db.commit()
         
         expected_gross = sum(tx.total_amount for tx in txs)
-        # COGS is computed from TransactionItem.cogs_per_unit. These transactions have no items,
-        # so real COGS = 0 and net_revenue = gross_revenue.
         expected_cogs = 0.0
         expected_net = expected_gross - expected_cogs
-        expected_margin = (expected_net / expected_gross * 100) if expected_gross > 0 else 0.0
         
-        mock_manager = User(id=str(uuid.uuid4()), name="mock_manager", role=RoleEnum.Manager)
-        kpis = await get_kpis(db=db, current_user=mock_manager)
+        mock_manager = User(id="EMP-MGR-99998", name="Manager Mock...", role=RoleEnum.Manager)
+        kpis = await get_kpis(timeframe="last_7_days", db=db, current_user=mock_manager)
         
         assert kpis["gross_revenue"] == expected_gross, f"Gross revenue mismatch"
         assert kpis["cogs"] == expected_cogs, f"COGS mismatch: expected 0 (no items), got {kpis['cogs']}"

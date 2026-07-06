@@ -222,33 +222,22 @@ export const ManagerDashboard = () => {
               <KPICard 
                 title="Gross Revenue" 
                 value={kpiData ? `Rp ${kpiData.gross_revenue.toLocaleString('id-ID')}` : "Loading..."} 
-                trend="+14.5%" 
-                trendUp={true} 
               />
               <KPICard 
                 title="Tax Collected" 
                 value={kpiData ? `Rp ${kpiData.tax_collected.toLocaleString('id-ID')}` : "Loading..."} 
-                trend="+10.2%" 
-                trendUp={true} 
               />
               <KPICard 
                 title="Net Revenue" 
                 value={kpiData ? `Rp ${kpiData.net_revenue.toLocaleString('id-ID')}` : "Loading..."} 
-                trend="+12.3%" 
-                trendUp={true} 
-                highlight={true}
               />
               <KPICard 
                 title="COGS" 
                 value={kpiData ? `Rp ${kpiData.cogs.toLocaleString('id-ID')}` : "Loading..."} 
-                trend="-2.1%" 
-                trendUp={false} 
               />
               <KPICard 
                 title="Profit Margin" 
                 value={kpiData ? `${kpiData.profit_margin_percent.toFixed(1)}%` : "Loading..."} 
-                trend="+5.2%" 
-                trendUp={true} 
               />
             </div>
             
