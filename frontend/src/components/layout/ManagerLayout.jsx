@@ -27,6 +27,12 @@ export const ManagerLayout = () => {
           Dashboard
         </NavLink>
         <NavLink 
+          to="/manager/orders" 
+          className={({ isActive }) => isActive ? `${headerStyles.navLink} ${headerStyles.activeLink}` : headerStyles.navLink}
+        >
+          Order History
+        </NavLink>
+        <NavLink 
           to="/manager/suppliers" 
           className={({ isActive }) => isActive ? `${headerStyles.navLink} ${headerStyles.activeLink}` : headerStyles.navLink}
         >
@@ -37,12 +43,6 @@ export const ManagerLayout = () => {
           className={({ isActive }) => isActive ? `${headerStyles.navLink} ${headerStyles.activeLink}` : headerStyles.navLink}
         >
           Staff Management
-        </NavLink>
-        <NavLink 
-          to="/manager/orders" 
-          className={({ isActive }) => isActive ? `${headerStyles.navLink} ${headerStyles.activeLink}` : headerStyles.navLink}
-        >
-          Order History
         </NavLink>
         <NavLink 
           to="/manager/menu-engineering" 
