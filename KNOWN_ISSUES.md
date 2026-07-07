@@ -16,3 +16,8 @@
 - **Checkout Volumetric Limits**: There are currently no volumetric limits on the `/pos/checkout` endpoint. An authenticated cashier session can fire rapid, sequential transactions without being throttled.
 
 **Reason for Acceptance**: Accepted as technical debt for the MVP phase. This should be revisited alongside any future kitchen-workflow or Order Fulfillment Time feature, since transaction-velocity anomaly detection naturally belongs with that workflow rather than as a standalone rate limiter now.
+## COGS Breakdown Pagination
+- **In-Memory Pagination**: The `/manager/dashboard/kpis/cogs-breakdown` endpoint currently fetches all menu items in memory before paginating.
+
+**Reason for Acceptance**: Accepted as technical debt because it is perfectly performant for the current small menu size, though it may not scale efficiently if the menu grows to thousands of items. Logged to be refactored to SQL-level `LIMIT`/`OFFSET` when necessary.
+- **Sticky Header Overlap (Table.jsx)**: Rows overlap the sticky table header during scroll. The root cause is not yet definitively identified. Deferred from Phase 5.

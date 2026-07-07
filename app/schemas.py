@@ -219,3 +219,49 @@ class MenuEngineeringResponse(BaseModel):
     average_volume: float
     average_margin: float
     items: List[MenuEngineeringItem]
+
+class KPITransactionItem(BaseModel):
+    id: str
+    timestamp: datetime
+    payment_method: str
+    gross_revenue: float
+    tax: float
+    cogs: float
+    net_revenue: float
+    
+    model_config = ConfigDict(from_attributes=True)
+
+class PaginatedKPITransactions(BaseModel):
+    items: List[KPITransactionItem]
+    total: int
+    page: int
+    size: int
+
+class COGSBreakdownItem(BaseModel):
+    menu_item_id: str
+    menu_item_name: str
+    units_sold: int
+    item_cogs: float
+    modifier_cogs: float
+    total_cogs: float
+    percentage_of_total_cogs: float
+    food_cost_percentage: float
+
+class PaginatedCOGSBreakdown(BaseModel):
+    items: List[COGSBreakdownItem]
+    total: int
+    page: int
+    size: int
+    summary_total_cogs: float
+
+class MarginTrendItem(BaseModel):
+    date: str
+    gross_revenue: float
+    cogs: float
+    net_revenue: float
+    profit_margin_percent: float
+
+class ATSBucketItem(BaseModel):
+    bucket: str
+    order_count: int
+    percentage: float

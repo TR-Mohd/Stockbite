@@ -15,16 +15,21 @@
   text-align: left;
 }
 
-.th {
+.thead {
   position: sticky;
   top: 0;
+  background-color: var(--color-bg-surface);
+  z-index: 20;
+}
+
+.th {
   background-color: var(--color-bg-surface);
   padding: var(--spacing-3) var(--spacing-4);
   font-weight: 600;
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
   border-bottom: 1px solid var(--color-border);
-  z-index: 10;
+  z-index: 21;
   white-space: nowrap;
 }
 

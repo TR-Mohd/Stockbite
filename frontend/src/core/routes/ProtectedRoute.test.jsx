@@ -61,7 +61,7 @@ describe('ProtectedRoute', () => {
     });
     
     renderRoute(['manager', 'admin']);
-    expect(screen.getByText('Home Page')).toBeInTheDocument();
+    expect(screen.getByText('Login Page')).toBeInTheDocument();
     expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
   });
 });

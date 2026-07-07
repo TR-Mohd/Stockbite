@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import api from '../../core/api/axios';
 // useAuthStore is not used anymore here since username and logout are in Layout
 import { KPICard } from './KPICard';
+import { KPIDrillDownModal } from './KPIDrillDownModal';
 import styles from '../../styles/manager/ManagerDashboard.module.css';
+import { formatCurrency } from '../../utils/formatters';
 import {
   AreaChart,
   Area,
@@ -36,6 +38,7 @@ export const ManagerDashboard = () => {
   }, [dateRange]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [kpiData, setKpiData] = useState(null);
+  const [activeDrillDownKpi, setActiveDrillDownKpi] = useState(null);
   
   // Analytics States
   const [revenueTrend, setRevenueTrend] = useState([]);
@@ -232,28 +235,40 @@ export const ManagerDashboard = () => {
             <div className={styles.kpiGrid}>
               <KPICard 
                 title="Avg Ticket Size" 
-                value={kpiData ? `Rp ${kpiData.average_ticket_size.toLocaleString('id-ID')}` : "Loading..."} 
+                value={kpiData ? formatCurrency(kpiData.average_ticket_size) : "Loading..."} 
                 infoTooltip="Calculated Pre-Tax"
+                onClick={() => setActiveDrillDownKpi('average_ticket_size')}
               />
               <KPICard 
                 title="Gross Revenue" 
-                value={kpiData ? `Rp ${kpiData.gross_revenue.toLocaleString('id-ID')}` : "Loading..."} 
+                value={kpiData ? formatCurrency(kpiData.gross_revenue) : "Loading..."} 
+                onClick={() => setActiveDrillDownKpi('gross_revenue')}
               />
               <KPICard 
                 title="Tax Collected" 
-                value={kpiData ? `Rp ${kpiData.tax_collected.toLocaleString('id-ID')}` : "Loading..."} 
-              />
-              <KPICard 
-                title="Net Revenue" 
-                value={kpiData ? `Rp ${kpiData.net_revenue.toLocaleString('id-ID')}` : "Loading..."} 
+                value={kpiData ? formatCurrency(kpiData.tax_collected) : "Loading..."} 
+                onClick={() => setActiveDrillDownKpi('tax_collected')}
               />
               <KPICard 
                 title="COGS" 
-                value={kpiData ? `Rp ${kpiData.cogs.toLocaleString('id-ID')}` : "Loading..."} 
+                value={kpiData ? formatCurrency(kpiData.cogs) : "Loading..."} 
+                trend={kpiData ? `${Math.abs(kpiData.cogs_trend)}%` : ""}
+                trendUp={kpiData ? kpiData.cogs_trend < 0 : false} 
+                infoTooltip="Cost of Goods Sold"
+                onClick={() => setActiveDrillDownKpi('cogs')}
+              />
+              <KPICard 
+                title="Net Revenue" 
+                value={kpiData ? formatCurrency(kpiData.net_revenue) : "Loading..."} 
+                trend={kpiData ? `${Math.abs(kpiData.net_revenue_trend)}%` : ""}
+                trendUp={kpiData ? kpiData.net_revenue_trend >= 0 : false}
+                highlight={true}
+                onClick={() => setActiveDrillDownKpi('net_revenue')}
               />
               <KPICard 
                 title="Profit Margin" 
                 value={kpiData ? `${kpiData.profit_margin_percent.toFixed(1)}%` : "Loading..."} 
+                onClick={() => setActiveDrillDownKpi('profit_margin_percent')}
               />
             </div>
             
@@ -422,6 +437,22 @@ export const ManagerDashboard = () => {
 
         </div>
       </div>
+
+      {/* Drill-Down Modal */}
+      {activeDrillDownKpi && (
+        <KPIDrillDownModal
+          activeKpi={activeDrillDownKpi}
+          timeframe={dateRange}
+          timeframeParam={{
+            'Today': 'today',
+            'Yesterday': 'yesterday',
+            'Last 7 Days': 'last_7_days',
+            'Last 30 Days': 'last_30_days',
+            'This Month': 'this_month'
+          }[dateRange] || 'last_7_days'}
+          onClose={() => setActiveDrillDownKpi(null)}
+        />
+      )}
     </div>
   );
 };
