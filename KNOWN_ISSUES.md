@@ -16,3 +16,11 @@
 - **Checkout Volumetric Limits**: There are currently no volumetric limits on the `/pos/checkout` endpoint. An authenticated cashier session can fire rapid, sequential transactions without being throttled.
 
 **Reason for Acceptance**: Accepted as technical debt for the MVP phase. This should be revisited alongside any future kitchen-workflow or Order Fulfillment Time feature, since transaction-velocity anomaly detection naturally belongs with that workflow rather than as a standalone rate limiter now.
+## COGS Breakdown Pagination
+- **In-Memory Pagination**: The `/manager/dashboard/kpis/cogs-breakdown` endpoint currently fetches all menu items in memory before paginating.
+
+**Reason for Acceptance**: Accepted as technical debt because it is perfectly performant for the current small menu size, though it may not scale efficiently if the menu grows to thousands of items. Logged to be refactored to SQL-level `LIMIT`/`OFFSET` when necessary.
+## Resolved: Sticky Header Overlap (Table.jsx)
+- **Status**: Resolved by Design Decision.
+- **Description**: The original sticky-header approach in the shared `Table.jsx` component had a persistent, unresolved stacking/z-index bug after three fix attempts where rows would overlap the sticky header during scroll.
+- **Resolution**: Resolved by redesigning the Drill-Down tables to a non-sticky header pattern matching `OrderHistory.jsx`. This explicitly trades away the sticky-header convenience for guaranteed visual stability. This is logged as a resolved tradeoff, not a deferred bug, so no further CSS fixes should be investigated or applied.

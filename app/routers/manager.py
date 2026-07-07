@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import func, text
+from sqlalchemy import select, func, and_, text, case
 from sqlalchemy.exc import IntegrityError
 
 from ..database import get_db
@@ -44,7 +44,10 @@ from ..schemas import (
     StaffResponse, UserCreate, UserUpdate, 
     RevenueTrendItem, BestSellerItem, HeatmapDataPoint, BasketAnalysisItem,
     PaginatedOrderHistory, OrderHistoryItem, OrderVelocityDataPoint,
-    MenuEngineeringResponse, MenuEngineeringItem
+    MenuEngineeringResponse, MenuEngineeringItem,
+    KPITransactionItem, PaginatedKPITransactions,
+    COGSBreakdownItem, PaginatedCOGSBreakdown,
+    MarginTrendItem, ATSBucketItem
 )
 from ..models import OrderTypeEnum
 
@@ -690,3 +693,301 @@ async def get_order_history(
         page=page,
         size=size
     )
+
+@router.get("/dashboard/kpis/transactions", response_model=PaginatedKPITransactions)
+async def get_kpi_transactions(
+    timeframe: str = "last_7_days",
+    page: int = 1,
+    size: int = 10,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    start_utc, end_utc, _, _ = get_timeframe_boundaries(timeframe)
+
+    ti_cogs = select(
+        TransactionItem.transaction_id,
+        func.sum(TransactionItem.quantity * TransactionItem.cogs_per_unit).label('items_cogs')
+    ).group_by(TransactionItem.transaction_id).subquery()
+    
+    mod_cogs = select(
+        TransactionItem.transaction_id,
+        func.sum(TransactionItem.quantity * TransactionItemModifier.cogs_per_unit).label('mods_cogs')
+    ).select_from(TransactionItemModifier).join(
+        TransactionItem, TransactionItemModifier.transaction_item_id == TransactionItem.id
+    ).group_by(TransactionItem.transaction_id).subquery()
+    
+    query = (
+        select(
+            Transaction,
+            func.coalesce(ti_cogs.c.items_cogs, 0.0).label('items_cogs'),
+            func.coalesce(mod_cogs.c.mods_cogs, 0.0).label('mods_cogs')
+        )
+        .outerjoin(ti_cogs, Transaction.id == ti_cogs.c.transaction_id)
+        .outerjoin(mod_cogs, Transaction.id == mod_cogs.c.transaction_id)
+        .where(Transaction.status == StatusEnum.Completed)
+        .where(Transaction.timestamp >= start_utc)
+        .where(Transaction.timestamp <= end_utc)
+    )
+    
+    count_query = select(func.count()).select_from(query.subquery())
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+    
+    query = query.order_by(Transaction.timestamp.desc())
+    query = query.offset((page - 1) * size).limit(size)
+    
+    result = await db.execute(query)
+    rows = result.all()
+    
+    items = []
+    for row in rows:
+        txn = row.Transaction
+        items_cogs_val = float(row.items_cogs)
+        mods_cogs_val = float(row.mods_cogs)
+        cogs = items_cogs_val + mods_cogs_val
+        gross_revenue = float(txn.total_amount)
+        net_revenue = gross_revenue - cogs
+        
+        items.append(KPITransactionItem(
+            id=txn.id,
+            timestamp=txn.timestamp,
+            payment_method=txn.payment_method.value if hasattr(txn.payment_method, "value") else str(txn.payment_method),
+            gross_revenue=gross_revenue,
+            tax=float(txn.tax),
+            cogs=cogs,
+            net_revenue=net_revenue
+        ))
+        
+    return PaginatedKPITransactions(
+        items=items,
+        total=total,
+        page=page,
+        size=size
+    )
+
+@router.get("/dashboard/kpis/cogs-breakdown", response_model=PaginatedCOGSBreakdown)
+async def get_cogs_breakdown(
+    timeframe: str = "last_7_days",
+    page: int = 1,
+    size: int = 10,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    start_utc, end_utc, _, _ = get_timeframe_boundaries(timeframe)
+
+    # Calculate summary total COGS directly matching get_kpis()
+    cogs_items_res = await db.execute(
+        select(func.sum(TransactionItem.quantity * TransactionItem.cogs_per_unit))
+        .select_from(TransactionItem)
+        .join(Transaction)
+        .where(Transaction.status == StatusEnum.Completed)
+        .where(Transaction.timestamp >= start_utc)
+        .where(Transaction.timestamp <= end_utc)
+    )
+    cogs_items_total = cogs_items_res.scalar() or 0.0
+
+    cogs_mods_res = await db.execute(
+        select(func.sum(TransactionItem.quantity * TransactionItemModifier.cogs_per_unit))
+        .select_from(TransactionItemModifier)
+        .join(TransactionItem)
+        .join(Transaction)
+        .where(Transaction.status == StatusEnum.Completed)
+        .where(Transaction.timestamp >= start_utc)
+        .where(Transaction.timestamp <= end_utc)
+    )
+    cogs_mods_total = cogs_mods_res.scalar() or 0.0
+    summary_total_cogs = cogs_items_total + cogs_mods_total
+
+    # Use raw SQL to group by menu_item_id exactly like menu engineering
+    query = text("""
+        WITH ModStats AS (
+            SELECT transaction_item_id,
+                   sum(price_at_time) as mod_revenue_per_unit,
+                   sum(cogs_per_unit) as mod_cogs_per_unit
+            FROM transaction_item_modifiers
+            GROUP BY transaction_item_id
+        )
+        SELECT 
+            ti.menu_item_id, 
+            mi.name,
+            sum(ti.quantity) as units_sold,
+            sum(ti.quantity * ti.price_at_time) as base_revenue,
+            sum(ti.quantity * ti.cogs_per_unit) as base_cogs,
+            sum(ti.quantity * COALESCE(m.mod_revenue_per_unit, 0)) as total_mod_revenue,
+            sum(ti.quantity * COALESCE(m.mod_cogs_per_unit, 0)) as total_mod_cogs
+        FROM transaction_items ti
+        JOIN transactions t ON t.id = ti.transaction_id
+        JOIN menu_items mi ON mi.id = ti.menu_item_id
+        LEFT JOIN ModStats m ON m.transaction_item_id = ti.id
+        WHERE t.status = 'Completed' 
+          AND t.timestamp >= :start_utc 
+          AND t.timestamp <= :end_utc
+        GROUP BY ti.menu_item_id, mi.name
+        ORDER BY (sum(ti.quantity * ti.cogs_per_unit) + sum(ti.quantity * COALESCE(m.mod_cogs_per_unit, 0))) DESC
+    """)
+    
+    result = await db.execute(query, {"start_utc": start_utc, "end_utc": end_utc})
+    all_rows = result.all()
+    
+    total = len(all_rows)
+    # Paginate in memory
+    start_idx = (page - 1) * size
+    end_idx = start_idx + size
+    page_rows = all_rows[start_idx:end_idx]
+    
+    items = []
+    for row in page_rows:
+        item_cogs = float(row.base_cogs)
+        modifier_cogs = float(row.total_mod_cogs)
+        total_cogs = item_cogs + modifier_cogs
+        
+        # Calculate Percentage of Total COGS (against the FULL period's summary_total_cogs)
+        pct_of_total_cogs = (total_cogs / summary_total_cogs * 100) if summary_total_cogs > 0 else 0.0
+        
+        # Calculate Food Cost Percentage (Total COGS / Item's Gross Revenue)
+        item_gross_revenue = float(row.base_revenue) + float(row.total_mod_revenue)
+        food_cost_pct = (total_cogs / item_gross_revenue * 100) if item_gross_revenue > 0 else 0.0
+        
+        items.append(COGSBreakdownItem(
+            menu_item_id=str(row.menu_item_id),
+            menu_item_name=row.name,
+            units_sold=int(row.units_sold),
+            item_cogs=item_cogs,
+            modifier_cogs=modifier_cogs,
+            total_cogs=total_cogs,
+            percentage_of_total_cogs=round(pct_of_total_cogs, 2),
+            food_cost_percentage=round(food_cost_pct, 2)
+        ))
+        
+    return PaginatedCOGSBreakdown(
+        items=items,
+        total=total,
+        page=page,
+        size=size,
+        summary_total_cogs=round(summary_total_cogs, 2)
+    )
+
+@router.get("/dashboard/kpis/margin-trend", response_model=List[MarginTrendItem])
+async def get_margin_trend(
+    timeframe: str = "last_7_days",
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    start_utc, end_utc, start_local, end_local = get_timeframe_boundaries(timeframe)
+    hourly = timeframe in ["today", "yesterday"]
+    interval_td = timedelta(hours=1) if hourly else timedelta(days=1)
+    
+    series = select(
+        func.generate_series(
+            start_local.replace(tzinfo=None),
+            end_local.replace(tzinfo=None),
+            interval_td
+        ).label("ts")
+    ).subquery("series_ts")
+    
+    local_tx_ts = Transaction.timestamp.op('AT TIME ZONE')('UTC').op('AT TIME ZONE')('Asia/Jakarta')
+    trunc_tx_ts = func.date_trunc('hour' if hourly else 'day', local_tx_ts)
+    
+    ti_cogs = select(
+        TransactionItem.transaction_id,
+        func.sum(TransactionItem.quantity * TransactionItem.cogs_per_unit).label('items_cogs')
+    ).group_by(TransactionItem.transaction_id).subquery()
+    
+    mod_cogs = select(
+        TransactionItem.transaction_id,
+        func.sum(TransactionItem.quantity * TransactionItemModifier.cogs_per_unit).label('mods_cogs')
+    ).select_from(TransactionItemModifier).join(
+        TransactionItem, TransactionItemModifier.transaction_item_id == TransactionItem.id
+    ).group_by(TransactionItem.transaction_id).subquery()
+
+    stmt = (
+        select(
+            series.c.ts.label("date"),
+            func.coalesce(func.sum(Transaction.total_amount), 0).label("gross_revenue"),
+            func.coalesce(func.sum(func.coalesce(ti_cogs.c.items_cogs, 0.0) + func.coalesce(mod_cogs.c.mods_cogs, 0.0)), 0).label("cogs")
+        )
+        .select_from(series)
+        .outerjoin(
+            Transaction,
+            and_(
+                Transaction.status == StatusEnum.Completed,
+                trunc_tx_ts == series.c.ts,
+                Transaction.timestamp >= start_utc,
+                Transaction.timestamp <= end_utc
+            )
+        )
+        .outerjoin(ti_cogs, Transaction.id == ti_cogs.c.transaction_id)
+        .outerjoin(mod_cogs, Transaction.id == mod_cogs.c.transaction_id)
+        .group_by(series.c.ts)
+        .order_by(series.c.ts)
+    )
+    result = await db.execute(stmt)
+    
+    trend = []
+    for row in result.all():
+        gross = float(row.gross_revenue)
+        cogs = float(row.cogs)
+        net = gross - cogs
+        profit_margin = (net / gross * 100) if gross > 0 else 0.0
+        
+        trend.append(MarginTrendItem(
+            date=row.date.strftime("%Y-%m-%d %H:%M:%S") if row.date else "",
+            gross_revenue=round(gross, 2),
+            cogs=round(cogs, 2),
+            net_revenue=round(net, 2),
+            profit_margin_percent=round(profit_margin, 2)
+        ))
+    return trend
+
+
+@router.get("/dashboard/kpis/ats-distribution", response_model=List[ATSBucketItem])
+async def get_ats_distribution(
+    timeframe: str = "last_7_days",
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    start_utc, end_utc, _, _ = get_timeframe_boundaries(timeframe)
+
+    stmt = select(
+        func.count(Transaction.id).label("total_orders"),
+        func.sum(
+            case((Transaction.subtotal < 50000, 1), else_=0)
+        ).label("bucket_0_50"),
+        func.sum(
+            case((and_(Transaction.subtotal >= 50000, Transaction.subtotal < 100000), 1), else_=0)
+        ).label("bucket_50_100"),
+        func.sum(
+            case((and_(Transaction.subtotal >= 100000, Transaction.subtotal < 150000), 1), else_=0)
+        ).label("bucket_100_150"),
+        func.sum(
+            case((and_(Transaction.subtotal >= 150000, Transaction.subtotal < 200000), 1), else_=0)
+        ).label("bucket_150_200"),
+        func.sum(
+            case((Transaction.subtotal >= 200000, 1), else_=0)
+        ).label("bucket_200_plus")
+    ).where(
+        Transaction.status == StatusEnum.Completed,
+        Transaction.timestamp >= start_utc,
+        Transaction.timestamp <= end_utc
+    )
+
+    result = await db.execute(stmt)
+    row = result.first()
+
+    total_orders = int(row.total_orders) if row and row.total_orders else 0
+    b1 = int(row.bucket_0_50) if row and row.bucket_0_50 else 0
+    b2 = int(row.bucket_50_100) if row and row.bucket_50_100 else 0
+    b3 = int(row.bucket_100_150) if row and row.bucket_100_150 else 0
+    b4 = int(row.bucket_150_200) if row and row.bucket_150_200 else 0
+    b5 = int(row.bucket_200_plus) if row and row.bucket_200_plus else 0
+    
+    def calc_pct(count):
+        return (count / total_orders * 100) if total_orders > 0 else 0.0
+
+    return [
+        ATSBucketItem(bucket="0 - 50k", order_count=b1, percentage=round(calc_pct(b1), 2)),
+        ATSBucketItem(bucket="50k - 100k", order_count=b2, percentage=round(calc_pct(b2), 2)),
+        ATSBucketItem(bucket="100k - 150k", order_count=b3, percentage=round(calc_pct(b3), 2)),
+        ATSBucketItem(bucket="150k - 200k", order_count=b4, percentage=round(calc_pct(b4), 2)),
+        ATSBucketItem(bucket="200k+", order_count=b5, percentage=round(calc_pct(b5), 2))
+    ]
