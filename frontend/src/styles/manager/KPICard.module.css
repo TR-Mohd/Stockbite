@@ -59,24 +59,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.trend {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.trendUp {
-  color: #10b981;
-  background-color: rgba(16, 185, 129, 0.1);
-}
-
-.trendDown {
-  color: #ef4444;
-  background-color: rgba(239, 68, 68, 0.1);
-}
 
 .titleContainer {
   display: flex;

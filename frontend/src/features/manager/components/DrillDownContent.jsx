@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
   CartesianGrid
 } from 'recharts';
-import { Table, Thead, Tbody, Tr, Th, Td, TableEmptyState } from '../../../components/ui/Table';
+
 import styles from '../../../styles/manager/DrillDownContent.module.css';
 
 export const DrillDownContent = ({ activeKpi, timeframeParam }) => {
@@ -86,56 +86,64 @@ export const DrillDownContent = ({ activeKpi, timeframeParam }) => {
   if (activeKpi === 'gross_revenue' || activeKpi === 'tax_collected' || activeKpi === 'net_revenue') {
     return (
       <div className={styles.container}>
-        <Table>
-          <Thead>
-            <Tr>
-              <Th>Time</Th>
-              <Th align="right" className={activeKpi === 'gross_revenue' ? styles.highlightedColumn : ''}>Gross Revenue</Th>
-              <Th align="right" className={activeKpi === 'tax_collected' ? styles.highlightedColumn : ''}>Tax</Th>
-              <Th align="right" className={activeKpi === 'net_revenue' ? styles.highlightedColumn : ''}>Net Revenue</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {data.items && data.items.length > 0 ? (
-              data.items.map((item, idx) => (
-                <Tr key={idx}>
-                  <Td>{item.timestamp ? new Date(item.timestamp).toLocaleString() : ''}</Td>
-                  <Td align="right" className={activeKpi === 'gross_revenue' ? styles.highlightedColumn : ''}>
-                    {formatCurrency(item.gross_revenue)}
-                  </Td>
-                  <Td align="right" className={activeKpi === 'tax_collected' ? styles.highlightedColumn : ''}>
-                    {formatCurrency(item.tax)}
-                  </Td>
-                  <Td align="right" className={activeKpi === 'net_revenue' ? styles.highlightedColumn : ''}>
-                    {formatCurrency(item.net_revenue)}
-                  </Td>
-                </Tr>
-              ))
-            ) : (
-              <TableEmptyState colSpan={4} description="No transactions found for this period." />
-            )}
-          </Tbody>
-        </Table>
+        <div className={styles.tableContainer}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th style={{ textAlign: 'right' }} className={activeKpi === 'gross_revenue' ? styles.highlightedColumn : ''}>Gross Revenue</th>
+                <th style={{ textAlign: 'right' }} className={activeKpi === 'tax_collected' ? styles.highlightedColumn : ''}>Tax</th>
+                <th style={{ textAlign: 'right' }} className={activeKpi === 'net_revenue' ? styles.highlightedColumn : ''}>Net Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.items && data.items.length > 0 ? (
+                data.items.map((item, idx) => (
+                  <tr key={idx}>
+                    <td>{item.timestamp ? new Date(item.timestamp).toLocaleString() : ''}</td>
+                    <td style={{ textAlign: 'right' }} className={activeKpi === 'gross_revenue' ? styles.highlightedColumn : ''}>
+                      {formatCurrency(item.gross_revenue)}
+                    </td>
+                    <td style={{ textAlign: 'right' }} className={activeKpi === 'tax_collected' ? styles.highlightedColumn : ''}>
+                      {formatCurrency(item.tax)}
+                    </td>
+                    <td style={{ textAlign: 'right' }} className={activeKpi === 'net_revenue' ? styles.highlightedColumn : ''}>
+                      {formatCurrency(item.net_revenue)}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className={styles.emptyState}>No transactions found for this period.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
 
-        {data.total > 0 && data.size > 0 && Math.ceil(data.total / data.size) > 1 && (
-          <div className={styles.paginationContainer}>
-            <button 
-              className={styles.pageButton} 
-              disabled={page === 1}
-              onClick={() => setPage(p => p - 1)}
-            >
-              Previous
-            </button>
-            <span className={styles.pageInfo}>Page {page} of {Math.ceil(data.total / data.size)}</span>
-            <button 
-              className={styles.pageButton} 
-              disabled={page === Math.ceil(data.total / data.size)}
-              onClick={() => setPage(p => p + 1)}
-            >
-              Next
-            </button>
-          </div>
-        )}
+          {data.total > 0 && data.size > 0 && Math.ceil(data.total / data.size) > 1 && (
+            <div className={styles.pagination}>
+              <div className={styles.pageInfo}>
+                Page {page} of {Math.ceil(data.total / data.size)}
+              </div>
+              <div className={styles.pageControls}>
+                <button 
+                  className={styles.pageBtn} 
+                  disabled={page === 1}
+                  onClick={() => setPage(p => p - 1)}
+                >
+                  Previous
+                </button>
+                <button 
+                  className={styles.pageBtn} 
+                  disabled={page === Math.ceil(data.total / data.size)}
+                  onClick={() => setPage(p => p + 1)}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -144,58 +152,66 @@ export const DrillDownContent = ({ activeKpi, timeframeParam }) => {
   if (activeKpi === 'cogs') {
     return (
       <div className={styles.container}>
-        <Table>
-          <Thead>
-            <Tr>
-              <Th>Item Name</Th>
-              <Th align="right">Total COGS</Th>
-              <Th>Share of Total</Th>
-              <Th align="right">Food Cost %</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {data.items && data.items.length > 0 ? (
-              data.items.map((item, idx) => (
-                <Tr key={item.menu_item_id || idx}>
-                  <Td>{item.menu_item_name}</Td>
-                  <Td align="right">{formatCurrency(item.total_cogs)}</Td>
-                  <Td>
-                    <div>{item.percentage_of_total_cogs.toFixed(1)}%</div>
-                    <div className={styles.progressBarBackground}>
-                      <div 
-                        className={styles.progressBarFill} 
-                        style={{ width: `${Math.min(100, item.percentage_of_total_cogs)}%` }}
-                      ></div>
-                    </div>
-                  </Td>
-                  <Td align="right">{item.food_cost_percentage.toFixed(1)}%</Td>
-                </Tr>
-              ))
-            ) : (
-              <TableEmptyState colSpan={4} description="No COGS data found for this period." />
-            )}
-          </Tbody>
-        </Table>
+        <div className={styles.tableContainer}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Item Name</th>
+                <th style={{ textAlign: 'right' }}>Total COGS</th>
+                <th>Share of Total</th>
+                <th style={{ textAlign: 'right' }}>Food Cost %</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.items && data.items.length > 0 ? (
+                data.items.map((item, idx) => (
+                  <tr key={item.menu_item_id || idx}>
+                    <td>{item.menu_item_name}</td>
+                    <td style={{ textAlign: 'right' }}>{formatCurrency(item.total_cogs)}</td>
+                    <td>
+                      <div>{item.percentage_of_total_cogs.toFixed(1)}%</div>
+                      <div className={styles.progressBarBackground}>
+                        <div 
+                          className={styles.progressBarFill} 
+                          style={{ width: `${Math.min(100, item.percentage_of_total_cogs)}%` }}
+                        ></div>
+                      </div>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>{item.food_cost_percentage.toFixed(1)}%</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className={styles.emptyState}>No COGS data found for this period.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
 
-        {data.total > 0 && data.size > 0 && Math.ceil(data.total / data.size) > 1 && (
-          <div className={styles.paginationContainer}>
-            <button 
-              className={styles.pageButton} 
-              disabled={page === 1}
-              onClick={() => setPage(p => p - 1)}
-            >
-              Previous
-            </button>
-            <span className={styles.pageInfo}>Page {page} of {Math.ceil(data.total / data.size)}</span>
-            <button 
-              className={styles.pageButton} 
-              disabled={page === Math.ceil(data.total / data.size)}
-              onClick={() => setPage(p => p + 1)}
-            >
-              Next
-            </button>
-          </div>
-        )}
+          {data.total > 0 && data.size > 0 && Math.ceil(data.total / data.size) > 1 && (
+            <div className={styles.pagination}>
+              <div className={styles.pageInfo}>
+                Page {page} of {Math.ceil(data.total / data.size)}
+              </div>
+              <div className={styles.pageControls}>
+                <button 
+                  className={styles.pageBtn} 
+                  disabled={page === 1}
+                  onClick={() => setPage(p => p - 1)}
+                >
+                  Previous
+                </button>
+                <button 
+                  className={styles.pageBtn} 
+                  disabled={page === Math.ceil(data.total / data.size)}
+                  onClick={() => setPage(p => p + 1)}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   }

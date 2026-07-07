@@ -16,21 +16,22 @@
 }
 
 .thead {
-  position: sticky;
-  top: 0;
-  background-color: var(--color-bg-surface);
-  z-index: 20;
+  /* position: sticky removed from thead to avoid border-collapse bugs */
 }
 
 .th {
+  position: sticky;
+  top: 0;
   background-color: var(--color-bg-surface);
   padding: var(--spacing-3) var(--spacing-4);
   font-weight: 600;
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
-  border-bottom: 1px solid var(--color-border);
+  /* Use box-shadow instead of border-bottom to prevent rows from showing through gaps in collapsed borders */
+  box-shadow: inset 0 -1px 0 var(--color-border);
   z-index: 21;
   white-space: nowrap;
+  /* Ensure background covers entirely by clipping padding box or similar if needed, though sticky th with opaque background normally works */
 }
 
 .td {

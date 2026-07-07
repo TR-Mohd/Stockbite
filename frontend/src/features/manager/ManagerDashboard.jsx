@@ -252,16 +252,12 @@ export const ManagerDashboard = () => {
               <KPICard 
                 title="COGS" 
                 value={kpiData ? formatCurrency(kpiData.cogs) : "Loading..."} 
-                trend={kpiData ? `${Math.abs(kpiData.cogs_trend)}%` : ""}
-                trendUp={kpiData ? kpiData.cogs_trend < 0 : false} 
                 infoTooltip="Cost of Goods Sold"
                 onClick={() => setActiveDrillDownKpi('cogs')}
               />
               <KPICard 
                 title="Net Revenue" 
                 value={kpiData ? formatCurrency(kpiData.net_revenue) : "Loading..."} 
-                trend={kpiData ? `${Math.abs(kpiData.net_revenue_trend)}%` : ""}
-                trendUp={kpiData ? kpiData.net_revenue_trend >= 0 : false}
                 highlight={true}
                 onClick={() => setActiveDrillDownKpi('net_revenue')}
               />
