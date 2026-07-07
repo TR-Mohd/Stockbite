@@ -14,7 +14,7 @@ export const Table = ({ children, className = '' }) => (
 );
 
 export const Thead = ({ children, className = '' }) => (
-  <thead className={className}>
+  <thead className={`${styles.thead} ${className}`}>
     {children}
   </thead>
 );

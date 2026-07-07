@@ -46,3 +46,8 @@ export const formatPhoneNumber = (phone, hasContactPerson) => {
     return result;
   }
 };
+
+export const formatCurrency = (amount) => {
+  if (amount == null) return '-';
+  return `Rp ${amount.toLocaleString('id-ID')}`;
+};
