@@ -16,7 +16,19 @@ async def get_inventory(
     current_user: User = Depends(role_required([RoleEnum.Manager, RoleEnum.Warehouse]))
 ):
     result = await db.execute(select(Ingredient))
-    return result.scalars().all()
+    ingredients = result.scalars().all()
+    
+    from ..models import PurchaseOrder, POStatusEnum
+    po_result = await db.execute(
+        select(PurchaseOrder.ingredient_id, PurchaseOrder.status)
+        .where(PurchaseOrder.status.in_([POStatusEnum.Draft, POStatusEnum.Sent]))
+    )
+    po_statuses = {row.ingredient_id: row.status.value for row in po_result}
+    
+    for ingredient in ingredients:
+        ingredient.active_po_status = po_statuses.get(ingredient.id)
+        
+    return ingredients
 
 @router.post("/", response_model=IngredientResponse, status_code=201)
 async def create_ingredient(
@@ -74,7 +86,19 @@ async def get_low_stock_alerts(
     current_user: User = Depends(role_required([RoleEnum.Manager, RoleEnum.Warehouse]))
 ):
     result = await db.execute(select(Ingredient).where(Ingredient.stock_level <= Ingredient.reorder_point))
-    return result.scalars().all()
+    ingredients = result.scalars().all()
+    
+    from ..models import PurchaseOrder, POStatusEnum
+    po_result = await db.execute(
+        select(PurchaseOrder.ingredient_id, PurchaseOrder.status)
+        .where(PurchaseOrder.status.in_([POStatusEnum.Draft, POStatusEnum.Sent]))
+    )
+    po_statuses = {row.ingredient_id: row.status.value for row in po_result}
+    
+    for ingredient in ingredients:
+        ingredient.active_po_status = po_statuses.get(ingredient.id)
+        
+    return ingredients
 
 @router.post("/{ingredient_id}/adjust", response_model=IngredientResponse)
 async def adjust_stock(

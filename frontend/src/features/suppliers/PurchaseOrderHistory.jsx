@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../../core/api/axios';
 import { Button } from '../../components/ui/Button';
+import { useAuthStore } from '../../core/store/authStore';
+import { ReceivePOModal } from './ReceivePOModal';
+import { formatDateStandard } from '../../utils/formatters';
 import styles from './suppliers.module.css';
 
 const STATUS_FLOW = {
@@ -15,10 +18,13 @@ const STATUS_LABELS = {
 };
 
 export const PurchaseOrderHistory = () => {
+  const { user } = useAuthStore();
+  const isManager = user?.role === 'Manager';
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
+  const [receiveModalOrder, setReceiveModalOrder] = useState(null);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -38,19 +44,43 @@ export const PurchaseOrderHistory = () => {
     fetchOrders();
   }, [fetchOrders]);
 
-  const handleAdvanceStatus = async (order) => {
-    const nextStatus = STATUS_FLOW[order.status];
-    if (!nextStatus) return;
-
-    setUpdatingId(order.id);
+  const handleSend = async (orderId) => {
+    setUpdatingId(orderId);
     try {
-      await api.put(`/purchase-orders/${order.id}`, { status: nextStatus });
-      setOrders((prev) =>
-        prev.map((o) => (o.id === order.id ? { ...o, status: nextStatus } : o))
-      );
+      await api.post(`/purchase-orders/${orderId}/send`);
+      setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: 'Sent' } : o)));
     } catch (err) {
-      console.error('Failed to update PO status:', err);
-      alert('Failed to update status. Please try again.');
+      console.error('Failed to send PO:', err);
+      alert('Failed to send PO. Please try again.');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleCancel = async (orderId) => {
+    const reason = window.prompt("Reason for cancellation:");
+    if (!reason) return;
+    setUpdatingId(orderId);
+    try {
+      await api.post(`/purchase-orders/${orderId}/cancel`, { reason });
+      setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: 'Cancelled', cancelled_reason: reason } : o)));
+    } catch (err) {
+      console.error('Failed to cancel PO:', err);
+      alert('Failed to cancel PO. Please try again.');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleReceiveSubmit = async (orderId, actualQuantity) => {
+    setUpdatingId(orderId);
+    try {
+      await api.post(`/purchase-orders/${orderId}/receive`, { actual_quantity: actualQuantity });
+      setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: 'Received' } : o)));
+      setReceiveModalOrder(null);
+    } catch (err) {
+      console.error('Failed to receive PO:', err);
+      alert('Failed to receive PO. Please try again.');
     } finally {
       setUpdatingId(null);
     }
@@ -61,6 +91,7 @@ export const PurchaseOrderHistory = () => {
       case 'draft': return styles.badgeDraft;
       case 'sent': return styles.badgeSent;
       case 'received': return styles.badgeReceived;
+      case 'cancelled': return styles.badgeInactive;
       default: return '';
     }
   };
@@ -130,7 +161,7 @@ export const PurchaseOrderHistory = () => {
                 <td>{order.ingredient_name || '—'}</td>
                 <td>{order.suggested_quantity} {order.unit || ''}</td>
                 <td className={styles.textMuted}>
-                  {order.date ? new Date(order.date).toLocaleDateString('id-ID') : '—'}
+                  {order.date ? formatDateStandard(order.date) : '—'}
                 </td>
                 <td className={styles.textMuted}>{order.notes || '—'}</td>
                 <td>
@@ -140,18 +171,36 @@ export const PurchaseOrderHistory = () => {
                 </td>
                 <td>
                   <div className={styles.actionCell}>
-                    {STATUS_LABELS[order.status] ? (
-                      <Button
-                        size="sm"
-                        variant={order.status === 'Draft' ? 'primary' : 'secondary'}
-                        onClick={() => handleAdvanceStatus(order)}
-                        disabled={updatingId === order.id}
-                      >
-                        {updatingId === order.id ? 'Saving...' : STATUS_LABELS[order.status]}
-                      </Button>
-                    ) : (
+                    {order.status === 'Draft' && isManager && (
+                      <>
+                        <Button size="sm" variant="primary" onClick={() => handleSend(order.id)} disabled={updatingId === order.id}>
+                          {updatingId === order.id ? 'Saving...' : 'Mark as Sent'}
+                        </Button>
+                        <Button size="sm" variant="danger" onClick={() => handleCancel(order.id)} disabled={updatingId === order.id}>
+                          Cancel
+                        </Button>
+                      </>
+                    )}
+                    {order.status === 'Draft' && !isManager && (
+                      <span className={`${styles.badge} ${styles.badgeDraft}`} style={{ opacity: 0.8 }}>
+                        Pending Manager
+                      </span>
+                    )}
+                    {order.status === 'Sent' && (
+                      <>
+                        <Button size="sm" variant="secondary" onClick={() => setReceiveModalOrder(order)} disabled={updatingId === order.id}>
+                          Mark as Received
+                        </Button>
+                        {isManager && (
+                          <Button size="sm" variant="danger" onClick={() => handleCancel(order.id)} disabled={updatingId === order.id}>
+                            Cancel
+                          </Button>
+                        )}
+                      </>
+                    )}
+                    {(order.status === 'Received' || order.status === 'Cancelled') && (
                       <span className={styles.textMuted} style={{ fontSize: 'var(--font-size-xs)' }}>
-                        ✓ Completed
+                        {order.status === 'Received' ? '✓ Completed' : '✗ Cancelled'}
                       </span>
                     )}
                   </div>
@@ -161,6 +210,12 @@ export const PurchaseOrderHistory = () => {
           </tbody>
         </table>
       )}
+      <ReceivePOModal
+        isOpen={!!receiveModalOrder}
+        onClose={() => setReceiveModalOrder(null)}
+        order={receiveModalOrder}
+        onSubmit={handleReceiveSubmit}
+      />
     </>
   );
 };

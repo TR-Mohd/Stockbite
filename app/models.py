@@ -26,6 +26,7 @@ class POStatusEnum(str, enum.Enum):
     Draft = "Draft"
     Sent = "Sent"
     Received = "Received"
+    Cancelled = "Cancelled"
 
 class PaymentMethodEnum(str, enum.Enum):
     Cash = "Cash"
@@ -195,9 +196,14 @@ class PurchaseOrder(Base):
     date = Column(DateTime, default=datetime.utcnow)
     status = Column(Enum(POStatusEnum), default=POStatusEnum.Draft)
     notes = Column(String, nullable=True)
+    created_by_id = Column(String, ForeignKey("users.id"), nullable=True)
+    sent_by_id = Column(String, ForeignKey("users.id"), nullable=True)
+    cancelled_reason = Column(String, nullable=True)
 
     supplier = relationship("Supplier")
     ingredient = relationship("Ingredient")
+    created_by = relationship("User", foreign_keys=[created_by_id])
+    sent_by = relationship("User", foreign_keys=[sent_by_id])
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
@@ -207,3 +213,4 @@ class AuditLog(Base):
     action = Column(String, nullable=False)
     resource = Column(String, nullable=False)
     outcome = Column(String, nullable=False)
+    details = Column(JSON, nullable=True)

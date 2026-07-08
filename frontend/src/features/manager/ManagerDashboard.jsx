@@ -3,6 +3,7 @@ import api from '../../core/api/axios';
 // useAuthStore is not used anymore here since username and logout are in Layout
 import { KPICard } from './KPICard';
 import { KPIDrillDownModal } from './KPIDrillDownModal';
+import { POActionWidget } from './components/POActionWidget';
 import styles from '../../styles/manager/ManagerDashboard.module.css';
 import { formatCurrency } from '../../utils/formatters';
 import {
@@ -408,6 +409,8 @@ export const ManagerDashboard = () => {
                 )}
               </div>
             </div>
+
+            <POActionWidget />
 
             {/* Market Basket Analysis */}
             <div className={styles.chartCard}>

@@ -3,6 +3,8 @@ import '../../styles/inventory/InventoryDashboard.css';
 import { InventoryTable } from './InventoryTable';
 import { Button } from '../../components/ui/Button';
 import { GlobalHeader } from '../../components/layout/GlobalHeader';
+import headerStyles from '../../components/layout/GlobalHeader.module.css';
+import { NavLink } from 'react-router-dom';
 import { useAuthStore } from '../../core/store/authStore';
 import api from '../../core/api/axios'; // Use pre-configured Axios
 
@@ -44,7 +46,8 @@ export const InventoryDashboard = () => {
         uom: item.unit,
         rop: item.reorder_point,
         lastUpdated: item.last_updated,
-        unitCost: item.unit_cost
+        unitCost: item.unit_cost,
+        active_po_status: item.active_po_status
       }));
       setInventoryData(formattedData);
     } catch (error) {
@@ -144,7 +147,24 @@ export const InventoryDashboard = () => {
 
   return (
     <div className="inventory-dashboard">
-      <GlobalHeader title="Inventory Management" />
+      <GlobalHeader title="Inventory Management">
+        {user?.role === 'Warehouse' && (
+          <>
+            <NavLink 
+              to="/inventory" 
+              className={({ isActive }) => isActive ? `${headerStyles.navLink} ${headerStyles.activeLink}` : headerStyles.navLink}
+            >
+              Inventory
+            </NavLink>
+            <NavLink 
+              to="/suppliers" 
+              className={({ isActive }) => isActive ? `${headerStyles.navLink} ${headerStyles.activeLink}` : headerStyles.navLink}
+            >
+              Suppliers
+            </NavLink>
+          </>
+        )}
+      </GlobalHeader>
 
       <div className="inventory-main-container">
         <div className="summary-strip">
