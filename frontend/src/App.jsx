@@ -6,6 +6,7 @@ import POSDashboard from './features/pos/POSDashboard';
 import { InventoryDashboard } from './features/inventory/InventoryDashboard';
 import { ManagerDashboard } from './features/manager/ManagerDashboard';
 import { useAuthStore } from './core/store/authStore';
+import SuppliersDashboard from './features/suppliers/SuppliersDashboard';
 
 import { ManagerLayout } from './components/layout/ManagerLayout';
 import { OrderHistory } from './features/manager/OrderHistory/OrderHistory';
@@ -34,6 +35,7 @@ function App() {
 
         <Route element={<ProtectedRoute allowedRoles={['Warehouse']} />}>
           <Route path="/inventory" element={<InventoryDashboard />} />
+          <Route path="/suppliers" element={<SuppliersDashboard />} />
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={['Manager']} />}>

@@ -59,6 +59,7 @@ class IngredientResponse(BaseModel):
     preferred_supplier_id: Optional[str] = None
     version_id: int
     unit_cost: float = 0.0
+    active_po_status: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
 class IngredientCreate(BaseModel):
@@ -265,3 +266,27 @@ class ATSBucketItem(BaseModel):
     bucket: str
     order_count: int
     percentage: float
+
+class PurchaseOrderResponse(BaseModel):
+    id: str
+    supplier_id: str
+    ingredient_id: str
+    supplier_name: Optional[str] = None
+    ingredient_name: Optional[str] = None
+    unit: Optional[str] = None
+    current_stock: float
+    reorder_point: float
+    suggested_quantity: float
+    date: datetime
+    status: POStatusEnum
+    notes: Optional[str] = None
+    created_by_id: Optional[str] = None
+    sent_by_id: Optional[str] = None
+    cancelled_reason: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
+
+class ReceivePORequest(BaseModel):
+    actual_quantity: float = Field(..., gt=0.0)
+
+class CancelPORequest(BaseModel):
+    reason: str

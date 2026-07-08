@@ -29,11 +29,8 @@ export const DraftPOModal = ({ isOpen, onClose, ingredient, onSubmit }) => {
   const footer = (
     <>
       <Button variant="outline" onClick={onClose}>Cancel</Button>
-      <Button variant="outline" onClick={() => handleSubmit('draft')} disabled={!quantity || !supplier}>
+      <Button variant="primary" onClick={() => handleSubmit('draft')} disabled={!quantity || !supplier}>
         Save as Draft
-      </Button>
-      <Button variant="primary" onClick={() => handleSubmit('send')} disabled={!quantity || !supplier}>
-        Send to Supplier
       </Button>
     </>
   );

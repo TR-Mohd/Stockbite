@@ -4,7 +4,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 from fastapi import FastAPI
 # pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import pos, inventory, suppliers, manager
+from .routers import pos, inventory, suppliers, manager, purchase_orders
 
 import logging
 from fastapi import Request
@@ -51,6 +51,7 @@ app.include_router(pos.router)
 app.include_router(inventory.router)
 app.include_router(suppliers.router)
 app.include_router(manager.router)
+app.include_router(purchase_orders.router)
 
 @app.get("/")
 def read_root():

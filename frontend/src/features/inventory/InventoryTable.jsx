@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import '../../styles/inventory/InventoryTable.css';
 import { ROPAlertBadge } from './ROPAlertBadge';
 import { Button } from '../../components/ui/Button';
+import { formatCurrency, formatDateStandard } from '../../utils/formatters';
 
 // Utility to get status weight for sorting
 const getStatusWeight = (stock, rop) => {
@@ -69,10 +70,10 @@ export const InventoryTable = ({ data, onDraftPO, onAdjustStock, onLogWaste }) =
                 <tr key={item.id} className={isWarning ? 'row-warning' : ''}>
                   <td className="font-medium">{item.name}</td>
                   <td><span className="category-tag">{item.category}</span></td>
-                  <td className="text-right font-medium">Rp {item.unitCost?.toLocaleString('id-ID') || 0}</td>
+                  <td className="text-right font-medium">{formatCurrency(item.unitCost)}</td>
                   <td>
                     <div className="stock-level-cell">
-                      <span className="stock-value">{item.stock}</span>
+                      <span className="stock-value">{typeof item.stock === 'number' ? parseFloat(item.stock.toFixed(2)) : item.stock}</span>
                       <div className="sparkline-container">
                         <div className={`sparkline-bar ${isOutOfStock ? 'empty' : isLowStock ? 'warning' : 'normal'}`} style={{ width: `${stockPercentage}%` }}></div>
                         <div className="sparkline-rop-marker" style={{ left: `${ropPercentage}%` }} title={`ROP: ${item.rop}`}></div>
@@ -84,10 +85,12 @@ export const InventoryTable = ({ data, onDraftPO, onAdjustStock, onLogWaste }) =
                   <td>
                     {isWarning ? <ROPAlertBadge stock={item.stock} rop={item.rop} /> : <span className="status-normal">Normal</span>}
                   </td>
-                  <td className="text-muted text-sm">{new Date(item.lastUpdated).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                  <td className="text-muted text-sm">{formatDateStandard(item.lastUpdated)}</td>
                   <td className="actions-cell text-right">
                     <div className="actions-group">
-                      {isWarning ? (
+                      {item.active_po_status ? (
+                        <span className="status-badge" style={{ padding: '4px 8px', borderRadius: '4px', backgroundColor: '#e2e8f0', color: '#475569', fontSize: '12px', fontWeight: 'bold' }}>{item.active_po_status}</span>
+                      ) : isWarning ? (
                         <Button variant="primary" size="sm" onClick={() => onDraftPO(item)}>Draft PO</Button>
                       ) : (
                         <span className="action-placeholder"></span>

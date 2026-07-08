@@ -23,10 +23,11 @@ export const DraftPOCreator = ({ onOrderCreated }) => {
       setLoadingAlerts(true);
       try {
         const [ingredientsRes, suppliersRes] = await Promise.all([
-          api.get('/ingredients/?low_stock=true'),
-          api.get('/suppliers/?active=true'),
+          api.get('/inventory/alerts'),
+          api.get('/suppliers/'),
         ]);
-        setLowStockItems(ingredientsRes.data);
+        const unmanagedAlerts = ingredientsRes.data.filter(item => !item.active_po_status);
+        setLowStockItems(unmanagedAlerts);
         setSuppliers(suppliersRes.data);
       } catch (err) {
         console.error('Failed to load data:', err);
@@ -43,7 +44,7 @@ export const DraftPOCreator = ({ onOrderCreated }) => {
     setSuccessMessage('');
     setError(null);
     // Suggest a quantity that brings stock 50% above the reorder point
-    const suggested = Math.max(1, Math.ceil((item.reorder_point * 1.5) - item.current_stock));
+    const suggested = Math.max(1, Math.ceil((item.reorder_point * 1.5) - item.stock_level));
     // Pre-select preferred supplier if available
     const preferredSupplier = suppliers.find((s) => s.id === item.preferred_supplier_id);
     setFormData({
@@ -60,12 +61,12 @@ export const DraftPOCreator = ({ onOrderCreated }) => {
     setSubmitting(true);
     setError(null);
     try {
-      await api.post('/purchase-orders/', {
-        supplier_id: formData.supplier_id,
-        ingredient_id: selectedItem.id,
-        suggested_quantity: parseFloat(formData.quantity),
-        status: 'Draft',
-        notes: formData.notes,
+      await api.post(`/suppliers/${formData.supplier_id}/po`, null, {
+        params: {
+          ingredient_id: selectedItem.id,
+          suggested_qty: parseFloat(formData.quantity),
+          notes: formData.notes,
+        },
       });
       setSuccessMessage(
         `Draft PO for "${selectedItem.name}" created successfully! View it in the Purchase Orders tab.`
@@ -139,7 +140,7 @@ export const DraftPOCreator = ({ onOrderCreated }) => {
                       Reorder point: {item.reorder_point} {item.unit}
                     </span>
                     <span className={styles.alertItemStock}>
-                      Stock: {item.current_stock} {item.unit}
+                      Stock: {item.stock_level} {item.unit}
                     </span>
                   </div>
                   <Button

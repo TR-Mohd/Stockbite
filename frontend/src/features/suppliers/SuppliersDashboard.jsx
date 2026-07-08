@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { SupplierDirectory } from './SupplierDirectory';
 import { PurchaseOrderHistory } from './PurchaseOrderHistory';
 import { DraftPOCreator } from './DraftPOCreator';
+import { useAuthStore } from '../../core/store/authStore';
+import { GlobalHeader } from '../../components/layout/GlobalHeader';
+import headerStyles from '../../components/layout/GlobalHeader.module.css';
+import { NavLink } from 'react-router-dom';
 import styles from './suppliers.module.css';
 
 const TABS = [
@@ -11,7 +15,15 @@ const TABS = [
 ];
 
 export const SuppliersDashboard = () => {
-  const [activeTab, setActiveTab] = useState('directory');
+  const { user } = useAuthStore();
+  const isWarehouse = user?.role === 'Warehouse';
+  
+  const [activeTab, setActiveTab] = useState(isWarehouse ? 'draft' : 'directory');
+
+  const availableTabs = TABS.filter(tab => {
+    if (isWarehouse) return tab.id === 'draft' || tab.id === 'orders';
+    return true;
+  });
 
   const handleOrderCreated = () => {
     // Switch to the purchase orders tab after creating a draft PO
@@ -20,6 +32,25 @@ export const SuppliersDashboard = () => {
 
   return (
     <div className={styles.dashboardContainer}>
+      <GlobalHeader title="Suppliers & Procurement">
+        {user?.role === 'Warehouse' && (
+          <>
+            <NavLink 
+              to="/inventory" 
+              className={({ isActive }) => isActive ? `${headerStyles.navLink} ${headerStyles.activeLink}` : headerStyles.navLink}
+            >
+              Inventory
+            </NavLink>
+            <NavLink 
+              to="/suppliers" 
+              className={({ isActive }) => isActive ? `${headerStyles.navLink} ${headerStyles.activeLink}` : headerStyles.navLink}
+            >
+              Suppliers
+            </NavLink>
+          </>
+        )}
+      </GlobalHeader>
+
       {/* Header */}
       <div className={styles.dashboardHeader}>
         <div className={styles.headerInfo}>
@@ -29,7 +60,7 @@ export const SuppliersDashboard = () => {
 
         {/* Tab Navigation */}
         <div className={styles.tabNavigation}>
-          {TABS.map((tab) => (
+          {availableTabs.map((tab) => (
             <button
               key={tab.id}
               id={`tab-${tab.id}`}

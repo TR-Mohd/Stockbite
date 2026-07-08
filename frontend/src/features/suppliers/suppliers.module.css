@@ -292,7 +292,7 @@
   padding: var(--spacing-3) var(--spacing-4);
   border-radius: var(--radius-md);
   border-left: 3px solid var(--color-warning);
-  background-color: #FFFBEB;
+  background-color: var(--color-bg-surface);
   gap: var(--spacing-3);
 }
 

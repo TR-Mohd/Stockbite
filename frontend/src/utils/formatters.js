@@ -48,6 +48,28 @@ export const formatPhoneNumber = (phone, hasContactPerson) => {
 };
 
 export const formatCurrency = (amount) => {
-  if (amount == null) return '-';
-  return `Rp ${amount.toLocaleString('id-ID')}`;
+  if (amount === undefined || amount === null) return 'Rp 0';
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0
+  }).format(amount);
+};
+
+export const formatDateStandard = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = monthNames[date.getMonth()];
+  const day = date.getDate();
+  
+  let hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const hoursStr = hours.toString().padStart(2, '0');
+  
+  return `${month} ${day}, ${hoursStr}:${minutes} ${ampm}`;
 };
