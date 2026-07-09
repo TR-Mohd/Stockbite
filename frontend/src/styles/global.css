@@ -22,6 +22,11 @@
   --color-error-bg: #FEE2E2; /* Light red for error banners */
   --color-success: #10B981;
   --color-warning: #F59E0B; /* Amber 500 */
+  --color-warning-bg: #FEF3C7; /* Amber 100 */
+  --color-warning-text: #92400E; /* Amber 900 */
+  --color-info: #3B82F6; /* Blue 500 */
+  --color-info-bg: #DBEAFE; /* Blue 100 */
+  --color-info-text: #1E40AF; /* Blue 900 */
 
   /* POS Design Tokens */
   --color-bg-page: #FFFFFF; /* Pure white background per Kopag UI */
@@ -93,6 +98,11 @@
     --color-success-bg: rgba(16, 185, 129, 0.1);
     --color-success-text: #10B981; /* Keep bright green for dark mode contrast */
     --color-success-border: #10B981;
+    --color-error-bg: rgba(239, 68, 68, 0.1);
+    --color-warning-bg: rgba(245, 158, 11, 0.1);
+    --color-warning-text: #FBBF24; /* Amber 400 */
+    --color-info-bg: rgba(59, 130, 246, 0.1);
+    --color-info-text: #60A5FA; /* Blue 400 */
   }
 }
 

@@ -67,7 +67,7 @@ export const InventoryTable = ({ data, onDraftPO, onAdjustStock, onLogWaste }) =
               const ropPercentage = Math.min((item.rop / maxStock) * 100, 100);
 
               return (
-                <tr key={item.id} className={isWarning ? 'row-warning' : ''}>
+                <tr key={item.id} className={isOutOfStock ? 'row-danger' : isLowStock ? 'row-warning' : ''}>
                   <td className="font-medium">{item.name}</td>
                   <td><span className="category-tag">{item.category}</span></td>
                   <td className="text-right font-medium">{formatCurrency(item.unitCost)}</td>
@@ -88,8 +88,10 @@ export const InventoryTable = ({ data, onDraftPO, onAdjustStock, onLogWaste }) =
                   <td className="text-muted text-sm">{formatDateStandard(item.lastUpdated)}</td>
                   <td className="actions-cell text-right">
                     <div className="actions-group">
-                      {item.active_po_status ? (
-                        <span className="status-badge" style={{ padding: '4px 8px', borderRadius: '4px', backgroundColor: '#e2e8f0', color: '#475569', fontSize: '12px', fontWeight: 'bold' }}>{item.active_po_status}</span>
+                      {item.active_po_status === 'Draft' ? (
+                        <span className="status-badge badge-draft">Drafted</span>
+                      ) : item.active_po_status === 'Sent' ? (
+                        <span className="status-badge badge-sent">Sent</span>
                       ) : isWarning ? (
                         <Button variant="primary" size="sm" onClick={() => onDraftPO(item)}>Draft PO</Button>
                       ) : (

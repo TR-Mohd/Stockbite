@@ -180,13 +180,13 @@
 }
 
 .badgeDraft {
-  background-color: #FEF3C7;
-  color: #92400E;
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-text);
 }
 
 .badgeSent {
-  background-color: #DBEAFE;
-  color: #1E40AF;
+  background-color: var(--color-info-bg);
+  color: var(--color-info-text);
 }
 
 .badgeReceived {
