@@ -102,11 +102,13 @@ export const DraftPOCreator = ({ onOrderCreated }) => {
         {/* Left Panel: Low-Stock Alerts */}
         <div className={styles.alertsPanel}>
           <h3 className={styles.alertsPanelTitle}>
-            🔴 Low-Stock Alerts
+            🔴 Needs New PO
             {!loadingAlerts && ` (${lowStockItems.length})`}
           </h3>
           <p className={styles.alertsPanelSub}>
             Select an ingredient to auto-generate a draft purchase order.
+            <br />
+            <span style={{ fontSize: '0.85em', opacity: 0.8 }}>(Note: Items with an active PO are excluded)</span>
           </p>
 
           {loadingAlerts ? (
