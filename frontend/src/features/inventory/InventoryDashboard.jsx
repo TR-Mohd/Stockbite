@@ -13,6 +13,7 @@ import { ReceiveStockModal } from './modals/ReceiveStockModal';
 import { DraftPOModal } from './modals/DraftPOModal';
 import { AdjustStockModal } from './modals/AdjustStockModal';
 import { LogWasteModal } from './modals/LogWasteModal';
+import { AddIngredientModal } from './modals/AddIngredientModal';
 
 export const InventoryDashboard = () => {
   const logout = useAuthStore((state) => state.logout);
@@ -28,6 +29,7 @@ export const InventoryDashboard = () => {
   const [error, setError] = useState(null);
 
   // Modal Visibility State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
   const [draftPOContext, setDraftPOContext] = useState(null);
@@ -61,6 +63,11 @@ export const InventoryDashboard = () => {
   }, []);
 
   // Updaters
+  const handleAddIngredient = async (payload) => {
+    await api.post('/inventory/', payload);
+    await fetchInventory();
+  };
+
   const handleReceiveStock = async (rows) => {
     try {
       const items = rows.map(r => ({
@@ -219,6 +226,7 @@ export const InventoryDashboard = () => {
                 className="inventory-input search-input"
               />
               <span className="search-divider">|</span>
+              <Button variant="primary" onClick={() => setIsAddModalOpen(true)}>Add Ingredient</Button>
               <Button variant="outline" onClick={() => setIsAdjustModalOpen(true)}>Adjust Stock</Button>
               <Button variant="primary" onClick={() => setIsReceiveModalOpen(true)}>Receive Stock</Button>
             </div>
@@ -260,6 +268,13 @@ export const InventoryDashboard = () => {
       </div>
 
       {/* Modals */}
+      <AddIngredientModal 
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        inventoryData={inventoryData}
+        onSubmit={handleAddIngredient}
+      />
+
       <ReceiveStockModal 
         isOpen={isReceiveModalOpen}
         onClose={() => setIsReceiveModalOpen(false)}
