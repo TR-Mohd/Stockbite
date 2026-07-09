@@ -7,7 +7,8 @@ from ..database import get_db
 from ..auth import role_required
 from ..models import User, RoleEnum, PurchaseOrder, Supplier, Ingredient, POStatusEnum, AuditLog
 from ..schemas import PurchaseOrderResponse, ReceivePORequest, CancelPORequest
-
+from sqlalchemy.orm.exc import StaleDataError
+from ..services import update_ingredient_stock
 router = APIRouter(prefix="/purchase-orders", tags=["Purchase Orders"])
 
 def format_po(po, supplier, ingredient):
@@ -139,27 +140,23 @@ async def receive_purchase_order(
     if not ingredient:
         raise HTTPException(status_code=400, detail="Ingredient not found for this PO")
         
-    old_stock = ingredient.stock_level
-    new_stock = old_stock + request.actual_quantity
-    
-    ingredient.stock_level = new_stock
     po.status = POStatusEnum.Received
     
-    audit = AuditLog(
+    update_ingredient_stock(
+        db=db,
+        ingredient=ingredient,
+        amount=request.actual_quantity,
         user_id=current_user.id,
         action="Receive PO",
-        resource=f"Ingredient:{ingredient.name}",
-        outcome="Success",
-        details={
-            "old_stock": old_stock,
-            "new_stock": new_stock,
-            "delta": request.actual_quantity,
-            "reason": f"PO Received (ID: {po.id})"
-        }
+        reason=f"PO Received (ID: {po.id})"
     )
-    db.add(audit)
     
-    await db.commit()
+    try:
+        await db.commit()
+    except StaleDataError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Concurrent inventory update detected. Please retry.")
+        
     return format_po(po, supplier, ingredient)
 
 @router.post("/{id}/cancel", response_model=PurchaseOrderResponse)

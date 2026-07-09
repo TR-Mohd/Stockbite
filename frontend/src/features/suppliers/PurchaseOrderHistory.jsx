@@ -79,8 +79,12 @@ export const PurchaseOrderHistory = () => {
       setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: 'Received' } : o)));
       setReceiveModalOrder(null);
     } catch (err) {
-      console.error('Failed to receive PO:', err);
-      alert('Failed to receive PO. Please try again.');
+      if (err.response?.status === 409) {
+        alert('Concurrent inventory update detected. Please retry.');
+      } else {
+        console.error('Failed to receive PO:', err);
+        alert('Failed to receive PO. Please try again.');
+      }
     } finally {
       setUpdatingId(null);
     }

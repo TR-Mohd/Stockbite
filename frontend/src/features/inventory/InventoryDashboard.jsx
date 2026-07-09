@@ -25,6 +25,7 @@ export const InventoryDashboard = () => {
   // Core State
   const [inventoryData, setInventoryData] = useState([]);
   const [wasteLogged, setWasteLogged] = useState(0); // Tracking quantity wasted
+  const [error, setError] = useState(null);
 
   // Modal Visibility State
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
@@ -69,7 +70,12 @@ export const InventoryDashboard = () => {
       await api.post('/inventory/bulk-receive', { items });
       await fetchInventory(); // Refresh from DB
     } catch (error) {
-      console.error("Failed to process bulk receive:", error);
+      if (error.response?.status === 409) {
+        setError('Concurrent inventory update detected. Please retry.');
+        setTimeout(() => setError(null), 5000);
+      } else {
+        console.error("Failed to process bulk receive:", error);
+      }
     }
   };
 
@@ -112,7 +118,12 @@ export const InventoryDashboard = () => {
       
       await fetchInventory();
     } catch (error) {
-      console.error("Failed to adjust stock or update cost:", error);
+      if (error.response?.status === 409) {
+        setError('Concurrent inventory update detected. Please retry.');
+        setTimeout(() => setError(null), 5000);
+      } else {
+        console.error("Failed to adjust stock or update cost:", error);
+      }
     }
   };
 
@@ -124,7 +135,12 @@ export const InventoryDashboard = () => {
       setWasteLogged(prev => prev + data.wasteQty);
       await fetchInventory();
     } catch (error) {
-      console.error("Failed to log waste:", error);
+      if (error.response?.status === 409) {
+        setError('Concurrent inventory update detected. Please retry.');
+        setTimeout(() => setError(null), 5000);
+      } else {
+        console.error("Failed to log waste:", error);
+      }
     }
   };
 
@@ -165,6 +181,12 @@ export const InventoryDashboard = () => {
           </>
         )}
       </GlobalHeader>
+      
+      {error && (
+        <div className="inventory-error-banner" style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '1rem', textAlign: 'center', fontWeight: 'bold', borderBottom: '1px solid #f87171' }}>
+          {error}
+        </div>
+      )}
 
       <div className="inventory-main-container">
         <div className="summary-strip">

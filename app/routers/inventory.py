@@ -7,7 +7,8 @@ from ..database import get_db
 from ..auth import role_required
 from ..models import User, RoleEnum, Ingredient, AuditLog
 from ..schemas import IngredientResponse, BulkReceiveRequest, IngredientCreate, IngredientUpdate
-
+from sqlalchemy.orm.exc import StaleDataError
+from ..services import update_ingredient_stock
 router = APIRouter(prefix="/inventory", tags=["Inventory"])
 
 @router.get("/", response_model=List[IngredientResponse])
@@ -76,7 +77,12 @@ async def update_ingredient(
     )
     db.add(audit)
     
-    await db.commit()
+    try:
+        await db.commit()
+    except StaleDataError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Concurrent inventory update detected. Please retry.")
+        
     await db.refresh(ingredient)
     return ingredient
 
@@ -114,17 +120,14 @@ async def adjust_stock(
     if not ingredient:
         raise HTTPException(status_code=404, detail="Ingredient not found")
     
-    ingredient.stock_level = max(0.0, ingredient.stock_level + amount)
+    update_ingredient_stock(db, ingredient, amount, current_user.id, "Stock Adjustment", reason)
     
-    audit = AuditLog(
-        user_id=current_user.id,
-        action="Stock Adjustment",
-        resource=f"Ingredient:{ingredient.name}",
-        outcome="Success"
-    )
-    db.add(audit)
-    
-    await db.commit()
+    try:
+        await db.commit()
+    except StaleDataError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Concurrent inventory update detected. Please retry.")
+        
     await db.refresh(ingredient)
     return ingredient
 
@@ -140,16 +143,13 @@ async def bulk_receive(
         ingredient = result.scalars().first()
         
         if ingredient:
-            ingredient.stock_level += item.quantity
+            update_ingredient_stock(db, ingredient, item.quantity, current_user.id, "Bulk Receive")
             updates.append(ingredient)
             
-            audit = AuditLog(
-                user_id=current_user.id,
-                action="Bulk Receive",
-                resource=f"Ingredient:{ingredient.name}",
-                outcome="Success"
-            )
-            db.add(audit)
-            
-    await db.commit()
+    try:
+        await db.commit()
+    except StaleDataError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Concurrent inventory update detected. Please retry.")
+        
     return {"message": f"Successfully updated {len(updates)} ingredients."}
