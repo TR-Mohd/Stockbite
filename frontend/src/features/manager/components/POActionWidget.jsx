@@ -100,7 +100,7 @@ export const POActionWidget = () => {
             return (
               <div
                 key={po.id || index}
-                onClick={() => navigate('/suppliers')}
+                onClick={() => navigate('/manager/suppliers')}
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -145,7 +145,7 @@ export const POActionWidget = () => {
           {/* "View all" footer when more than MAX_VISIBLE POs exist */}
           {hiddenCount > 0 && (
             <div
-              onClick={() => navigate('/suppliers')}
+              onClick={() => navigate('/manager/suppliers')}
               style={{
                 textAlign: 'center',
                 fontSize: '0.82rem',
@@ -165,7 +165,7 @@ export const POActionWidget = () => {
           {/* Always-visible "Go to PO History" shortcut */}
           {hiddenCount <= 0 && (
             <div
-              onClick={() => navigate('/suppliers')}
+              onClick={() => navigate('/manager/suppliers')}
               style={{
                 textAlign: 'right',
                 fontSize: '0.82rem',
