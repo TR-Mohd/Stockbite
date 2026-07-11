@@ -1,5 +1,5 @@
 /* ================================================================
-   suppliers.module.css — Suppliers & Procurement Feature Styles
+   suppliers.module.css â€” Suppliers & Procurement Feature Styles
    Uses global CSS variables from styles/global.css
    ================================================================ */
 
@@ -83,6 +83,55 @@
   font-weight: 600;
   color: var(--color-text-primary);
   margin: 0;
+}
+
+/* --- KPI Stat Cards --- */
+.summaryStrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.statCard {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.statCard.warning {
+  border-left: 4px solid var(--color-warning);
+}
+
+.statCard.danger {
+  border-left: 4px solid var(--color-error);
+}
+
+.statCard.neutral {
+  border-left: 4px solid var(--color-text-tertiary);
+}
+
+.statCard.success {
+  border-left: 4px solid var(--color-success);
+}
+
+.statLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.statValue {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
 }
 
 /* --- Supplier Directory Grid --- */

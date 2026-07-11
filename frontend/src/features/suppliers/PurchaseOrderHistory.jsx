@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../../core/api/axios';
 import { Button } from '../../components/ui/Button';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { ErrorState } from '../../components/ui/ErrorState';
 import { useAuthStore } from '../../core/store/authStore';
 import { ReceivePOModal } from './ReceivePOModal';
 import { formatDateStandard } from '../../utils/formatters';
@@ -135,68 +137,106 @@ export const PurchaseOrderHistory = () => {
 
   if (error) {
     return (
-      <div className={styles.errorState}>
-        <p>{error}</p>
-        <Button size="sm" variant="secondary" onClick={fetchOrders} style={{ marginTop: '0.5rem' }}>
-          Retry
-        </Button>
+      <div style={{ marginTop: '2rem' }}>
+        <ErrorState 
+          title="Failed to Load Purchase Orders" 
+          message={error} 
+          onRetry={fetchOrders} 
+        />
       </div>
     );
   }
 
+  // Stat calculations
+  const totalOrders = orders.length;
+  const pendingOrders = orders.filter(o => o.status === 'Sent' || o.status === 'Partially Received').length;
+  const draftOrders = orders.filter(o => o.status === 'Draft').length;
+  const completedOrders = orders.filter(o => o.status === 'Received' || o.status === 'Over-Received').length;
+  const cancelledOrders = orders.filter(o => o.status === 'Cancelled').length;
+
   return (
     <>
       <div className={styles.sectionToolbar}>
-        <h2 className={styles.sectionTitle}>Purchase Order History ({orders.length})</h2>
+        <h2 className={styles.sectionTitle}>Purchase Order History</h2>
         <Button size="sm" variant="secondary" onClick={fetchOrders}>
           Refresh
         </Button>
       </div>
 
+      <div className={styles.summaryStrip}>
+        <div className={`${styles.statCard} ${styles.neutral}`}>
+          <div className={styles.statLabel}>Total POs</div>
+          <div className={styles.statValue}>
+            {totalOrders}
+            {cancelledOrders > 0 && (
+              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', fontWeight: 'normal' }}>
+                ({cancelledOrders} Cancelled)
+              </span>
+            )}
+          </div>
+        </div>
+        <div className={`${styles.statCard} ${styles.warning}`}>
+          <div className={styles.statLabel}>Pending Delivery</div>
+          <div className={styles.statValue}>{pendingOrders}</div>
+        </div>
+        <div className={`${styles.statCard} ${styles.neutral}`}>
+          <div className={styles.statLabel}>Drafts</div>
+          <div className={styles.statValue}>{draftOrders}</div>
+        </div>
+        <div className={`${styles.statCard} ${styles.success}`}>
+          <div className={styles.statLabel}>Completed</div>
+          <div className={styles.statValue}>{completedOrders}</div>
+        </div>
+      </div>
+
       {orders.length === 0 ? (
-        <div className={styles.emptyPlaceholder}>
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-            <polyline points="10 9 9 9 8 9"/>
-          </svg>
-          <h3>No purchase orders yet</h3>
-          <p>Draft a new PO from the low-stock alerts to get started.</p>
+        <div style={{ padding: '3rem 0', backgroundColor: 'var(--color-bg-surface)', borderRadius: 'var(--radius-lg)' }}>
+          <EmptyState 
+            icon={
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+              </svg>
+            }
+            title="No purchase orders yet"
+            description="Purchase orders will appear here once drafted or sent."
+          />
         </div>
       ) : (
         <table className={styles.poTable}>
           <thead>
             <tr>
-              <th>PO ID</th>
-              <th>Supplier</th>
-              <th>Ingredient</th>
-              <th>Quantity</th>
-              <th>Date</th>
-              <th>Notes</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th style={{ textAlign: 'right' }}>PO ID</th>
+              <th style={{ textAlign: 'left' }}>Supplier</th>
+              <th style={{ textAlign: 'left' }}>Ingredient</th>
+              <th style={{ textAlign: 'right' }}>Quantity</th>
+              <th style={{ textAlign: 'left' }}>Date</th>
+              <th style={{ textAlign: 'left' }}>Notes</th>
+              <th style={{ textAlign: 'center' }}>Status</th>
+              <th style={{ textAlign: 'center' }}>Action</th>
             </tr>
           </thead>
           <tbody>
             {orders.map((order) => (
               <tr key={order.id}>
-                <td className={styles.textMuted}>#{order.id}</td>
-                <td style={{ fontWeight: 500 }}>{order.supplier_name || order.supplier_id || '—'}</td>
-                <td>{order.ingredient_name || '—'}</td>
-                <td>{order.suggested_quantity} {order.unit || ''}</td>
-                <td className={styles.textMuted}>
+                <td className={styles.textMuted} style={{ textAlign: 'right' }}>#{order.id}</td>
+                <td style={{ fontWeight: 500, textAlign: 'left' }}>{order.supplier_name || order.supplier_id || '—'}</td>
+                <td style={{ textAlign: 'left' }}>{order.ingredient_name || '—'}</td>
+                <td style={{ textAlign: 'right' }}>{order.suggested_quantity} {order.unit || ''}</td>
+                <td className={styles.textMuted} style={{ textAlign: 'left' }}>
                   {order.date ? formatDateStandard(order.date) : '—'}
                 </td>
-                <td className={styles.textMuted}>{order.notes || '—'}</td>
-                <td>
+                <td className={styles.textMuted} style={{ textAlign: 'left' }}>{order.notes || '—'}</td>
+                <td style={{ textAlign: 'center' }}>
                   <span className={`${styles.badge} ${getStatusBadgeClass(order.status)}`}>
                     {order.status}
                   </span>
                 </td>
-                <td>
-                  <div className={styles.actionCell}>
+                <td style={{ textAlign: 'center' }}>
+                  <div className={styles.actionCell} style={{ justifyContent: 'center' }}>
                     {order.status === 'Draft' && isManager && (
                       <>
                         <Button size="sm" variant="primary" onClick={() => handleSend(order.id)} disabled={updatingId === order.id}>

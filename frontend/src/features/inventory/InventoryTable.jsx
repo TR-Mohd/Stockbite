@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import '../../styles/inventory/InventoryTable.css';
 import { ROPAlertBadge } from './ROPAlertBadge';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { Button } from '../../components/ui/Button';
 import { formatCurrency, formatDateStandard } from '../../utils/formatters';
 
@@ -11,7 +12,7 @@ const getStatusWeight = (stock, rop) => {
   return 3; // Normal
 };
 
-export const InventoryTable = ({ data, onDraftPO, onAdjustStock, onLogWaste }) => {
+export const InventoryTable = ({ data, isFiltered, totalItems, onDraftPO, onAdjustStock, onLogWaste }) => {
   // Sort data: Status (Out of Stock -> Low Stock -> Normal), then by Category
   const sortedData = [...data].sort((a, b) => {
     const weightA = getStatusWeight(a.stock, a.rop);
@@ -30,28 +31,46 @@ export const InventoryTable = ({ data, onDraftPO, onAdjustStock, onLogWaste }) =
       <table className="inventory-table">
         <thead>
           <tr>
-            <th>Ingredient</th>
-            <th>Category</th>
+            <th className="text-left">Ingredient</th>
+            <th className="text-left">Category</th>
             <th className="text-right">Unit Cost</th>
             <th className="text-right" style={{ width: '120px' }}>Stock Level</th>
-            <th>UoM</th>
+            <th className="text-left">UoM</th>
             <th className="text-right">ROP</th>
-            <th>Status</th>
-            <th>Last Updated</th>
-            <th className="text-right">Actions</th>
+            <th className="text-center">Status</th>
+            <th className="text-left">Last Updated</th>
+            <th className="text-center">Actions</th>
           </tr>
         </thead>
         <tbody>
           {sortedData.length === 0 ? (
             <tr>
-              <td colSpan="8">
-                <div className="empty-state-container">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="empty-state-icon">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
-                  <h3>No ingredients found</h3>
-                  <p>Try adjusting your search or filters to find what you're looking for.</p>
+              <td colSpan="9">
+                <div style={{ padding: '2rem 0' }}>
+                  {totalItems === 0 && !isFiltered ? (
+                    <EmptyState 
+                      icon={
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                          <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                          <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                      }
+                      title="No ingredients tracked yet" 
+                      description="Start managing your inventory by adding your first ingredient."
+                    />
+                  ) : (
+                    <EmptyState 
+                      icon={
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                      }
+                      title="No results found" 
+                      description="Try adjusting your search or filters to find what you're looking for."
+                    />
+                  )}
                 </div>
               </td>
             </tr>
@@ -68,26 +87,26 @@ export const InventoryTable = ({ data, onDraftPO, onAdjustStock, onLogWaste }) =
 
               return (
                 <tr key={item.id} className={isOutOfStock ? 'row-danger' : isLowStock ? 'row-warning' : ''}>
-                  <td className="font-medium">{item.name}</td>
-                  <td><span className="category-tag">{item.category}</span></td>
+                  <td className="text-left font-medium">{item.name}</td>
+                  <td className="text-left"><span className="category-tag">{item.category}</span></td>
                   <td className="text-right font-medium">{formatCurrency(item.unitCost)}</td>
-                  <td>
-                    <div className="stock-level-cell">
+                  <td className="text-right">
+                    <div className="stock-level-cell" style={{ justifyContent: 'flex-end' }}>
                       <span className="stock-value">{typeof item.stock === 'number' ? parseFloat(item.stock.toFixed(2)) : item.stock}</span>
-                      <div className="sparkline-container">
+                      <div className="sparkline-container" style={{ width: '60px' }}>
                         <div className={`sparkline-bar ${isOutOfStock ? 'empty' : isLowStock ? 'warning' : 'normal'}`} style={{ width: `${stockPercentage}%` }}></div>
                         <div className="sparkline-rop-marker" style={{ left: `${ropPercentage}%` }} title={`ROP: ${item.rop}`}></div>
                       </div>
                     </div>
                   </td>
-                  <td className="text-muted">{item.uom}</td>
+                  <td className="text-left text-muted">{item.uom}</td>
                   <td className="text-right text-muted">{item.rop}</td>
-                  <td>
+                  <td className="text-center">
                     {isWarning ? <ROPAlertBadge stock={item.stock} rop={item.rop} /> : <span className="status-normal">Normal</span>}
                   </td>
-                  <td className="text-muted text-sm">{formatDateStandard(item.lastUpdated)}</td>
-                  <td className="actions-cell text-right">
-                    <div className="actions-group">
+                  <td className="text-left text-muted text-sm">{formatDateStandard(item.lastUpdated)}</td>
+                  <td className="actions-cell text-center">
+                    <div className="actions-group" style={{ justifyContent: 'center' }}>
                       {item.active_po_status === 'Draft' ? (
                         <span className="status-badge badge-draft">Drafted</span>
                       ) : item.active_po_status === 'Sent' ? (

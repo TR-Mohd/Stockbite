@@ -3,6 +3,8 @@ import '../../styles/inventory/InventoryDashboard.css';
 import { InventoryTable } from './InventoryTable';
 import { Button } from '../../components/ui/Button';
 import { GlobalHeader } from '../../components/layout/GlobalHeader';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { ErrorState } from '../../components/ui/ErrorState';
 import headerStyles from '../../components/layout/GlobalHeader.module.css';
 import { NavLink } from 'react-router-dom';
 import { useAuthStore } from '../../core/store/authStore';
@@ -189,13 +191,16 @@ export const InventoryDashboard = () => {
         )}
       </GlobalHeader>
       
-      {error && (
-        <div className="inventory-error-banner" style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '1rem', textAlign: 'center', fontWeight: 'bold', borderBottom: '1px solid #f87171' }}>
-          {error}
+      {error ? (
+        <div className="inventory-main-container">
+          <ErrorState 
+            title="Failed to Load Inventory" 
+            message={error} 
+            onRetry={fetchInventory} 
+          />
         </div>
-      )}
-
-      <div className="inventory-main-container">
+      ) : (
+        <div className="inventory-main-container">
         <div className="summary-strip">
           <div className="stat-card">
             <div className="stat-label">Total Tracked</div>
@@ -255,6 +260,8 @@ export const InventoryDashboard = () => {
           <div className="inventory-content">
             <InventoryTable 
               data={filteredData} 
+              isFiltered={searchTerm !== '' || filterCategory !== 'All' || filterStatus !== 'All'}
+              totalItems={inventoryData.length}
               onDraftPO={setDraftPOContext}
               onAdjustStock={(item) => {
                 setAdjustContext(item);
@@ -265,6 +272,7 @@ export const InventoryDashboard = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* Modals */}
       <AddIngredientModal 
