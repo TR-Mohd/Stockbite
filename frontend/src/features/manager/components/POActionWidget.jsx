@@ -28,6 +28,17 @@ export const POActionWidget = () => {
   const visiblePOs = draftPOs.slice(0, MAX_VISIBLE);
   const hiddenCount = draftPOs.length - MAX_VISIBLE;
 
+  const totalDraftCost = draftPOs.reduce((sum, po) => {
+    const cost = (po.suggested_quantity != null && po.unit_cost != null) ? po.suggested_quantity * po.unit_cost : 0;
+    return sum + cost;
+  }, 0);
+
+  const isStale = (dateStr) => {
+    if (!dateStr) return false;
+    const msIn48Hours = 48 * 60 * 60 * 1000;
+    return (new Date() - new Date(dateStr)) > msIn48Hours;
+  };
+
   return (
     <div style={{ marginBottom: 'var(--spacing-4)' }}>
       {/* Banner header — collapses/expands the list */}
@@ -92,6 +103,13 @@ export const POActionWidget = () => {
           flexDirection: 'column',
           gap: '0.5rem',
         }}>
+          {/* Header with Total Cost */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem', padding: '0 0.25rem' }}>
+            <h4 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>Draft Purchase Orders</h4>
+            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+              Total Est: <span style={{ color: 'var(--color-warning)' }}>~{formatCurrency(totalDraftCost)}</span>
+            </div>
+          </div>
           {visiblePOs.map((po, index) => {
             const estimatedTotal = (po.suggested_quantity != null && po.unit_cost != null)
               ? po.suggested_quantity * po.unit_cost
@@ -100,7 +118,7 @@ export const POActionWidget = () => {
             return (
               <div
                 key={po.id || index}
-                onClick={() => navigate('/manager/suppliers')}
+                onClick={() => navigate('/manager/suppliers?tab=orders')}
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -121,8 +139,8 @@ export const POActionWidget = () => {
                   <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {po.ingredient_name || 'Unknown Ingredient'}
                   </div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)' }}>
-                    {po.supplier_name || '—'} · {formatDateStandard(po.date)}
+                  <div style={{ fontSize: '0.78rem', color: isStale(po.date) ? 'var(--color-error)' : 'var(--color-text-secondary)' }}>
+                    {po.supplier_name || '—'} · {formatDateStandard(po.date)} {isStale(po.date) && '⚠️'}
                   </div>
                 </div>
 
@@ -145,7 +163,7 @@ export const POActionWidget = () => {
           {/* "View all" footer when more than MAX_VISIBLE POs exist */}
           {hiddenCount > 0 && (
             <div
-              onClick={() => navigate('/manager/suppliers')}
+              onClick={() => navigate('/manager/suppliers?tab=orders')}
               style={{
                 textAlign: 'center',
                 fontSize: '0.82rem',
@@ -165,7 +183,7 @@ export const POActionWidget = () => {
           {/* Always-visible "Go to PO History" shortcut */}
           {hiddenCount <= 0 && (
             <div
-              onClick={() => navigate('/manager/suppliers')}
+              onClick={() => navigate('/manager/suppliers?tab=orders')}
               style={{
                 textAlign: 'right',
                 fontSize: '0.82rem',
