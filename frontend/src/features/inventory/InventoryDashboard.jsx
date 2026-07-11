@@ -217,7 +217,6 @@ export const InventoryDashboard = () => {
 
         <div className="inventory-table-section">
           <div className="search-filter-bar">
-            <div className="search-action-group">
               <input 
                 type="text" 
                 placeholder="Search ingredients..." 
@@ -225,11 +224,11 @@ export const InventoryDashboard = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="inventory-input search-input"
               />
-              <span className="search-divider">|</span>
-              <Button variant="primary" onClick={() => setIsAddModalOpen(true)}>Add Ingredient</Button>
-              <Button variant="outline" onClick={() => setIsAdjustModalOpen(true)}>Adjust Stock</Button>
-              <Button variant="primary" onClick={() => setIsReceiveModalOpen(true)}>Receive Stock</Button>
-            </div>
+              <div className="toolbar-actions">
+                <Button variant="outline" onClick={() => setIsAddModalOpen(true)}>Add Ingredient</Button>
+                <Button variant="outline" onClick={() => setIsAdjustModalOpen(true)}>Adjust Stock</Button>
+                <Button variant="outline" onClick={() => setIsReceiveModalOpen(true)}>Receive Stock</Button>
+              </div>
             <div className="filter-group">
               <select 
                 value={filterCategory} 

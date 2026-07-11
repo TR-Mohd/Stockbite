@@ -72,23 +72,16 @@
   gap: 10px;
 }
 
-.search-action-group {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  max-width: 600px;
-}
-
 .search-input {
   flex: 1;
+  min-width: 0;
 }
 
-.search-divider {
-  color: var(--color-border);
-  font-weight: 300;
-  font-size: 1.25rem;
-  margin: 0 4px;
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .inventory-input,
@@ -144,18 +137,12 @@
     gap: 1rem;
   }
 
-  .search-action-group {
-    max-width: 100%;
-    flex-wrap: wrap;
-  }
-
   .search-input {
     width: 100%;
-    flex: 1 1 100%;
   }
 
-  .search-divider {
-    display: none;
+  .toolbar-actions {
+    flex-wrap: wrap;
   }
 
   .filter-group {
