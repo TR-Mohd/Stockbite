@@ -76,7 +76,7 @@ export const PurchaseOrderHistory = () => {
     setUpdatingId(orderId);
     try {
       await api.post(`/purchase-orders/${orderId}/receive`, { actual_quantity: actualQuantity });
-      setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: 'Received' } : o)));
+      await fetchOrders(); // Re-fetch to get updated status and actual_received_quantity
       setReceiveModalOrder(null);
     } catch (err) {
       if (err.response?.status === 409) {
@@ -90,11 +90,32 @@ export const PurchaseOrderHistory = () => {
     }
   };
 
+  const handleUndoReceive = async (order) => {
+    if (window.confirm(`Undo receiving ${order.actual_received_quantity || order.suggested_quantity} ${order.unit || ''} of ${order.ingredient_name}? This will subtract stock and revert the PO to Sent.`)) {
+      setUpdatingId(order.id);
+      try {
+        await api.post(`/purchase-orders/${order.id}/undo-receive`);
+        await fetchOrders();
+      } catch (err) {
+        if (err.response?.status >= 400 && err.response?.data?.detail) {
+          alert(err.response.data.detail);
+        } else {
+          console.error('Failed to undo receive:', err);
+          alert('Failed to undo receipt. Please try again.');
+        }
+      } finally {
+        setUpdatingId(null);
+      }
+    }
+  };
+
   const getStatusBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
       case 'draft': return styles.badgeDraft;
       case 'sent': return styles.badgeSent;
       case 'received': return styles.badgeReceived;
+      case 'partially received': return styles.badgeWarning;
+      case 'over-received': return styles.badgeWarning;
       case 'cancelled': return styles.badgeInactive;
       default: return '';
     }
@@ -202,9 +223,25 @@ export const PurchaseOrderHistory = () => {
                         )}
                       </>
                     )}
-                    {(order.status === 'Received' || order.status === 'Cancelled') && (
+                    {(order.status === 'Received' || order.status === 'Partially Received' || order.status === 'Over-Received') && (
+                      <>
+                        <span className={styles.textMuted} style={{ fontSize: 'var(--font-size-xs)' }}>
+                          ✓ Completed
+                        </span>
+                        <Button 
+                          size="sm" 
+                          variant="secondary" 
+                          onClick={() => handleUndoReceive(order)} 
+                          disabled={updatingId === order.id}
+                          style={{ marginLeft: '0.5rem', padding: '0.2rem 0.5rem', fontSize: 'var(--font-size-xs)' }}
+                        >
+                          Undo Receipt
+                        </Button>
+                      </>
+                    )}
+                    {order.status === 'Cancelled' && (
                       <span className={styles.textMuted} style={{ fontSize: 'var(--font-size-xs)' }}>
-                        {order.status === 'Received' ? '✓ Completed' : '✗ Cancelled'}
+                        ✗ Cancelled
                       </span>
                     )}
                   </div>

@@ -141,7 +141,13 @@ async def receive_purchase_order(
     if not ingredient:
         raise HTTPException(status_code=400, detail="Ingredient not found for this PO")
         
-    po.status = POStatusEnum.Received
+    po.actual_received_quantity = request.actual_quantity
+    if request.actual_quantity < po.suggested_quantity:
+        po.status = POStatusEnum.Partially_Received
+    elif request.actual_quantity > po.suggested_quantity:
+        po.status = POStatusEnum.Over_Received
+    else:
+        po.status = POStatusEnum.Received
     
     update_ingredient_stock(
         db=db,
@@ -151,6 +157,63 @@ async def receive_purchase_order(
         action="Receive PO",
         reason=f"PO Received (ID: {po.id})"
     )
+    
+    try:
+        await db.commit()
+    except StaleDataError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Concurrent inventory update detected. Please retry.")
+        
+    return format_po(po, supplier, ingredient)
+
+@router.post("/{id}/undo-receive", response_model=PurchaseOrderResponse)
+async def undo_receive_purchase_order(
+    id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager, RoleEnum.Warehouse]))
+):
+    query = select(PurchaseOrder, Supplier, Ingredient).outerjoin(
+        Supplier, PurchaseOrder.supplier_id == Supplier.id
+    ).outerjoin(
+        Ingredient, PurchaseOrder.ingredient_id == Ingredient.id
+    ).where(PurchaseOrder.id == id)
+    
+    result = await db.execute(query)
+    row = result.first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Purchase Order not found")
+        
+    po, supplier, ingredient = row
+    
+    if po.status not in [POStatusEnum.Received, POStatusEnum.Partially_Received, POStatusEnum.Over_Received]:
+        raise HTTPException(status_code=400, detail="Only received POs can be undone")
+        
+    # Check 24 hour limit
+    from datetime import datetime, timedelta
+    if po.date < datetime.utcnow() - timedelta(hours=24):
+        raise HTTPException(status_code=400, detail="Cannot undo receipt after 24 hours. Please create a Stock Adjustment instead.")
+        
+    if not ingredient:
+        raise HTTPException(status_code=400, detail="Ingredient not found for this PO")
+        
+    if po.actual_received_quantity is None:
+        raise HTTPException(status_code=400, detail="Cannot determine actual received quantity to undo")
+        
+    if ingredient.stock_level < po.actual_received_quantity:
+        raise HTTPException(status_code=400, detail="Cannot undo — some of this stock has already been used.")
+        
+    po.status = POStatusEnum.Sent
+    
+    update_ingredient_stock(
+        db=db,
+        ingredient=ingredient,
+        amount=-po.actual_received_quantity,
+        user_id=current_user.id,
+        action="Undo Receive PO",
+        reason=f"PO Receipt Undone (ID: {po.id})"
+    )
+    
+    po.actual_received_quantity = None
     
     try:
         await db.commit()
