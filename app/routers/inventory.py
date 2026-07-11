@@ -6,7 +6,7 @@ from typing import List
 from ..database import get_db
 from ..auth import role_required
 from ..models import User, RoleEnum, Ingredient, AuditLog
-from ..schemas import IngredientResponse, BulkReceiveRequest, IngredientCreate, IngredientUpdate
+from ..schemas import IngredientResponse, BulkReceiveRequest, IngredientCreate, IngredientUpdate, AdjustStockRequest, LogWasteRequest
 from sqlalchemy.orm.exc import StaleDataError
 from ..services import update_ingredient_stock
 router = APIRouter(prefix="/inventory", tags=["Inventory"])
@@ -109,8 +109,7 @@ async def get_low_stock_alerts(
 @router.post("/{ingredient_id}/adjust", response_model=IngredientResponse)
 async def adjust_stock(
     ingredient_id: str,
-    amount: float,
-    reason: str,
+    request: AdjustStockRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(role_required([RoleEnum.Warehouse, RoleEnum.Manager]))
 ):
@@ -120,7 +119,10 @@ async def adjust_stock(
     if not ingredient:
         raise HTTPException(status_code=404, detail="Ingredient not found")
     
-    update_ingredient_stock(db, ingredient, amount, current_user.id, "Stock Adjustment", reason)
+    # Delta is computed backend-side against the actual database value, avoiding stale frontend state
+    amount = request.new_stock_level - ingredient.stock_level
+    
+    update_ingredient_stock(db, ingredient, amount, current_user.id, "Stock Adjustment", request.reason)
     
     try:
         await db.commit()
@@ -130,6 +132,35 @@ async def adjust_stock(
         
     await db.refresh(ingredient)
     return ingredient
+
+@router.post("/{ingredient_id}/log-waste", response_model=IngredientResponse)
+async def log_waste(
+    ingredient_id: str,
+    request: LogWasteRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Warehouse, RoleEnum.Manager]))
+):
+    result = await db.execute(select(Ingredient).where(Ingredient.id == ingredient_id))
+    ingredient = result.scalars().first()
+    
+    if not ingredient:
+        raise HTTPException(status_code=404, detail="Ingredient not found")
+        
+    if ingredient.stock_level < request.amount:
+        raise HTTPException(status_code=400, detail="Waste amount cannot exceed current stock")
+    
+    # Waste uses the user's explicit absolute delta
+    update_ingredient_stock(db, ingredient, -request.amount, current_user.id, "Log Waste", request.reason)
+    
+    try:
+        await db.commit()
+    except StaleDataError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Concurrent inventory update detected. Please retry.")
+        
+    await db.refresh(ingredient)
+    return ingredient
+
 
 @router.post("/bulk-receive")
 async def bulk_receive(

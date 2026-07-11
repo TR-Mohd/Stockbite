@@ -60,10 +60,10 @@ async def test_inventory_adjust_concurrency(client, token):
     assert res_create.status_code == 201
     ing_id = res_create.json()["id"]
 
-    # Fire 50 concurrent stock adjustments
+    # Fire 50 concurrent stock adjustments using the log-waste endpoint (which takes a delta)
     async def make_req(i):
-        url = f"/inventory/{ing_id}/adjust?amount=1&reason=Race{i}"
-        return await client.post(url, headers=headers)
+        url = f"/inventory/{ing_id}/log-waste"
+        return await client.post(url, json={"amount": 1.0, "reason": f"Race{i}"}, headers=headers)
         
     responses = await asyncio.gather(*(make_req(i) for i in range(50)))
     

@@ -111,9 +111,9 @@ export const InventoryDashboard = () => {
       
       // Update stock if changed
       if (data.newStock !== item.stock) {
-        const amount = data.newStock - item.stock;
-        await api.post(`/inventory/${data.ingredientId}/adjust`, null, {
-          params: { amount, reason: data.reason }
+        await api.post(`/inventory/${data.ingredientId}/adjust`, {
+          new_stock_level: data.newStock,
+          reason: data.reason
         });
       }
       
@@ -138,8 +138,9 @@ export const InventoryDashboard = () => {
 
   const handleLogWaste = async (data) => {
     try {
-      await api.post(`/inventory/${data.ingredientId}/adjust`, null, {
-        params: { amount: -data.wasteQty, reason: data.reason }
+      await api.post(`/inventory/${data.ingredientId}/log-waste`, {
+        amount: data.wasteQty,
+        reason: data.reason
       });
       setWasteLogged(prev => prev + data.wasteQty);
       await fetchInventory();

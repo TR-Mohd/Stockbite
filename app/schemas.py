@@ -86,6 +86,16 @@ class BulkReceiveItem(BaseModel):
 class BulkReceiveRequest(BaseModel):
     items: List[BulkReceiveItem]
 
+class AdjustStockRequest(BaseModel):
+    new_stock_level: float = Field(..., ge=0.0)
+    reason: str
+
+class LogWasteRequest(BaseModel):
+    amount: float = Field(..., gt=0.0)
+    reason: str
+
+
+
 class ModifierResponse(BaseModel):
     id: str
     name: str
