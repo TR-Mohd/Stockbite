@@ -5,7 +5,6 @@ import '../../styles/inventory/InventoryTable.css';
 import styles from '../../styles/manager/ManagerDashboard.module.css';
 import { StaffModal } from './StaffModal';
 import { Modal } from '../../components/ui/Modal';
-import { generateEmployeeId } from '../../utils/idGenerator';
 import { InlineNotificationQueue } from '../../components/ui/InlineNotificationQueue';
 
 const EditIcon = () => (
@@ -104,11 +103,10 @@ export const StaffManagement = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        newId = generateEmployeeId(payload.role, staffList);
-        payload.id = newId;
-        await axios.post('http://localhost:8000/manager/staff', payload, {
+        const response = await axios.post('http://localhost:8000/manager/staff', payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
+        newId = response.data.id;
       }
       setIsModalOpen(false);
       addNotification(<span><strong>{payload.name}</strong> ({newId}) {selectedStaff ? 'updated' : 'added'}.</span>);

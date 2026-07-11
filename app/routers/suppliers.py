@@ -24,7 +24,28 @@ async def create_supplier(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(role_required([RoleEnum.Manager]))
 ):
-    new_supplier = Supplier(**supplier.model_dump(exclude_unset=True))
+    supplier_data = supplier.model_dump(exclude_unset=True)
+    if not supplier_data.get('id'):
+        from datetime import datetime
+        year = str(datetime.utcnow().year)[-2:]
+        region = supplier_data.get('region') or 'NAT'
+        
+        res_seq = await db.execute(
+            select(Supplier.id)
+            .where(Supplier.id.like(f"SUP-%-{year}%"))
+            .order_by(Supplier.id.desc())
+        )
+        max_id = res_seq.scalars().first()
+        if max_id:
+            try:
+                seq = int(max_id[-3:])
+                supplier_data['id'] = f"SUP-{region}-{year}{seq + 1:03d}"
+            except ValueError:
+                supplier_data['id'] = f"SUP-{region}-{year}100"
+        else:
+            supplier_data['id'] = f"SUP-{region}-{year}100"
+            
+    new_supplier = Supplier(**supplier_data)
     db.add(new_supplier)
     await db.commit()
     await db.refresh(new_supplier)
@@ -80,7 +101,28 @@ async def create_purchase_order(
     if not ingredient:
         raise HTTPException(status_code=404, detail="Ingredient not found")
         
+    from datetime import datetime
+    now = datetime.utcnow()
+    yy = str(now.year)[-2:]
+    mm = f"{now.month:02d}"
+    
+    res_seq = await db.execute(
+        select(PurchaseOrder.id)
+        .where(PurchaseOrder.id.like(f"PO-{yy}{mm}-%"))
+        .order_by(PurchaseOrder.id.desc())
+    )
+    max_id = res_seq.scalars().first()
+    if max_id:
+        try:
+            seq = int(max_id.split('-')[-1])
+            po_id = f"PO-{yy}{mm}-{seq + 1:03d}"
+        except ValueError:
+            po_id = f"PO-{yy}{mm}-001"
+    else:
+        po_id = f"PO-{yy}{mm}-001"
+
     po = PurchaseOrder(
+        id=po_id,
         supplier_id=supplier_id,
         ingredient_id=ingredient_id,
         current_stock=ingredient.stock_level,
