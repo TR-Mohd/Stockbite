@@ -25,6 +25,7 @@ export const PurchaseOrderHistory = () => {
   const [error, setError] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
   const [receiveModalOrder, setReceiveModalOrder] = useState(null);
+  const [undoConfirmOrder, setUndoConfirmOrder] = useState(null);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -90,22 +91,22 @@ export const PurchaseOrderHistory = () => {
     }
   };
 
-  const handleUndoReceive = async (order) => {
-    if (window.confirm(`Undo receiving ${order.actual_received_quantity || order.suggested_quantity} ${order.unit || ''} of ${order.ingredient_name}? This will subtract stock and revert the PO to Sent.`)) {
-      setUpdatingId(order.id);
-      try {
-        await api.post(`/purchase-orders/${order.id}/undo-receive`);
-        await fetchOrders();
-      } catch (err) {
-        if (err.response?.status >= 400 && err.response?.data?.detail) {
-          alert(err.response.data.detail);
-        } else {
-          console.error('Failed to undo receive:', err);
-          alert('Failed to undo receipt. Please try again.');
-        }
-      } finally {
-        setUpdatingId(null);
+  const confirmUndoReceive = async () => {
+    if (!undoConfirmOrder) return;
+    setUpdatingId(undoConfirmOrder.id);
+    try {
+      await api.post(`/purchase-orders/${undoConfirmOrder.id}/undo-receive`);
+      await fetchOrders();
+      setUndoConfirmOrder(null);
+    } catch (err) {
+      if (err.response?.status >= 400 && err.response?.data?.detail) {
+        alert(err.response.data.detail);
+      } else {
+        console.error('Failed to undo receive:', err);
+        alert('Failed to undo receipt. Please try again.');
       }
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -231,7 +232,7 @@ export const PurchaseOrderHistory = () => {
                         <Button 
                           size="sm" 
                           variant="secondary" 
-                          onClick={() => handleUndoReceive(order)} 
+                          onClick={() => setUndoConfirmOrder(order)} 
                           disabled={updatingId === order.id}
                           style={{ marginLeft: '0.5rem', padding: '0.2rem 0.5rem', fontSize: 'var(--font-size-xs)' }}
                         >
@@ -257,6 +258,24 @@ export const PurchaseOrderHistory = () => {
         order={receiveModalOrder}
         onSubmit={handleReceiveSubmit}
       />
+      
+      {/* Undo Confirmation Modal */}
+      {undoConfirmOrder && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent} style={{ maxWidth: '400px' }}>
+            <h3 style={{ marginTop: 0 }}>Confirm Undo Receipt</h3>
+            <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
+              Undo receiving <strong>{undoConfirmOrder.actual_received_quantity || undoConfirmOrder.suggested_quantity} {undoConfirmOrder.unit || ''}</strong> of <strong>{undoConfirmOrder.ingredient_name}</strong>? 
+              <br /><br />
+              This will subtract the stock and revert the PO status to Sent.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+              <Button variant="secondary" onClick={() => setUndoConfirmOrder(null)}>Cancel</Button>
+              <Button variant="danger" onClick={confirmUndoReceive}>Yes, Undo Receipt</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
