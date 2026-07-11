@@ -25,7 +25,9 @@ class OrderTypeEnum(str, enum.Enum):
 class POStatusEnum(str, enum.Enum):
     Draft = "Draft"
     Sent = "Sent"
+    Partially_Received = "Partially Received"
     Received = "Received"
+    Over_Received = "Over-Received"
     Cancelled = "Cancelled"
 
 class PaymentMethodEnum(str, enum.Enum):
@@ -193,6 +195,7 @@ class PurchaseOrder(Base):
     current_stock = Column(Float, nullable=False)
     reorder_point = Column(Float, nullable=False)
     suggested_quantity = Column(Float, nullable=False)
+    actual_received_quantity = Column(Float, nullable=True)
     date = Column(DateTime, default=datetime.utcnow)
     status = Column(Enum(POStatusEnum), default=POStatusEnum.Draft)
     notes = Column(String, nullable=True)

@@ -86,6 +86,16 @@ class BulkReceiveItem(BaseModel):
 class BulkReceiveRequest(BaseModel):
     items: List[BulkReceiveItem]
 
+class AdjustStockRequest(BaseModel):
+    new_stock_level: float = Field(..., ge=0.0)
+    reason: str
+
+class LogWasteRequest(BaseModel):
+    amount: float = Field(..., gt=0.0)
+    reason: str
+
+
+
 class ModifierResponse(BaseModel):
     id: str
     name: str
@@ -274,6 +284,7 @@ class PurchaseOrderResponse(BaseModel):
     supplier_name: Optional[str] = None
     ingredient_name: Optional[str] = None
     unit: Optional[str] = None
+    unit_cost: Optional[float] = None
     current_stock: float
     reorder_point: float
     suggested_quantity: float

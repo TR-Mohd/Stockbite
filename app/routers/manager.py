@@ -118,7 +118,26 @@ async def create_staff(
     }
     if staff.id is not None:
         user_data["id"] = staff.id
+    else:
+        from datetime import datetime
+        year = str(datetime.utcnow().year)[-2:]
+        role_map = {'Manager': 'MGR', 'Cashier': 'CSH', 'Warehouse': 'WHS'}
+        role_code = role_map.get(staff.role.value, 'UNK')
         
+        res_seq = await db.execute(
+            select(User.id)
+            .where(User.id.like(f"EMP-%-{year}%"))
+            .order_by(User.id.desc())
+        )
+        max_id = res_seq.scalars().first()
+        if max_id:
+            try:
+                seq = int(max_id[-3:])
+                user_data["id"] = f"EMP-{role_code}-{year}{seq + 1:03d}"
+            except ValueError:
+                user_data["id"] = f"EMP-{role_code}-{year}100"
+        else:
+            user_data["id"] = f"EMP-{role_code}-{year}100"
     new_user = User(**user_data)
     db.add(new_user)
     await db.commit()

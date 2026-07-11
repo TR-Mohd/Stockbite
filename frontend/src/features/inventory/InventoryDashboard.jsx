@@ -3,6 +3,8 @@ import '../../styles/inventory/InventoryDashboard.css';
 import { InventoryTable } from './InventoryTable';
 import { Button } from '../../components/ui/Button';
 import { GlobalHeader } from '../../components/layout/GlobalHeader';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { ErrorState } from '../../components/ui/ErrorState';
 import headerStyles from '../../components/layout/GlobalHeader.module.css';
 import { NavLink } from 'react-router-dom';
 import { useAuthStore } from '../../core/store/authStore';
@@ -13,6 +15,7 @@ import { ReceiveStockModal } from './modals/ReceiveStockModal';
 import { DraftPOModal } from './modals/DraftPOModal';
 import { AdjustStockModal } from './modals/AdjustStockModal';
 import { LogWasteModal } from './modals/LogWasteModal';
+import { AddIngredientModal } from './modals/AddIngredientModal';
 
 export const InventoryDashboard = () => {
   const logout = useAuthStore((state) => state.logout);
@@ -25,8 +28,10 @@ export const InventoryDashboard = () => {
   // Core State
   const [inventoryData, setInventoryData] = useState([]);
   const [wasteLogged, setWasteLogged] = useState(0); // Tracking quantity wasted
+  const [error, setError] = useState(null);
 
   // Modal Visibility State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
   const [draftPOContext, setDraftPOContext] = useState(null);
@@ -60,6 +65,11 @@ export const InventoryDashboard = () => {
   }, []);
 
   // Updaters
+  const handleAddIngredient = async (payload) => {
+    await api.post('/inventory/', payload);
+    await fetchInventory();
+  };
+
   const handleReceiveStock = async (rows) => {
     try {
       const items = rows.map(r => ({
@@ -69,7 +79,12 @@ export const InventoryDashboard = () => {
       await api.post('/inventory/bulk-receive', { items });
       await fetchInventory(); // Refresh from DB
     } catch (error) {
-      console.error("Failed to process bulk receive:", error);
+      if (error.response?.status === 409) {
+        setError('Concurrent inventory update detected. Please retry.');
+        setTimeout(() => setError(null), 5000);
+      } else {
+        console.error("Failed to process bulk receive:", error);
+      }
     }
   };
 
@@ -96,9 +111,9 @@ export const InventoryDashboard = () => {
       
       // Update stock if changed
       if (data.newStock !== item.stock) {
-        const amount = data.newStock - item.stock;
-        await api.post(`/inventory/${data.ingredientId}/adjust`, null, {
-          params: { amount, reason: data.reason }
+        await api.post(`/inventory/${data.ingredientId}/adjust`, {
+          new_stock_level: data.newStock,
+          reason: data.reason
         });
       }
       
@@ -112,19 +127,30 @@ export const InventoryDashboard = () => {
       
       await fetchInventory();
     } catch (error) {
-      console.error("Failed to adjust stock or update cost:", error);
+      if (error.response?.status === 409) {
+        setError('Concurrent inventory update detected. Please retry.');
+        setTimeout(() => setError(null), 5000);
+      } else {
+        console.error("Failed to adjust stock or update cost:", error);
+      }
     }
   };
 
   const handleLogWaste = async (data) => {
     try {
-      await api.post(`/inventory/${data.ingredientId}/adjust`, null, {
-        params: { amount: -data.wasteQty, reason: data.reason }
+      await api.post(`/inventory/${data.ingredientId}/log-waste`, {
+        amount: data.wasteQty,
+        reason: data.reason
       });
       setWasteLogged(prev => prev + data.wasteQty);
       await fetchInventory();
     } catch (error) {
-      console.error("Failed to log waste:", error);
+      if (error.response?.status === 409) {
+        setError('Concurrent inventory update detected. Please retry.');
+        setTimeout(() => setError(null), 5000);
+      } else {
+        console.error("Failed to log waste:", error);
+      }
     }
   };
 
@@ -165,8 +191,17 @@ export const InventoryDashboard = () => {
           </>
         )}
       </GlobalHeader>
-
-      <div className="inventory-main-container">
+      
+      {error ? (
+        <div className="inventory-main-container">
+          <ErrorState 
+            title="Failed to Load Inventory" 
+            message={error} 
+            onRetry={fetchInventory} 
+          />
+        </div>
+      ) : (
+        <div className="inventory-main-container">
         <div className="summary-strip">
           <div className="stat-card">
             <div className="stat-label">Total Tracked</div>
@@ -188,7 +223,6 @@ export const InventoryDashboard = () => {
 
         <div className="inventory-table-section">
           <div className="search-filter-bar">
-            <div className="search-action-group">
               <input 
                 type="text" 
                 placeholder="Search ingredients..." 
@@ -196,10 +230,11 @@ export const InventoryDashboard = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="inventory-input search-input"
               />
-              <span className="search-divider">|</span>
-              <Button variant="outline" onClick={() => setIsAdjustModalOpen(true)}>Adjust Stock</Button>
-              <Button variant="primary" onClick={() => setIsReceiveModalOpen(true)}>Receive Stock</Button>
-            </div>
+              <div className="toolbar-actions">
+                <Button variant="outline" onClick={() => setIsAddModalOpen(true)}>Add Ingredient</Button>
+                <Button variant="outline" onClick={() => setIsAdjustModalOpen(true)}>Adjust Stock</Button>
+                <Button variant="outline" onClick={() => setIsReceiveModalOpen(true)}>Receive Stock</Button>
+              </div>
             <div className="filter-group">
               <select 
                 value={filterCategory} 
@@ -226,6 +261,8 @@ export const InventoryDashboard = () => {
           <div className="inventory-content">
             <InventoryTable 
               data={filteredData} 
+              isFiltered={searchTerm !== '' || filterCategory !== 'All' || filterStatus !== 'All'}
+              totalItems={inventoryData.length}
               onDraftPO={setDraftPOContext}
               onAdjustStock={(item) => {
                 setAdjustContext(item);
@@ -236,8 +273,16 @@ export const InventoryDashboard = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* Modals */}
+      <AddIngredientModal 
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        inventoryData={inventoryData}
+        onSubmit={handleAddIngredient}
+      />
+
       <ReceiveStockModal 
         isOpen={isReceiveModalOpen}
         onClose={() => setIsReceiveModalOpen(false)}

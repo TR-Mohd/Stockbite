@@ -1,4 +1,4 @@
-/* POS Dashboard Layout — Premium Cashier Interface */
+/* POS Dashboard Layout â€” Premium Cashier Interface */
 
 .pos-layout-container {
   display: flex;
@@ -121,7 +121,7 @@
   background-color: var(--color-bg-base);
 }
 
-/* Left Panel — Menu Section (73%) */
+/* Left Panel â€” Menu Section (73%) */
 .pos-menu-section {
   flex: 0 0 73%;
   display: flex;
@@ -155,7 +155,7 @@
   font-weight: 500;
 }
 
-/* Right Panel — Order Details (27%) */
+/* Right Panel â€” Order Details (27%) */
 .pos-cart-section {
   flex: 0 0 27%;
   display: flex;

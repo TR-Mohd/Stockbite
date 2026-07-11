@@ -4,7 +4,6 @@ import styles from '../../styles/manager/ManagerDashboard.module.css';
 import { SupplierModal } from './SupplierModal';
 import { capitalize, formatPhoneNumber } from '../../utils/formatters';
 import { REGIONS } from '../../constants/regions';
-import { generateSupplierId } from '../../utils/idGenerator';
 import { InlineNotificationQueue } from '../../components/ui/InlineNotificationQueue';
 
 export const SupplierDirectory = () => {
@@ -85,9 +84,6 @@ export const SupplierDirectory = () => {
         payload.phone = formatPhoneNumber(payload.phone, !!payload.contact_person?.trim());
       }
       
-      if (!isEditing) {
-        payload.id = generateSupplierId(payload.coverage, payload.regionCode, suppliers);
-      }
       payload.region = payload.coverage === 'National' ? 'NAT' : payload.regionCode;
       
       const url = isEditing 
@@ -106,8 +102,9 @@ export const SupplierDirectory = () => {
       });
       
       if (response.ok) {
+        const responseData = await response.json();
         setIsModalOpen(false);
-        addNotification(<span><strong>{payload.name}</strong> ({payload.id || selectedSupplier.id}) {isEditing ? 'updated' : 'added'}.</span>);
+        addNotification(<span><strong>{payload.name}</strong> ({responseData.id}) {isEditing ? 'updated' : 'added'}.</span>);
         fetchSuppliers();
       } else {
         console.error('Failed to save supplier');

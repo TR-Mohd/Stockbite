@@ -1,4 +1,4 @@
-/* Menu Grid — Category Tabs, Search, 4-Column Grid */
+/* Menu Grid â€” Category Tabs, Search, 4-Column Grid */
 
 /* Category Tabs */
 .menu-category-tabs {
@@ -42,7 +42,7 @@
   display: none; /* Hide count to perfectly match reference layout */
 }
 
-/* Product Grid — 3 columns on desktop for wider horizontal cards */
+/* Product Grid â€” 3 columns on desktop for wider horizontal cards */
 .menu-grid-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

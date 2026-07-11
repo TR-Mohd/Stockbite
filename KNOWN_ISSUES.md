@@ -16,11 +16,24 @@
 - **Checkout Volumetric Limits**: There are currently no volumetric limits on the `/pos/checkout` endpoint. An authenticated cashier session can fire rapid, sequential transactions without being throttled.
 
 **Reason for Acceptance**: Accepted as technical debt for the MVP phase. This should be revisited alongside any future kitchen-workflow or Order Fulfillment Time feature, since transaction-velocity anomaly detection naturally belongs with that workflow rather than as a standalone rate limiter now.
+
 ## COGS Breakdown Pagination
 - **In-Memory Pagination**: The `/manager/dashboard/kpis/cogs-breakdown` endpoint currently fetches all menu items in memory before paginating.
 
 **Reason for Acceptance**: Accepted as technical debt because it is perfectly performant for the current small menu size, though it may not scale efficiently if the menu grows to thousands of items. Logged to be refactored to SQL-level `LIMIT`/`OFFSET` when necessary.
+
 ## Resolved: Sticky Header Overlap (Table.jsx)
 - **Status**: Resolved by Design Decision.
 - **Description**: The original sticky-header approach in the shared `Table.jsx` component had a persistent, unresolved stacking/z-index bug after three fix attempts where rows would overlap the sticky header during scroll.
 - **Resolution**: Resolved by redesigning the Drill-Down tables to a non-sticky header pattern matching `OrderHistory.jsx`. This explicitly trades away the sticky-header convenience for guaranteed visual stability. This is logged as a resolved tradeoff, not a deferred bug, so no further CSS fixes should be investigated or applied.
+
+## Purchase Order Detail View
+- **Missing Feature**: The Purchase Order History table is currently read-only. Clicking a row does not open a detail or timeline view.
+
+**Reason for Acceptance**: Accepted as a known gap for the MVP phase. This is scheduled for future implementation when more detailed PO tracking or chronological history is required.
+
+## Test Suite Instability
+- **`test_firing_logic.py`**: Fails with a `TypeError` due to a missing test user fixture (the target test user is not successfully created or returned).
+- **`test_pos_checkout.py`**: Fails with a `RuntimeError` (`got Future attached to a different loop`), which is a known issue with `pytest-asyncio` test fixture scopes and multiple `AsyncSession` creations.
+
+**Reason for Acceptance**: These are pre-existing issues and do not reflect new regressions. They are deferred to a dedicated test-suite cleanup phase so that current feature work remains scoped.

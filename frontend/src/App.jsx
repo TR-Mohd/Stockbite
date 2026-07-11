@@ -10,7 +10,7 @@ import SuppliersDashboard from './features/suppliers/SuppliersDashboard';
 
 import { ManagerLayout } from './components/layout/ManagerLayout';
 import { OrderHistory } from './features/manager/OrderHistory/OrderHistory';
-import { SupplierDirectory } from './features/manager/SupplierDirectory';
+import { ManagerSuppliersDashboard } from './features/manager/ManagerSuppliersDashboard';
 import { StaffManagement } from './features/manager/StaffManagement';
 import { MenuEngineering } from './features/manager/MenuEngineering';
 
@@ -42,7 +42,7 @@ function App() {
           <Route path="/manager" element={<ManagerLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<ManagerDashboard />} />
-            <Route path="suppliers" element={<SupplierDirectory />} />
+            <Route path="suppliers" element={<ManagerSuppliersDashboard />} />
             <Route path="staff" element={<StaffManagement />} />
             <Route path="orders" element={<OrderHistory />} />
             <Route path="menu-engineering" element={<MenuEngineering />} />
