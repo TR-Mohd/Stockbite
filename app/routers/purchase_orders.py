@@ -19,6 +19,7 @@ def format_po(po, supplier, ingredient):
         "supplier_name": supplier.name if supplier else None,
         "ingredient_name": ingredient.name if ingredient else None,
         "unit": ingredient.unit if ingredient else None,
+        "unit_cost": ingredient.unit_cost if ingredient else None,
         "current_stock": po.current_stock,
         "reorder_point": po.reorder_point,
         "suggested_quantity": po.suggested_quantity,

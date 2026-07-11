@@ -274,6 +274,7 @@ class PurchaseOrderResponse(BaseModel):
     supplier_name: Optional[str] = None
     ingredient_name: Optional[str] = None
     unit: Optional[str] = None
+    unit_cost: Optional[float] = None
     current_stock: float
     reorder_point: float
     suggested_quantity: float
