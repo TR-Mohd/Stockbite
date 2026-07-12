@@ -52,14 +52,14 @@ class StaffResponse(BaseModel):
 class IngredientResponse(BaseModel):
     id: str
     name: str
-    stock_level: Decimal
+    stock_level: float
     unit: str
-    reorder_point: Decimal
+    reorder_point: float
     category: Optional[str] = "Uncategorized"
     last_updated: datetime
     preferred_supplier_id: Optional[str] = None
     version_id: int
-    unit_cost: Decimal = Decimal("0.0")
+    unit_cost: float = 0.0
     active_po_status: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
@@ -285,10 +285,11 @@ class PurchaseOrderResponse(BaseModel):
     supplier_name: Optional[str] = None
     ingredient_name: Optional[str] = None
     unit: Optional[str] = None
-    unit_cost: Optional[Decimal] = None
-    current_stock: Decimal
-    reorder_point: Decimal
-    suggested_quantity: Decimal
+    unit_cost: Optional[float] = None
+    current_stock: float
+    reorder_point: float
+    suggested_quantity: float
+    actual_received_quantity: Optional[float] = None
     date: datetime
     status: POStatusEnum
     notes: Optional[str] = None
