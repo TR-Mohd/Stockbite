@@ -82,7 +82,7 @@ async def test_adjust_stock_stale_frontend(client, token):
     
     assert response.status_code == 200
     data = response.json()
-    assert data["stock_level"] == 15.0  # Must be exactly what was requested
+    assert float(data["stock_level"]) == 15.0  # Must be exactly what was requested
     
     # 3. Verify the AuditLog delta
     # Since we don't have a dedicated audit endpoint to read specific logs for an item without filtering,

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Float, Integer, Boolean, ForeignKey, DateTime, Enum, JSON
+from sqlalchemy import Column, String, Float, Integer, Boolean, ForeignKey, DateTime, Enum, JSON, Numeric
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -73,11 +73,11 @@ class Ingredient(Base):
     __tablename__ = "ingredients"
     id = Column(String, primary_key=True, default=generate_uuid)
     name = Column(String, nullable=False)
-    stock_level = Column(Float, default=0.0)
+    stock_level = Column(Numeric(10, 3), default=0.0)
     unit = Column(String, nullable=False)
-    reorder_point = Column(Float, default=0.0)
+    reorder_point = Column(Numeric(10, 3), default=0.0)
     category = Column(String, default="Uncategorized")
-    unit_cost = Column(Float, default=0.0)
+    unit_cost = Column(Numeric(10, 2), default=0.0)
     last_updated = Column(DateTime, default=datetime.utcnow)
     preferred_supplier_id = Column(String, ForeignKey("suppliers.id"), nullable=True)
     version_id = Column(Integer, nullable=False, default=1)
@@ -127,7 +127,7 @@ class ModifierRecipe(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     modifier_id = Column(String, ForeignKey("item_modifiers.id"))
     ingredient_id = Column(String, ForeignKey("ingredients.id"))
-    quantity = Column(Float, nullable=False)
+    quantity = Column(Numeric(10, 3), nullable=False)
 
     modifier = relationship("ItemModifier", back_populates="modifier_recipes")
     ingredient = relationship("Ingredient")
@@ -137,7 +137,7 @@ class Recipe(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     menu_item_id = Column(String, ForeignKey("menu_items.id"))
     ingredient_id = Column(String, ForeignKey("ingredients.id"))
-    quantity = Column(Float, nullable=False)
+    quantity = Column(Numeric(10, 3), nullable=False)
 
     menu_item = relationship("MenuItem", back_populates="recipes")
     ingredient = relationship("Ingredient")
@@ -192,10 +192,10 @@ class PurchaseOrder(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     supplier_id = Column(String, ForeignKey("suppliers.id"))
     ingredient_id = Column(String, ForeignKey("ingredients.id"))
-    current_stock = Column(Float, nullable=False)
-    reorder_point = Column(Float, nullable=False)
-    suggested_quantity = Column(Float, nullable=False)
-    actual_received_quantity = Column(Float, nullable=True)
+    current_stock = Column(Numeric(10, 3), nullable=False)
+    reorder_point = Column(Numeric(10, 3), nullable=False)
+    suggested_quantity = Column(Numeric(10, 3), nullable=False)
+    actual_received_quantity = Column(Numeric(10, 3), nullable=True)
     date = Column(DateTime, default=datetime.utcnow)
     status = Column(Enum(POStatusEnum), default=POStatusEnum.Draft)
     notes = Column(String, nullable=True)
