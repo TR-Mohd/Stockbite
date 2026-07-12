@@ -29,6 +29,7 @@ export const PurchaseOrderHistory = () => {
   const [updatingId, setUpdatingId] = useState(null);
   const [receiveModalOrder, setReceiveModalOrder] = useState(null);
   const [undoConfirmOrder, setUndoConfirmOrder] = useState(null);
+  const [sendConfirmOrder, setSendConfirmOrder] = useState(null);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -48,11 +49,13 @@ export const PurchaseOrderHistory = () => {
     fetchOrders();
   }, [fetchOrders]);
 
-  const handleSend = async (orderId) => {
-    setUpdatingId(orderId);
+  const confirmSend = async () => {
+    if (!sendConfirmOrder) return;
+    setUpdatingId(sendConfirmOrder.id);
     try {
-      await api.post(`/purchase-orders/${orderId}/send`);
-      setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: 'Sent' } : o)));
+      await api.post(`/purchase-orders/${sendConfirmOrder.id}/send`);
+      setOrders((prev) => prev.map((o) => (o.id === sendConfirmOrder.id ? { ...o, status: 'Sent' } : o)));
+      setSendConfirmOrder(null);
     } catch (err) {
       console.error('Failed to send PO:', err);
       alert('Failed to send PO. Please try again.');
@@ -240,7 +243,7 @@ export const PurchaseOrderHistory = () => {
                   <div className={styles.actionCell} style={{ justifyContent: 'center' }}>
                     {order.status === 'Draft' && isManager && (
                       <>
-                        <Button size="sm" variant="primary" onClick={() => handleSend(order.id)} disabled={updatingId === order.id}>
+                        <Button size="sm" variant="primary" onClick={() => setSendConfirmOrder(order)} disabled={updatingId === order.id}>
                           {updatingId === order.id ? 'Saving...' : 'Mark as Sent'}
                         </Button>
                         <Button size="sm" variant="danger" onClick={() => handleCancel(order.id)} disabled={updatingId === order.id}>
@@ -318,6 +321,28 @@ export const PurchaseOrderHistory = () => {
             <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.5rem' }}>
               <Button variant="secondary" onClick={() => setUndoConfirmOrder(null)}>Cancel</Button>
               <Button variant="danger" onClick={confirmUndoReceive}>Yes, Undo Receipt</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Send Confirmation Modal */}
+      <Modal
+        isOpen={!!sendConfirmOrder}
+        onClose={() => setSendConfirmOrder(null)}
+        title="Confirm Send Purchase Order"
+        size="small"
+      >
+        {sendConfirmOrder && (
+          <div>
+            <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem', marginTop: '0.5rem' }}>
+              Are you sure you want to send this Purchase Order to <strong>{sendConfirmOrder.supplier_name || 'the supplier'}</strong>?
+              <br /><br />
+              This will lock the draft and mark it as awaiting delivery.
+            </p>
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.5rem' }}>
+              <Button variant="secondary" onClick={() => setSendConfirmOrder(null)}>Cancel</Button>
+              <Button variant="primary" onClick={confirmSend}>Yes, Mark as Sent</Button>
             </div>
           </div>
         )}
