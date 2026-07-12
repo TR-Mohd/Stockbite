@@ -5,8 +5,9 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { Button } from '../../components/ui/Button';
 import { formatCurrency, formatDateStandard } from '../../utils/formatters';
 
-// Utility to get status weight for sorting
-const getStatusWeight = (stock, rop) => {
+const getStatusWeight = (rawStock, rawRop) => {
+  const stock = parseFloat(rawStock) || 0;
+  const rop = parseFloat(rawRop) || 0;
   if (stock === 0) return 1; // Out of Stock (highest priority)
   if (stock <= rop) return 2; // Low Stock
   return 3; // Normal
@@ -76,14 +77,16 @@ export const InventoryTable = ({ data, isFiltered, totalItems, onDraftPO, onAdju
             </tr>
           ) : (
             sortedData.map((item) => {
-              const isLowStock = item.stock <= item.rop && item.stock > 0;
-              const isOutOfStock = item.stock === 0;
+              const stock = parseFloat(item.stock) || 0;
+              const rop = parseFloat(item.rop) || 0;
+              const isLowStock = stock <= rop && stock > 0;
+              const isOutOfStock = stock === 0;
               const isWarning = isLowStock || isOutOfStock;
               
               // Sparkline calculation
-              const maxStock = Math.max(item.stock, item.rop * 2, 1);
-              const stockPercentage = Math.min((item.stock / maxStock) * 100, 100);
-              const ropPercentage = Math.min((item.rop / maxStock) * 100, 100);
+              const maxStock = Math.max(stock, rop * 2, 1);
+              const stockPercentage = Math.min((stock / maxStock) * 100, 100);
+              const ropPercentage = Math.min((rop / maxStock) * 100, 100);
 
               return (
                 <tr key={item.id} className={isOutOfStock ? 'row-danger' : isLowStock ? 'row-warning' : ''}>
@@ -92,17 +95,17 @@ export const InventoryTable = ({ data, isFiltered, totalItems, onDraftPO, onAdju
                   <td className="text-right font-medium">{formatCurrency(item.unitCost)}</td>
                   <td className="text-right">
                     <div className="stock-level-cell" style={{ justifyContent: 'flex-end' }}>
-                      <span className="stock-value">{typeof item.stock === 'number' ? parseFloat(item.stock.toFixed(2)) : item.stock}</span>
+                      <span className="stock-value">{stock}</span>
                       <div className="sparkline-container" style={{ width: '60px' }}>
                         <div className={`sparkline-bar ${isOutOfStock ? 'empty' : isLowStock ? 'warning' : 'normal'}`} style={{ width: `${stockPercentage}%` }}></div>
-                        <div className="sparkline-rop-marker" style={{ left: `${ropPercentage}%` }} title={`ROP: ${item.rop}`}></div>
+                        <div className="sparkline-rop-marker" style={{ left: `${ropPercentage}%` }} title={`ROP: ${rop}`}></div>
                       </div>
                     </div>
                   </td>
                   <td className="text-left text-muted">{item.uom}</td>
-                  <td className="text-right text-muted">{item.rop}</td>
+                  <td className="text-right text-muted">{rop}</td>
                   <td className="text-center">
-                    {isWarning ? <ROPAlertBadge stock={item.stock} rop={item.rop} /> : <span className="status-normal">Normal</span>}
+                    {isWarning ? <ROPAlertBadge stock={stock} rop={rop} /> : <span className="status-normal">Normal</span>}
                   </td>
                   <td className="text-left text-muted text-sm">{formatDateStandard(item.lastUpdated)}</td>
                   <td className="actions-cell text-center">
