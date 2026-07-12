@@ -6,7 +6,7 @@ import { ErrorState } from '../../components/ui/ErrorState';
 import { useAuthStore } from '../../core/store/authStore';
 import { Modal } from '../../components/ui/Modal';
 import { ReceivePOModal } from './ReceivePOModal';
-import { formatDateStandard } from '../../utils/formatters';
+import { formatDateStandard, formatCurrency } from '../../utils/formatters';
 import styles from './suppliers.module.css';
 
 const STATUS_FLOW = {
@@ -331,16 +331,36 @@ export const PurchaseOrderHistory = () => {
         isOpen={!!sendConfirmOrder}
         onClose={() => setSendConfirmOrder(null)}
         title="Confirm Send Purchase Order"
-        size="small"
+        size="medium"
       >
         {sendConfirmOrder && (
           <div>
-            <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem', marginTop: '0.5rem' }}>
-              Are you sure you want to send this Purchase Order to <strong>{sendConfirmOrder.supplier_name || 'the supplier'}</strong>?
-              <br /><br />
-              This will lock the draft and mark it as awaiting delivery.
+            <div className={styles.infoGrid} style={{ marginBottom: '1.5rem', marginTop: '0.5rem' }}>
+              <div className={styles.infoItem}>
+                <span className={styles.infoItemLabel}>Supplier</span>
+                <span className={styles.infoItemValue}>{sendConfirmOrder.supplier_name || '—'}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoItemLabel}>Ingredient</span>
+                <span className={styles.infoItemValue}>{sendConfirmOrder.ingredient_name || '—'}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoItemLabel}>Quantity</span>
+                <span className={styles.infoItemValue}>{sendConfirmOrder.suggested_quantity} {sendConfirmOrder.unit || ''}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoItemLabel}>Est. Cost</span>
+                <span className={styles.infoItemValue}>
+                  {sendConfirmOrder.unit_cost 
+                    ? formatCurrency(sendConfirmOrder.suggested_quantity * sendConfirmOrder.unit_cost)
+                    : '—'}
+                </span>
+              </div>
+            </div>
+            <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
+              Send this PO to <strong>{sendConfirmOrder.supplier_name || 'the supplier'}</strong>? This cannot be undone once sent.
             </p>
-            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.5rem' }}>
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
               <Button variant="secondary" onClick={() => setSendConfirmOrder(null)}>Cancel</Button>
               <Button variant="primary" onClick={confirmSend}>Yes, Mark as Sent</Button>
             </div>
