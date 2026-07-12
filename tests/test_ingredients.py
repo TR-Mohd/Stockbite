@@ -60,7 +60,7 @@ async def test_create_ingredient(client, token):
     data = res.json()
     assert data["name"] == "Salt"
     assert data["unit"] == "kg"
-    assert data["unit_cost"] == 1.50
+    assert float(data["unit_cost"]) == 1.50
     assert "id" in data
 
 @pytest.mark.asyncio
@@ -85,7 +85,7 @@ async def test_update_ingredient(client, token):
     res_update = await client.put(f"/inventory/{ing_id}", json=update_payload, headers=headers)
     assert res_update.status_code == 200
     data = res_update.json()
-    assert data["unit_cost"] == 5.00
+    assert float(data["unit_cost"]) == 5.00
     assert data["category"] == "Spice"
     assert data["name"] == "Pepper" # Ensure original field is unmodified
 
@@ -110,7 +110,7 @@ async def test_update_ingredient_security(client, token):
     res_malicious = await client.put(f"/inventory/{ing_id}", json=malicious_payload, headers=headers)
     assert res_malicious.status_code == 200
     # Because 'stock_level' is not in IngredientUpdate schema, Pydantic ignores it.
-    assert res_malicious.json()["stock_level"] == 10.0
+    assert float(res_malicious.json()["stock_level"]) == 10.0
 
     # 3. Attempt to set negative unit cost
     negative_cost_payload = {

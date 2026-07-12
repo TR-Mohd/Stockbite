@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Optional
 from datetime import datetime
+from decimal import Decimal
 from .models import RoleEnum, StatusEnum, POStatusEnum, PaymentMethodEnum, OrderTypeEnum
 
 class PinAuthRequest(BaseModel):
@@ -65,33 +66,33 @@ class IngredientResponse(BaseModel):
 class IngredientCreate(BaseModel):
     name: str
     unit: str
-    stock_level: float = Field(default=0.0, ge=0.0)
-    reorder_point: float = Field(default=0.0, ge=0.0)
+    stock_level: Decimal = Field(default=Decimal("0.0"), ge=Decimal("0.0"))
+    reorder_point: Decimal = Field(default=Decimal("0.0"), ge=Decimal("0.0"))
     category: Optional[str] = "Uncategorized"
-    unit_cost: float = Field(default=0.0, ge=0.0)
+    unit_cost: Decimal = Field(default=Decimal("0.0"), ge=Decimal("0.0"))
     preferred_supplier_id: Optional[str] = None
 
 class IngredientUpdate(BaseModel):
     name: Optional[str] = None
     unit: Optional[str] = None
-    reorder_point: Optional[float] = Field(default=None, ge=0.0)
+    reorder_point: Optional[Decimal] = Field(default=None, ge=Decimal("0.0"))
     category: Optional[str] = None
-    unit_cost: Optional[float] = Field(default=None, ge=0.0)
+    unit_cost: Optional[Decimal] = Field(default=None, ge=Decimal("0.0"))
     preferred_supplier_id: Optional[str] = None
 
 class BulkReceiveItem(BaseModel):
     ingredient_id: str
-    quantity: float = Field(..., gt=0.0)
+    quantity: Decimal = Field(..., gt=Decimal("0.0"))
 
 class BulkReceiveRequest(BaseModel):
     items: List[BulkReceiveItem]
 
 class AdjustStockRequest(BaseModel):
-    new_stock_level: float = Field(..., ge=0.0)
+    new_stock_level: Decimal = Field(..., ge=Decimal("0.0"))
     reason: str
 
 class LogWasteRequest(BaseModel):
-    amount: float = Field(..., gt=0.0)
+    amount: Decimal = Field(..., gt=Decimal("0.0"))
     reason: str
 
 
@@ -288,6 +289,7 @@ class PurchaseOrderResponse(BaseModel):
     current_stock: float
     reorder_point: float
     suggested_quantity: float
+    actual_received_quantity: Optional[float] = None
     date: datetime
     status: POStatusEnum
     notes: Optional[str] = None
@@ -297,7 +299,7 @@ class PurchaseOrderResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class ReceivePORequest(BaseModel):
-    actual_quantity: float = Field(..., gt=0.0)
+    actual_quantity: Decimal = Field(..., gt=Decimal("0.0"))
 
 class CancelPORequest(BaseModel):
     reason: str

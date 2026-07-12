@@ -23,6 +23,7 @@ def format_po(po, supplier, ingredient):
         "current_stock": po.current_stock,
         "reorder_point": po.reorder_point,
         "suggested_quantity": po.suggested_quantity,
+        "actual_received_quantity": po.actual_received_quantity,
         "date": po.date,
         "status": po.status,
         "notes": po.notes,

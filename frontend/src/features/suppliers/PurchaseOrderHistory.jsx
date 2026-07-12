@@ -4,8 +4,9 @@ import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { useAuthStore } from '../../core/store/authStore';
+import { Modal } from '../../components/ui/Modal';
 import { ReceivePOModal } from './ReceivePOModal';
-import { formatDateStandard } from '../../utils/formatters';
+import { formatDateStandard, formatCurrency } from '../../utils/formatters';
 import styles from './suppliers.module.css';
 
 const STATUS_FLOW = {
@@ -28,6 +29,7 @@ export const PurchaseOrderHistory = () => {
   const [updatingId, setUpdatingId] = useState(null);
   const [receiveModalOrder, setReceiveModalOrder] = useState(null);
   const [undoConfirmOrder, setUndoConfirmOrder] = useState(null);
+  const [sendConfirmOrder, setSendConfirmOrder] = useState(null);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -47,11 +49,13 @@ export const PurchaseOrderHistory = () => {
     fetchOrders();
   }, [fetchOrders]);
 
-  const handleSend = async (orderId) => {
-    setUpdatingId(orderId);
+  const confirmSend = async () => {
+    if (!sendConfirmOrder) return;
+    setUpdatingId(sendConfirmOrder.id);
     try {
-      await api.post(`/purchase-orders/${orderId}/send`);
-      setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: 'Sent' } : o)));
+      await api.post(`/purchase-orders/${sendConfirmOrder.id}/send`);
+      setOrders((prev) => prev.map((o) => (o.id === sendConfirmOrder.id ? { ...o, status: 'Sent' } : o)));
+      setSendConfirmOrder(null);
     } catch (err) {
       console.error('Failed to send PO:', err);
       alert('Failed to send PO. Please try again.');
@@ -239,7 +243,7 @@ export const PurchaseOrderHistory = () => {
                   <div className={styles.actionCell} style={{ justifyContent: 'center' }}>
                     {order.status === 'Draft' && isManager && (
                       <>
-                        <Button size="sm" variant="primary" onClick={() => handleSend(order.id)} disabled={updatingId === order.id}>
+                        <Button size="sm" variant="primary" onClick={() => setSendConfirmOrder(order)} disabled={updatingId === order.id}>
                           {updatingId === order.id ? 'Saving...' : 'Mark as Sent'}
                         </Button>
                         <Button size="sm" variant="danger" onClick={() => handleCancel(order.id)} disabled={updatingId === order.id}>
@@ -273,7 +277,8 @@ export const PurchaseOrderHistory = () => {
                           size="sm" 
                           variant="secondary" 
                           onClick={() => setUndoConfirmOrder(order)} 
-                          disabled={updatingId === order.id}
+                          disabled={updatingId === order.id || order.actual_received_quantity == null}
+                          title={order.actual_received_quantity == null ? "Legacy PO receipt cannot be undone" : "Undo Receipt"}
                           style={{ marginLeft: '0.5rem', padding: '0.2rem 0.5rem', fontSize: 'var(--font-size-xs)' }}
                         >
                           Undo Receipt
@@ -300,22 +305,68 @@ export const PurchaseOrderHistory = () => {
       />
       
       {/* Undo Confirmation Modal */}
-      {undoConfirmOrder && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent} style={{ maxWidth: '400px' }}>
-            <h3 style={{ marginTop: 0 }}>Confirm Undo Receipt</h3>
-            <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
+      <Modal
+        isOpen={!!undoConfirmOrder}
+        onClose={() => setUndoConfirmOrder(null)}
+        title="Confirm Undo Receipt"
+        size="small"
+      >
+        {undoConfirmOrder && (
+          <div>
+            <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem', marginTop: '0.5rem' }}>
               Undo receiving <strong>{undoConfirmOrder.actual_received_quantity || undoConfirmOrder.suggested_quantity} {undoConfirmOrder.unit || ''}</strong> of <strong>{undoConfirmOrder.ingredient_name}</strong>? 
               <br /><br />
               This will subtract the stock and revert the PO status to Sent.
             </p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.5rem' }}>
               <Button variant="secondary" onClick={() => setUndoConfirmOrder(null)}>Cancel</Button>
               <Button variant="danger" onClick={confirmUndoReceive}>Yes, Undo Receipt</Button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
+
+      {/* Send Confirmation Modal */}
+      <Modal
+        isOpen={!!sendConfirmOrder}
+        onClose={() => setSendConfirmOrder(null)}
+        title="Confirm Send Purchase Order"
+        size="medium"
+      >
+        {sendConfirmOrder && (
+          <div>
+            <div className={styles.infoGrid} style={{ marginBottom: '1.5rem', marginTop: '0.5rem' }}>
+              <div className={styles.infoItem}>
+                <span className={styles.infoItemLabel}>Supplier</span>
+                <span className={styles.infoItemValue}>{sendConfirmOrder.supplier_name || '—'}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoItemLabel}>Ingredient</span>
+                <span className={styles.infoItemValue}>{sendConfirmOrder.ingredient_name || '—'}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoItemLabel}>Quantity</span>
+                <span className={styles.infoItemValue}>{sendConfirmOrder.suggested_quantity} {sendConfirmOrder.unit || ''}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoItemLabel}>Est. Cost</span>
+                <span className={styles.infoItemValue}>
+                  {sendConfirmOrder.unit_cost 
+                    ? formatCurrency(sendConfirmOrder.suggested_quantity * sendConfirmOrder.unit_cost)
+                    : '—'}
+                </span>
+              </div>
+            </div>
+            <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
+              Send this PO to <strong>{sendConfirmOrder.supplier_name || 'the supplier'}</strong>? This cannot be undone once sent.
+            </p>
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+              <Button variant="secondary" onClick={() => setSendConfirmOrder(null)}>Cancel</Button>
+              <Button variant="primary" onClick={confirmSend}>Yes, Mark as Sent</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </>
   );
 };

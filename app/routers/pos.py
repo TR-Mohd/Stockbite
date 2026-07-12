@@ -10,6 +10,7 @@ from ..auth import get_current_user, role_required
 from typing import List
 from ..models import User, RoleEnum, Transaction, TransactionItem, MenuItem, Ingredient, Recipe, AuditLog, OrderTypeEnum, ItemModifierGroup, ItemModifier, TransactionItemModifier
 from ..schemas import TransactionCreate, TransactionResponse, MenuItemResponse
+from decimal import Decimal
 
 router = APIRouter(prefix="/pos", tags=["POS"])
 logger = logging.getLogger(__name__)
@@ -77,14 +78,14 @@ async def checkout(
             
             for m_recipe in modifiers[m_id].modifier_recipes:
                 if m_recipe.ingredient_id not in ingredient_deductions:
-                    ingredient_deductions[m_recipe.ingredient_id] = 0.0
+                    ingredient_deductions[m_recipe.ingredient_id] = Decimal("0.0")
                 ingredient_deductions[m_recipe.ingredient_id] += m_recipe.quantity * item.quantity
             
         subtotal += item_price * item.quantity
 
         for recipe in mi.recipes:
             if recipe.ingredient_id not in ingredient_deductions:
-                ingredient_deductions[recipe.ingredient_id] = 0.0
+                ingredient_deductions[recipe.ingredient_id] = Decimal("0.0")
             ingredient_deductions[recipe.ingredient_id] += recipe.quantity * item.quantity
 
     # Fetch required ingredients to verify stock
