@@ -4,6 +4,7 @@ import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { useAuthStore } from '../../core/store/authStore';
+import { Modal } from '../../components/ui/Modal';
 import { ReceivePOModal } from './ReceivePOModal';
 import { formatDateStandard } from '../../utils/formatters';
 import styles from './suppliers.module.css';
@@ -273,7 +274,8 @@ export const PurchaseOrderHistory = () => {
                           size="sm" 
                           variant="secondary" 
                           onClick={() => setUndoConfirmOrder(order)} 
-                          disabled={updatingId === order.id}
+                          disabled={updatingId === order.id || order.actual_received_quantity == null}
+                          title={order.actual_received_quantity == null ? "Legacy PO receipt cannot be undone" : "Undo Receipt"}
                           style={{ marginLeft: '0.5rem', padding: '0.2rem 0.5rem', fontSize: 'var(--font-size-xs)' }}
                         >
                           Undo Receipt
@@ -300,22 +302,26 @@ export const PurchaseOrderHistory = () => {
       />
       
       {/* Undo Confirmation Modal */}
-      {undoConfirmOrder && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent} style={{ maxWidth: '400px' }}>
-            <h3 style={{ marginTop: 0 }}>Confirm Undo Receipt</h3>
-            <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
+      <Modal
+        isOpen={!!undoConfirmOrder}
+        onClose={() => setUndoConfirmOrder(null)}
+        title="Confirm Undo Receipt"
+        size="small"
+      >
+        {undoConfirmOrder && (
+          <div>
+            <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem', marginTop: '0.5rem' }}>
               Undo receiving <strong>{undoConfirmOrder.actual_received_quantity || undoConfirmOrder.suggested_quantity} {undoConfirmOrder.unit || ''}</strong> of <strong>{undoConfirmOrder.ingredient_name}</strong>? 
               <br /><br />
               This will subtract the stock and revert the PO status to Sent.
             </p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.5rem' }}>
               <Button variant="secondary" onClick={() => setUndoConfirmOrder(null)}>Cancel</Button>
               <Button variant="danger" onClick={confirmUndoReceive}>Yes, Undo Receipt</Button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </>
   );
 };
