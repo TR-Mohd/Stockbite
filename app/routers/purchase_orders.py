@@ -249,6 +249,7 @@ async def cancel_purchase_order(
         
     po.status = POStatusEnum.Cancelled
     po.cancelled_reason = request.reason
+    po.notes = request.reason
     
     audit = AuditLog(
         user_id=current_user.id,

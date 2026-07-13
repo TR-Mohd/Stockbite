@@ -48,7 +48,7 @@
 
 **Reason for Acceptance**: These are pre-existing issues and do not reflect new regressions. They are deferred to a dedicated test-suite cleanup phase so that current feature work remains scoped.
 
-## Draft PO Modal: Misleading "Deficit" Logic
-- **Description**: In `DraftPOModal.jsx`, the "Deficit" value is calculated strictly as `Math.max(ROP - Stock, 0)`. When an ingredient hits its exact ROP threshold (e.g., Stock = 24, ROP = 24), the system correctly flags it as "Low Stock" and triggers the PO creation flow. However, the UI mathematically shows `Deficit: 0 pcs`, which contradicts the warning and confusingly implies no order is needed. 
-
-**Reason for Acceptance**: Accepted as technical debt for the MVP phase. It was proposed to replace the "Deficit" label with "Recommended Order" (displaying `ROP * 2` or similar logic matching the actual input pre-fill), but this was deferred to a future UI polish sprint.
+## Resolved: Draft PO Modal: Misleading "Deficit" Logic
+- **Status**: Resolved by Core Implementation.
+- **Description**: In `DraftPOModal.jsx`, the "Deficit" value was calculated strictly as `Math.max(ROP - Stock, 0)`. When an ingredient hit its exact ROP threshold, the system correctly flagged it as "Low Stock" but the modal confusingly showed `Deficit: 0 pcs`. Furthermore, ordering exactly the deficit would only return the stock to the ROP line, immediately triggering another warning.
+- **Resolution**: Resolved by shifting the operational logic to target a safe buffer. The formula was updated to `Math.max((ROP * 2) - Stock, 0)`, establishing a single source of truth for both the input pre-fill and the display label. The UI label was renamed from "Deficit:" (with error styling) to "Recommended Order:" (with neutral styling), ensuring a logical, non-zero suggested quantity when items hit their threshold.

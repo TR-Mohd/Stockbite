@@ -5,6 +5,7 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { useAuthStore } from '../../core/store/authStore';
 import { Modal } from '../../components/ui/Modal';
+import { Input } from '../../components/ui/Input';
 import { ReceivePOModal } from './ReceivePOModal';
 import { formatDateStandard, formatCurrency, formatQuantity } from '../../utils/formatters';
 import styles from './suppliers.module.css';
@@ -38,6 +39,8 @@ export const PurchaseOrderHistory = () => {
   const [receiveModalOrder, setReceiveModalOrder] = useState(null);
   const [undoConfirmOrder, setUndoConfirmOrder] = useState(null);
   const [sendConfirmOrder, setSendConfirmOrder] = useState(null);
+  const [cancelModalOrder, setCancelModalOrder] = useState(null);
+  const [cancelReason, setCancelReason] = useState('');
   const [actionError, setActionError] = useState(null);
 
   const fetchOrders = useCallback(async () => {
@@ -73,16 +76,23 @@ export const PurchaseOrderHistory = () => {
     }
   };
 
-  const handleCancel = async (orderId) => {
-    const reason = window.prompt("Reason for cancellation:");
-    if (!reason) return;
-    setUpdatingId(orderId);
+  const handleCancelClick = (orderId) => {
+    setCancelModalOrder(orderId);
+    setCancelReason('');
+  };
+
+  const handleCancelSubmit = async () => {
+    if (!cancelReason || !cancelModalOrder) return;
+    setUpdatingId(cancelModalOrder);
     try {
-      await api.post(`/purchase-orders/${orderId}/cancel`, { reason });
-      setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: 'Cancelled', cancelled_reason: reason } : o)));
+      await api.post(`/purchase-orders/${cancelModalOrder}/cancel`, { reason: cancelReason });
+      setOrders((prev) => prev.map((o) => (o.id === cancelModalOrder ? { ...o, status: 'Cancelled', cancelled_reason: cancelReason, notes: cancelReason } : o)));
+      setCancelModalOrder(null);
+      setCancelReason('');
     } catch (err) {
       console.error('Failed to cancel PO:', err);
       setActionError('Failed to cancel PO. Please try again.');
+      setCancelModalOrder(null);
     } finally {
       setUpdatingId(null);
     }
@@ -255,7 +265,7 @@ export const PurchaseOrderHistory = () => {
               {orders.map((order) => (
                 <tr key={order.id}>
                   <td className="text-muted font-medium text-left" title={`#${order.id}`}>
-                    <div className="truncate-text" style={{ maxWidth: '100px' }}>#{order.id}</div>
+                    <div className="truncate-text" style={{ maxWidth: '150px' }}>#{order.id}</div>
                   </td>
                   <td className="font-medium text-left">
                     <div className="tooltip-container" style={{ display: 'block', maxWidth: '250px' }}>
@@ -282,7 +292,7 @@ export const PurchaseOrderHistory = () => {
                           <Button size="sm" variant="primary" onClick={() => setSendConfirmOrder(order)} disabled={updatingId === order.id}>
                             {updatingId === order.id ? 'Saving...' : 'Mark as Sent'}
                           </Button>
-                          <Button size="sm" variant="danger" onClick={() => handleCancel(order.id)} disabled={updatingId === order.id}>
+                          <Button size="sm" variant="danger" onClick={() => handleCancelClick(order.id)} disabled={updatingId === order.id}>
                             Cancel
                           </Button>
                         </>
@@ -298,7 +308,7 @@ export const PurchaseOrderHistory = () => {
                             Mark as Received
                           </Button>
                           {isManager && (
-                            <Button size="sm" variant="danger" onClick={() => handleCancel(order.id)} disabled={updatingId === order.id}>
+                            <Button size="sm" variant="danger" onClick={() => handleCancelClick(order.id)} disabled={updatingId === order.id}>
                               Cancel
                             </Button>
                           )}
@@ -406,6 +416,31 @@ export const PurchaseOrderHistory = () => {
             </div>
           </div>
         )}
+      </Modal>
+
+      <Modal 
+        isOpen={!!cancelModalOrder} 
+        onClose={() => setCancelModalOrder(null)} 
+        title="Cancel Purchase Order"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setCancelModalOrder(null)}>Go Back</Button>
+            <Button variant="danger" onClick={handleCancelSubmit} disabled={!cancelReason.trim()}>Confirm Cancel</Button>
+          </>
+        }
+      >
+        <div style={{ padding: '1rem 0' }}>
+          <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1rem' }}>
+            Please provide a reason for cancelling this Purchase Order. This will be saved in the PO notes.
+          </p>
+          <Input 
+            label="Cancellation Reason *"
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            placeholder="e.g., Duplicate order, Supplier out of stock..."
+            autoFocus
+          />
+        </div>
       </Modal>
     </>
   );
