@@ -37,6 +37,10 @@ async def create_ingredient(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(role_required([RoleEnum.Manager, RoleEnum.Warehouse]))
 ):
+    if ingredient_in.unit.lower() == 'pcs':
+        if ingredient_in.stock_level % 1 != 0 or ingredient_in.reorder_point % 1 != 0:
+            raise HTTPException(status_code=400, detail="Fractional quantities are not allowed for 'pcs'")
+
     new_ingredient = Ingredient(**ingredient_in.model_dump())
     db.add(new_ingredient)
     
@@ -66,6 +70,14 @@ async def update_ingredient(
         raise HTTPException(status_code=404, detail="Ingredient not found")
     
     update_data = ingredient_in.model_dump(exclude_unset=True)
+    
+    # Check if the final unit will be pcs
+    final_unit = update_data.get('unit', ingredient.unit)
+    if final_unit and final_unit.lower() == 'pcs':
+        final_rop = update_data.get('reorder_point', ingredient.reorder_point)
+        if final_rop is not None and final_rop % 1 != 0:
+            raise HTTPException(status_code=400, detail="Fractional quantities are not allowed for 'pcs'")
+
     for key, value in update_data.items():
         setattr(ingredient, key, value)
         

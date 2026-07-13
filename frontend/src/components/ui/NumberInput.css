@@ -1,0 +1,108 @@
+.number-input-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background-color: var(--color-bg-surface);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.number-input-wrapper:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
+}
+
+.number-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 38px;
+  background-color: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.number-btn:hover {
+  background-color: var(--color-bg-surface-hover);
+  color: var(--color-primary);
+}
+
+.number-btn:active {
+  background-color: var(--color-border);
+}
+
+.number-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.number-btn-minus {
+  border-right: 1px solid var(--color-border);
+}
+
+.number-btn-plus {
+  border-left: 1px solid var(--color-border);
+}
+
+.number-input-field {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  border: none;
+  background: transparent;
+  padding: 0 var(--spacing-3);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  text-align: center;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.number-input-field::-webkit-inner-spin-button,
+.number-input-field::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Modifier for modal input integration */
+.modal-input.number-input-wrapper {
+  padding: 0;
+  height: 42px; /* Match modal input height */
+}
+
+.modal-input.number-input-wrapper .number-btn {
+  height: 100%;
+  width: 40px;
+}
+
+.modal-input.number-input-wrapper .number-input-field {
+  height: 100%;
+  font-size: var(--font-size-base);
+}
+
+.number-input-wrapper.disabled {
+  background-color: var(--color-bg-surface-hover);
+  border-color: var(--color-border);
+  cursor: not-allowed;
+}
+
+.number-input-wrapper.disabled .number-btn {
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.number-input-wrapper.disabled .number-btn:hover {
+  background-color: transparent;
+}
+
+.number-input-wrapper.disabled .number-input-field {
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}

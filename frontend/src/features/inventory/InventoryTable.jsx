@@ -3,7 +3,7 @@ import '../../styles/inventory/InventoryTable.css';
 import { ROPAlertBadge } from './ROPAlertBadge';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { Button } from '../../components/ui/Button';
-import { formatCurrency, formatDateStandard } from '../../utils/formatters';
+import { formatCurrency, formatDateStandard, formatQuantity } from '../../utils/formatters';
 
 // Utility to get status weight for sorting
 const getStatusWeight = (stock, rop) => {
@@ -92,7 +92,7 @@ export const InventoryTable = ({ data, isFiltered, totalItems, onDraftPO, onAdju
                   <td className="text-right font-medium">{formatCurrency(item.unitCost)}</td>
                   <td className="text-right">
                     <div className="stock-level-cell" style={{ justifyContent: 'flex-end' }}>
-                      <span className="stock-value">{typeof item.stock === 'number' ? parseFloat(item.stock.toFixed(2)) : item.stock}</span>
+                      <span className="stock-value">{formatQuantity(item.stock, item.uom)}</span>
                       <div className="sparkline-container" style={{ width: '60px' }}>
                         <div className={`sparkline-bar ${isOutOfStock ? 'empty' : isLowStock ? 'warning' : 'normal'}`} style={{ width: `${stockPercentage}%` }}></div>
                         <div className="sparkline-rop-marker" style={{ left: `${ropPercentage}%` }} title={`ROP: ${item.rop}`}></div>
@@ -100,7 +100,7 @@ export const InventoryTable = ({ data, isFiltered, totalItems, onDraftPO, onAdju
                     </div>
                   </td>
                   <td className="text-left text-muted">{item.uom}</td>
-                  <td className="text-right text-muted">{item.rop}</td>
+                  <td className="text-right text-muted">{formatQuantity(item.rop, item.uom)}</td>
                   <td className="text-center">
                     {isWarning ? <ROPAlertBadge stock={item.stock} rop={item.rop} /> : <span className="status-normal">Normal</span>}
                   </td>

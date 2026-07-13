@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
+import { NumberInput } from '../../../components/ui/NumberInput';
+import { formatQuantity } from '../../../utils/formatters';
 import api from '../../../core/api/axios';
 import '../../../styles/inventory/modals/InventoryModals.css';
 
@@ -61,16 +63,16 @@ export const DraftPOModal = ({ isOpen, onClose, ingredient, onSubmit }) => {
       <div className="modal-info-panel">
         <div className="modal-info-row">
           <span className="modal-info-label">Current Stock:</span>
-          <span className="modal-info-value">{ingredient.stock} {ingredient.uom}</span>
+          <span className="modal-info-value">{formatQuantity(ingredient.stock, ingredient.uom)} {ingredient.uom}</span>
         </div>
         <div className="modal-info-row">
           <span className="modal-info-label">Reorder Point (ROP):</span>
-          <span className="modal-info-value">{ingredient.rop} {ingredient.uom}</span>
+          <span className="modal-info-value">{formatQuantity(ingredient.rop, ingredient.uom)} {ingredient.uom}</span>
         </div>
         <div className="modal-info-row">
           <span className="modal-info-label">Deficit:</span>
           <span className="modal-info-value" style={{ color: 'var(--color-error)' }}>
-            {Math.max(ingredient.rop - ingredient.stock, 0)} {ingredient.uom}
+            {formatQuantity(Math.max(ingredient.rop - ingredient.stock, 0), ingredient.uom)} {ingredient.uom}
           </span>
         </div>
       </div>
@@ -154,12 +156,12 @@ export const DraftPOModal = ({ isOpen, onClose, ingredient, onSubmit }) => {
 
       <div className="modal-form-group">
         <label className="modal-label">Order Quantity ({ingredient.uom}) *</label>
-        <input 
-          type="number" 
+        <NumberInput 
+          unit={ingredient.uom}
           className="modal-input" 
           value={quantity}
           onChange={(e) => setQuantity(e.target.value)}
-          min="1"
+          min="0"
           placeholder="Enter quantity..."
         />
         <span className="modal-error-text" style={{ color: 'var(--color-text-tertiary)' }}>

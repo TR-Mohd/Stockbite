@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
+import { NumberInput } from '../../../components/ui/NumberInput';
+import { formatQuantity } from '../../../utils/formatters';
 import '../../../styles/inventory/modals/InventoryModals.css';
 
 export const ReceiveStockModal = ({ isOpen, onClose, inventoryData, onSubmit }) => {
@@ -60,7 +62,9 @@ export const ReceiveStockModal = ({ isOpen, onClose, inventoryData, onSubmit }) 
         </div>
       </div>
 
-      {rows.map((row, index) => (
+      {rows.map((row, index) => {
+        const selectedItem = inventoryData.find(item => item.id === row.ingredientId);
+        return (
         <div key={row.id} className="modal-form-row">
           <div className="flex-2">
             {index === 0 && <label className="modal-label">Ingredient</label>}
@@ -72,18 +76,18 @@ export const ReceiveStockModal = ({ isOpen, onClose, inventoryData, onSubmit }) 
               <option value="">Select ingredient...</option>
               {inventoryData.map(item => (
                 <option key={item.id} value={item.id}>
-                  {item.name} ({item.uom}) - Current: {item.stock}
+                  {item.name} ({item.uom}) - Current: {formatQuantity(item.stock, item.uom)}
                 </option>
               ))}
             </select>
           </div>
           <div>
             {index === 0 && <label className="modal-label">Qty Received</label>}
-            <input 
-              type="number" 
+            <NumberInput 
+              unit={selectedItem?.uom}
               className="modal-input" 
               placeholder="0"
-              min="1"
+              min="0"
               value={row.quantity}
               onChange={(e) => handleRowChange(row.id, 'quantity', e.target.value)}
             />
@@ -103,7 +107,7 @@ export const ReceiveStockModal = ({ isOpen, onClose, inventoryData, onSubmit }) 
             </button>
           </div>
         </div>
-      ))}
+      )})}
 
       <button className="add-row-btn" onClick={handleAddRow}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

@@ -6,7 +6,7 @@ import { ErrorState } from '../../components/ui/ErrorState';
 import { useAuthStore } from '../../core/store/authStore';
 import { Modal } from '../../components/ui/Modal';
 import { ReceivePOModal } from './ReceivePOModal';
-import { formatDateStandard, formatCurrency } from '../../utils/formatters';
+import { formatDateStandard, formatCurrency, formatQuantity } from '../../utils/formatters';
 import styles from './suppliers.module.css';
 import '../../styles/inventory/InventoryTable.css';
 
@@ -265,7 +265,7 @@ export const PurchaseOrderHistory = () => {
                   <td className="text-left">
                     <div className="truncate-text" style={{ maxWidth: '150px' }}>{order.ingredient_name || '—'}</div>
                   </td>
-                  <td className="text-right font-medium">{order.suggested_quantity} {order.unit || ''}</td>
+                  <td className="text-right font-medium">{formatQuantity(order.suggested_quantity, order.unit)} {order.unit || ''}</td>
                   <td className="text-muted text-left">
                     {order.date ? formatDateStandard(order.date) : '—'}
                   </td>

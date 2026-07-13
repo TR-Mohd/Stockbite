@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
-import { Input } from '../../../components/ui/Input';
+import { NumberInput } from '../../../components/ui/NumberInput';
+import { formatQuantity } from '../../../utils/formatters';
 import '../../../styles/inventory/modals/InventoryModals.css';
 
 export const AdjustStockModal = ({ isOpen, onClose, inventoryData, onSubmit, initialIngredientId = '' }) => {
@@ -76,15 +77,15 @@ export const AdjustStockModal = ({ isOpen, onClose, inventoryData, onSubmit, ini
         <div className="modal-info-panel" style={{ marginBottom: '16px' }}>
           <div className="modal-info-row">
             <span className="modal-info-label">Current System Stock:</span>
-            <span className="modal-info-value">{selectedIngredient.stock} {selectedIngredient.uom}</span>
+            <span className="modal-info-value">{formatQuantity(selectedIngredient.stock, selectedIngredient.uom)} {selectedIngredient.uom}</span>
           </div>
         </div>
       )}
 
       <div className="modal-form-group">
-        <label className="modal-label">New Actual Stock {selectedIngredient ? `(${selectedIngredient.uom})` : ''} *</label>
-        <input 
-          type="number" 
+        <label className="modal-label">New Actual Stock ({selectedIngredient?.uom || ''}) *</label>
+        <NumberInput 
+          unit={selectedIngredient?.uom}
           className="modal-input" 
           value={newStock}
           onChange={(e) => setNewStock(e.target.value)}
@@ -95,8 +96,7 @@ export const AdjustStockModal = ({ isOpen, onClose, inventoryData, onSubmit, ini
 
       <div className="modal-form-group">
         <label className="modal-label">Unit Cost (Rp) *</label>
-        <input 
-          type="number" 
+        <NumberInput 
           className="modal-input" 
           value={newUnitCost}
           onChange={(e) => setNewUnitCost(e.target.value)}

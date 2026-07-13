@@ -11,6 +11,11 @@ def update_ingredient_stock(db: AsyncSession, ingredient: Ingredient, amount: De
     """
     old_stock = ingredient.stock_level
     new_stock = max(Decimal("0.0"), old_stock + amount)
+    
+    if ingredient.unit and ingredient.unit.lower() == 'pcs':
+        if amount % 1 != 0 or new_stock % 1 != 0:
+            raise HTTPException(status_code=400, detail="Fractional quantities are not allowed for 'pcs'")
+            
     ingredient.stock_level = new_stock
     
     details = {
