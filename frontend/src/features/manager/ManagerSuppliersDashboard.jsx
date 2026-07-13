@@ -39,22 +39,12 @@ export const ManagerSuppliersDashboard = () => {
           <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>Manage your vendor directory and purchase orders</p>
         </div>
 
-        {/* Tab Navigation */}
-        <div className={styles.tabNavigation} style={{ marginTop: '1.5rem', display: 'flex', gap: '0.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0' }}>
+        {/* Tab Navigation (Pill Pattern) */}
+        <div className={styles.pillTabsContainer}>
           {TABS.map((tab) => (
             <button
               key={tab.id}
-              style={{
-                background: 'none',
-                border: 'none',
-                borderBottom: activeTab === tab.id ? '2px solid var(--color-primary)' : '2px solid transparent',
-                color: activeTab === tab.id ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-                padding: '0.75rem 1rem',
-                fontSize: '0.95rem',
-                fontWeight: activeTab === tab.id ? '600' : '500',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
+              className={`${styles.pillTab} ${activeTab === tab.id ? styles.activePillTab : ''}`}
               onClick={() => handleTabChange(tab.id)}
             >
               {tab.label}

@@ -39,35 +39,39 @@
   padding: var(--spacing-6) var(--spacing-8);
 }
 
-/* --- Tab Navigation --- */
-.tabNavigation {
+/* --- Pill Tab Navigation (Reusing POS Pattern) --- */
+.pillTabsContainer {
   display: flex;
-  gap: 0;
-  border-bottom: 2px solid var(--color-border);
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-4);
+  width: fit-content;
 }
 
-.tabButton {
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
-  padding: var(--spacing-3) var(--spacing-5);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
+.pillTab {
+  padding: var(--spacing-2) var(--spacing-6);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background-color: transparent;
   color: var(--color-text-secondary);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
   cursor: pointer;
-  transition: color var(--transition-fast), border-color var(--transition-fast);
+  transition: all var(--transition-fast);
   white-space: nowrap;
 }
 
-.tabButton:hover {
-  color: var(--color-primary);
+.pillTab:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-surface);
 }
 
-.tabButton.activeTab {
-  color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
-  font-weight: 600;
+.activePillTab {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-sm);
 }
 
 /* --- Section Toolbar --- */
@@ -286,7 +290,11 @@
   border-bottom: none;
 }
 
-.poTable tbody tr:hover {
+.poTable tbody tr:nth-child(even) {
+  background-color: var(--color-bg-base);
+}
+
+.poTable tbody tr:hover td {
   background-color: var(--color-bg-surface-hover);
 }
 

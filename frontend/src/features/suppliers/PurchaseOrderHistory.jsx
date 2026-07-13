@@ -245,9 +245,9 @@ export const PurchaseOrderHistory = () => {
           <tbody>
             {orders.map((order) => (
               <tr key={order.id}>
-                <td className={styles.textMuted} style={{ textAlign: 'right' }}>#{order.id}</td>
-                <td style={{ fontWeight: 500, textAlign: 'left' }}>{order.supplier_name || order.supplier_id || '—'}</td>
-                <td style={{ textAlign: 'left' }}>{order.ingredient_name || '—'}</td>
+                <td className={styles.textMuted} style={{ textAlign: 'right', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={`#${order.id}`}>#{order.id}</td>
+                <td style={{ fontWeight: 500, textAlign: 'left', maxWidth: '250px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={order.supplier_name || order.supplier_id || '—'}>{order.supplier_name || order.supplier_id || '—'}</td>
+                <td style={{ textAlign: 'left', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={order.ingredient_name || '—'}>{order.ingredient_name || '—'}</td>
                 <td style={{ textAlign: 'right' }}>{order.suggested_quantity} {order.unit || ''}</td>
                 <td className={styles.textMuted} style={{ textAlign: 'left' }}>
                   {order.date ? formatDateStandard(order.date) : '—'}
