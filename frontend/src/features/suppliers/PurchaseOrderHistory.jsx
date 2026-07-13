@@ -309,16 +309,18 @@ export const PurchaseOrderHistory = () => {
                           <span className={styles.textMuted} style={{ fontSize: 'var(--font-size-xs)' }}>
                             ✓ Completed
                           </span>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => setUndoConfirmOrder(order)} 
-                            disabled={updatingId === order.id || order.actual_received_quantity == null || isOlderThan24Hours(order.date)}
-                            title={order.actual_received_quantity == null ? "Legacy PO receipt cannot be undone" : isOlderThan24Hours(order.date) ? "Cannot undo receipt after 24 hours" : "Undo Receipt"}
-                            style={{ marginLeft: '0.5rem', padding: '0.2rem 0.5rem', fontSize: 'var(--font-size-xs)' }}
-                          >
-                            Undo Receipt
-                          </Button>
+                          {(!isOlderThan24Hours(order.date) || order.actual_received_quantity == null) && (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => setUndoConfirmOrder(order)} 
+                              disabled={updatingId === order.id || order.actual_received_quantity == null}
+                              title={order.actual_received_quantity == null ? "Legacy PO receipt cannot be undone" : "Undo Receipt"}
+                              style={{ marginLeft: '0.5rem', padding: '0.2rem 0.5rem', fontSize: 'var(--font-size-xs)' }}
+                            >
+                              Undo Receipt
+                            </Button>
+                          )}
                         </>
                       )}
                       {order.status === 'Cancelled' && (
