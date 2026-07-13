@@ -95,10 +95,11 @@ export const InventoryDashboard = () => {
         params: {
           ingredient_id: data.ingredientId,
           suggested_qty: data.quantity,
-          notes: data.actionType === 'draft' ? 'Saved as draft' : 'Sent to supplier'
+          notes: data.notes
         }
       });
       console.log(`PO ${data.actionType} for item ${data.ingredientId}`);
+      await fetchInventory(); // Refresh from DB to update badges
     } catch (error) {
       console.error("Failed to draft PO:", error);
     }

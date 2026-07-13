@@ -13,6 +13,7 @@ export const DraftPOModal = ({ isOpen, onClose, ingredient, onSubmit }) => {
   const [suppliersList, setSuppliersList] = useState([]);
   const [isLoadingSuppliers, setIsLoadingSuppliers] = useState(false);
   const [isSupplierDropdownOpen, setIsSupplierDropdownOpen] = useState(false);
+  const [notes, setNotes] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -31,12 +32,14 @@ export const DraftPOModal = ({ isOpen, onClose, ingredient, onSubmit }) => {
     }
   }, [isOpen]);
 
+  const recommendedOrder = ingredient ? Math.max((ingredient.rop * 2) - ingredient.stock, 0) : 0;
+
   useEffect(() => {
     if (isOpen && ingredient) {
-      // Pre-fill logic: suggest ROP minus current stock (or standard buffer if out of stock)
-      const suggested = Math.max(ingredient.rop - ingredient.stock, 0) || ingredient.rop * 2;
-      setQuantity(suggested.toString());
+      // Pre-fill logic: suggest targeting ROP * 2
+      setQuantity(recommendedOrder.toString());
       setSupplier('');
+      setNotes('');
     }
   }, [isOpen, ingredient]);
 
@@ -45,7 +48,9 @@ export const DraftPOModal = ({ isOpen, onClose, ingredient, onSubmit }) => {
   const handleSubmit = (actionType) => {
     if (!quantity || !supplier) return;
     // We pass back actionType to differentiate Draft vs Send
-    onSubmit({ ingredientId: ingredient.id, quantity: Number(quantity), supplier, actionType });
+    const defaultNote = actionType === 'draft' ? 'Saved as draft' : 'Sent to supplier';
+    const finalNotes = notes.trim() !== '' ? notes : defaultNote;
+    onSubmit({ ingredientId: ingredient.id, quantity: Number(quantity), supplier, actionType, notes: finalNotes });
     onClose();
   };
 
@@ -70,9 +75,9 @@ export const DraftPOModal = ({ isOpen, onClose, ingredient, onSubmit }) => {
           <span className="modal-info-value">{formatQuantity(ingredient.rop, ingredient.uom)} {ingredient.uom}</span>
         </div>
         <div className="modal-info-row">
-          <span className="modal-info-label">Deficit:</span>
-          <span className="modal-info-value" style={{ color: 'var(--color-error)' }}>
-            {formatQuantity(Math.max(ingredient.rop - ingredient.stock, 0), ingredient.uom)} {ingredient.uom}
+          <span className="modal-info-label">Recommended Order:</span>
+          <span className="modal-info-value" style={{ color: 'var(--color-text-primary)' }}>
+            {formatQuantity(recommendedOrder, ingredient.uom)} {ingredient.uom}
           </span>
         </div>
       </div>
@@ -165,8 +170,18 @@ export const DraftPOModal = ({ isOpen, onClose, ingredient, onSubmit }) => {
           placeholder="Enter quantity..."
         />
         <span className="modal-error-text" style={{ color: 'var(--color-text-tertiary)' }}>
-          Suggested quantity pre-filled based on current deficit.
+          Suggested quantity pre-filled based on recommended order.
         </span>
+      </div>
+
+      <div className="modal-form-group">
+        <label className="modal-label">Notes (Optional)</label>
+        <Input 
+          className="modal-input" 
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Leave blank for default..."
+        />
       </div>
     </Modal>
   );
