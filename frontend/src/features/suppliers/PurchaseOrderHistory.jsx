@@ -30,6 +30,7 @@ export const PurchaseOrderHistory = () => {
   const [receiveModalOrder, setReceiveModalOrder] = useState(null);
   const [undoConfirmOrder, setUndoConfirmOrder] = useState(null);
   const [sendConfirmOrder, setSendConfirmOrder] = useState(null);
+  const [actionError, setActionError] = useState(null);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -58,7 +59,7 @@ export const PurchaseOrderHistory = () => {
       setSendConfirmOrder(null);
     } catch (err) {
       console.error('Failed to send PO:', err);
-      alert('Failed to send PO. Please try again.');
+      setActionError('Failed to send PO. Please try again.');
     } finally {
       setUpdatingId(null);
     }
@@ -73,7 +74,7 @@ export const PurchaseOrderHistory = () => {
       setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: 'Cancelled', cancelled_reason: reason } : o)));
     } catch (err) {
       console.error('Failed to cancel PO:', err);
-      alert('Failed to cancel PO. Please try again.');
+      setActionError('Failed to cancel PO. Please try again.');
     } finally {
       setUpdatingId(null);
     }
@@ -87,10 +88,10 @@ export const PurchaseOrderHistory = () => {
       setReceiveModalOrder(null);
     } catch (err) {
       if (err.response?.status === 409) {
-        alert('Concurrent inventory update detected. Please retry.');
+        setActionError('Concurrent inventory update detected. Please retry.');
       } else {
         console.error('Failed to receive PO:', err);
-        alert('Failed to receive PO. Please try again.');
+        setActionError('Failed to receive PO. Please try again.');
       }
     } finally {
       setUpdatingId(null);
@@ -106,10 +107,10 @@ export const PurchaseOrderHistory = () => {
       setUndoConfirmOrder(null);
     } catch (err) {
       if (err.response?.status >= 400 && err.response?.data?.detail) {
-        alert(err.response.data.detail);
+        setActionError(err.response.data.detail);
       } else {
         console.error('Failed to undo receive:', err);
-        alert('Failed to undo receipt. Please try again.');
+        setActionError('Failed to undo receipt. Please try again.');
       }
     } finally {
       setUpdatingId(null);
@@ -166,6 +167,24 @@ export const PurchaseOrderHistory = () => {
           Refresh
         </Button>
       </div>
+
+      {actionError && (
+        <div style={{
+          backgroundColor: 'var(--color-error-bg)',
+          border: '1px solid var(--color-error)',
+          color: 'var(--color-error)',
+          padding: '0.75rem 1rem',
+          borderRadius: 'var(--radius-md)',
+          marginBottom: '1rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontSize: '0.875rem'
+        }}>
+          <span>{actionError}</span>
+          <Button variant="ghost" size="sm" onClick={() => setActionError(null)}>Dismiss</Button>
+        </div>
+      )}
 
       <div className={styles.summaryStrip}>
         <div className={`${styles.statCard} ${styles.neutral}`}>

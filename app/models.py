@@ -197,7 +197,7 @@ class PurchaseOrder(Base):
     suggested_quantity = Column(Numeric(10, 3), nullable=False)
     actual_received_quantity = Column(Numeric(10, 3), nullable=True)
     date = Column(DateTime, default=datetime.utcnow)
-    status = Column(Enum(POStatusEnum), default=POStatusEnum.Draft)
+    status = Column(Enum(POStatusEnum, values_callable=lambda obj: [e.value for e in obj]), default=POStatusEnum.Draft)
     notes = Column(String, nullable=True)
     created_by_id = Column(String, ForeignKey("users.id"), nullable=True)
     sent_by_id = Column(String, ForeignKey("users.id"), nullable=True)
