@@ -229,92 +229,94 @@ export const PurchaseOrderHistory = () => {
           />
         </div>
       ) : (
-        <table className={styles.poTable}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: 'right' }}>PO ID</th>
-              <th style={{ textAlign: 'left' }}>Supplier</th>
-              <th style={{ textAlign: 'left' }}>Ingredient</th>
-              <th style={{ textAlign: 'right' }}>Quantity</th>
-              <th style={{ textAlign: 'left' }}>Date</th>
-              <th style={{ textAlign: 'left' }}>Notes</th>
-              <th style={{ textAlign: 'center' }}>Status</th>
-              <th style={{ textAlign: 'center' }}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((order) => (
-              <tr key={order.id}>
-                <td className={styles.textMuted} style={{ textAlign: 'right', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={`#${order.id}`}>#{order.id}</td>
-                <td style={{ fontWeight: 500, textAlign: 'left', maxWidth: '250px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={order.supplier_name || order.supplier_id || '—'}>{order.supplier_name || order.supplier_id || '—'}</td>
-                <td style={{ textAlign: 'left', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={order.ingredient_name || '—'}>{order.ingredient_name || '—'}</td>
-                <td style={{ textAlign: 'right' }}>{order.suggested_quantity} {order.unit || ''}</td>
-                <td className={styles.textMuted} style={{ textAlign: 'left' }}>
-                  {order.date ? formatDateStandard(order.date) : '—'}
-                </td>
-                <td className={styles.textMuted} style={{ textAlign: 'left' }}>{order.notes || '—'}</td>
-                <td style={{ textAlign: 'center' }}>
-                  <span className={`${styles.badge} ${getStatusBadgeClass(order.status)}`}>
-                    {order.status}
-                  </span>
-                </td>
-                <td style={{ textAlign: 'center' }}>
-                  <div className={styles.actionCell} style={{ justifyContent: 'center' }}>
-                    {order.status === 'Draft' && isManager && (
-                      <>
-                        <Button size="sm" variant="primary" onClick={() => setSendConfirmOrder(order)} disabled={updatingId === order.id}>
-                          {updatingId === order.id ? 'Saving...' : 'Mark as Sent'}
-                        </Button>
-                        <Button size="sm" variant="danger" onClick={() => handleCancel(order.id)} disabled={updatingId === order.id}>
-                          Cancel
-                        </Button>
-                      </>
-                    )}
-                    {order.status === 'Draft' && !isManager && (
-                      <span className={`${styles.badge} ${styles.badgeDraft}`} style={{ opacity: 0.8 }}>
-                        Pending Manager
-                      </span>
-                    )}
-                    {order.status === 'Sent' && (
-                      <>
-                        <Button size="sm" variant="secondary" onClick={() => setReceiveModalOrder(order)} disabled={updatingId === order.id}>
-                          Mark as Received
-                        </Button>
-                        {isManager && (
+        <div className="inventory-content">
+          <table className={styles.poTable}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'right' }}>PO ID</th>
+                <th style={{ textAlign: 'left' }}>Supplier</th>
+                <th style={{ textAlign: 'left' }}>Ingredient</th>
+                <th style={{ textAlign: 'right' }}>Quantity</th>
+                <th style={{ textAlign: 'left' }}>Date</th>
+                <th style={{ textAlign: 'left' }}>Notes</th>
+                <th style={{ textAlign: 'center' }}>Status</th>
+                <th style={{ textAlign: 'center' }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((order) => (
+                <tr key={order.id}>
+                  <td className={styles.textMuted} style={{ textAlign: 'right', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={`#${order.id}`}>#{order.id}</td>
+                  <td style={{ fontWeight: 500, textAlign: 'left', maxWidth: '250px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={order.supplier_name || order.supplier_id || '—'}>{order.supplier_name || order.supplier_id || '—'}</td>
+                  <td style={{ textAlign: 'left', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={order.ingredient_name || '—'}>{order.ingredient_name || '—'}</td>
+                  <td style={{ textAlign: 'right' }}>{order.suggested_quantity} {order.unit || ''}</td>
+                  <td className={styles.textMuted} style={{ textAlign: 'left' }}>
+                    {order.date ? formatDateStandard(order.date) : '—'}
+                  </td>
+                  <td className={styles.textMuted} style={{ textAlign: 'left' }}>{order.notes || '—'}</td>
+                  <td style={{ textAlign: 'center' }}>
+                    <span className={`${styles.badge} ${getStatusBadgeClass(order.status)}`}>
+                      {order.status}
+                    </span>
+                  </td>
+                  <td style={{ textAlign: 'center' }}>
+                    <div className={styles.actionCell} style={{ justifyContent: 'center' }}>
+                      {order.status === 'Draft' && isManager && (
+                        <>
+                          <Button size="sm" variant="primary" onClick={() => setSendConfirmOrder(order)} disabled={updatingId === order.id}>
+                            {updatingId === order.id ? 'Saving...' : 'Mark as Sent'}
+                          </Button>
                           <Button size="sm" variant="danger" onClick={() => handleCancel(order.id)} disabled={updatingId === order.id}>
                             Cancel
                           </Button>
-                        )}
-                      </>
-                    )}
-                    {(order.status === 'Received' || order.status === 'Partially Received' || order.status === 'Over-Received') && (
-                      <>
-                        <span className={styles.textMuted} style={{ fontSize: 'var(--font-size-xs)' }}>
-                          ✓ Completed
+                        </>
+                      )}
+                      {order.status === 'Draft' && !isManager && (
+                        <span className={`${styles.badge} ${styles.badgeDraft}`} style={{ opacity: 0.8 }}>
+                          Pending Manager
                         </span>
-                        <Button 
-                          size="sm" 
-                          variant="secondary" 
-                          onClick={() => setUndoConfirmOrder(order)} 
-                          disabled={updatingId === order.id || order.actual_received_quantity == null}
-                          title={order.actual_received_quantity == null ? "Legacy PO receipt cannot be undone" : "Undo Receipt"}
-                          style={{ marginLeft: '0.5rem', padding: '0.2rem 0.5rem', fontSize: 'var(--font-size-xs)' }}
-                        >
-                          Undo Receipt
-                        </Button>
-                      </>
-                    )}
-                    {order.status === 'Cancelled' && (
-                      <span className={styles.textMuted} style={{ fontSize: 'var(--font-size-xs)' }}>
-                        ✗ Cancelled
-                      </span>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                      )}
+                      {order.status === 'Sent' && (
+                        <>
+                          <Button size="sm" variant="secondary" onClick={() => setReceiveModalOrder(order)} disabled={updatingId === order.id}>
+                            Mark as Received
+                          </Button>
+                          {isManager && (
+                            <Button size="sm" variant="danger" onClick={() => handleCancel(order.id)} disabled={updatingId === order.id}>
+                              Cancel
+                            </Button>
+                          )}
+                        </>
+                      )}
+                      {(order.status === 'Received' || order.status === 'Partially Received' || order.status === 'Over-Received') && (
+                        <>
+                          <span className={styles.textMuted} style={{ fontSize: 'var(--font-size-xs)' }}>
+                            ✓ Completed
+                          </span>
+                          <Button 
+                            size="sm" 
+                            variant="secondary" 
+                            onClick={() => setUndoConfirmOrder(order)} 
+                            disabled={updatingId === order.id || order.actual_received_quantity == null}
+                            title={order.actual_received_quantity == null ? "Legacy PO receipt cannot be undone" : "Undo Receipt"}
+                            style={{ marginLeft: '0.5rem', padding: '0.2rem 0.5rem', fontSize: 'var(--font-size-xs)' }}
+                          >
+                            Undo Receipt
+                          </Button>
+                        </>
+                      )}
+                      {order.status === 'Cancelled' && (
+                        <span className={styles.textMuted} style={{ fontSize: 'var(--font-size-xs)' }}>
+                          ✗ Cancelled
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
       <ReceivePOModal
         isOpen={!!receiveModalOrder}

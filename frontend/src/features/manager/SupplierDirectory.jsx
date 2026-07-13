@@ -161,7 +161,7 @@ export const SupplierDirectory = () => {
           </div>
         </header>
 
-        <div className="inventory-table-section" style={{ backgroundColor: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', overflow: 'hidden' }}>
+        <div className="inventory-content">
           <div className="inventory-table-container">
             <table className="inventory-table">
               <thead>
