@@ -1,14 +1,14 @@
-.appLayoutContainer {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-  background-color: var(--color-bg-base);
-}
-
-.appMainContent {
-  flex: 1;
-  overflow-y: auto;
-  position: relative;
-}
+.appLayoutContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--color-bg-base);
+}
+
+.appMainContent {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+}

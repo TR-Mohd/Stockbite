@@ -1,52 +1,52 @@
-.inputWrapper {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
-  width: 100%;
-}
-
-.label {
-  font-family: var(--font-family-sans);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--color-text-secondary);
-}
-
-.input {
-  width: 100%;
-  font-family: var(--font-family-sans);
-  font-size: var(--font-size-sm);
-  padding: var(--spacing-2) var(--spacing-3);
-  border: 1px solid var(--color-text-tertiary);
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg-surface);
-  color: var(--color-text-primary);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-  outline: none;
-}
-
-.input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
-}
-
-.input:disabled {
-  background-color: var(--color-bg-base);
-  color: var(--color-text-tertiary);
-  cursor: not-allowed;
-}
-
-.inputError {
-  border-color: var(--color-error);
-}
-
-.inputError:focus {
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
-}
-
-.errorMessage {
-  font-family: var(--font-family-sans);
-  font-size: var(--font-size-xs);
-  color: var(--color-error);
-  margin-top: 2px;
-}
+.inputWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  width: 100%;
+}
+
+.label {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.input {
+  width: 100%;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--color-text-tertiary);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
+
+.input:disabled {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}
+
+.inputError {
+  border-color: var(--color-error);
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+.errorMessage {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-xs);
+  color: var(--color-error);
+  margin-top: 2px;
+}

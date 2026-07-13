@@ -1,519 +1,519 @@
-/* ================================================================
-   suppliers.module.css â€” Suppliers & Procurement Feature Styles
-   Uses global CSS variables from styles/global.css
-   ================================================================ */
-
-/* --- Layout --- */
-.dashboardContainer {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background-color: var(--color-bg-base);
-}
-
-.dashboardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-6) var(--spacing-8);
-  background-color: var(--color-bg-surface);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.headerInfo h1 {
-  font-size: var(--font-size-2xl);
-  font-weight: 700;
-  margin: 0 0 var(--spacing-1) 0;
-  color: var(--color-text-primary);
-}
-
-.headerInfo p {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-
-.dashboardContent {
-  flex: 1;
-  overflow: auto;
-  padding: var(--spacing-6) var(--spacing-8);
-}
-
-/* --- Pill Tab Navigation (Reusing POS Pattern) --- */
-.pillTabsContainer {
-  display: flex;
-  gap: var(--spacing-3);
-  margin-top: var(--spacing-4);
-  width: fit-content;
-}
-
-.pillTab {
-  padding: var(--spacing-2) var(--spacing-6);
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  background-color: transparent;
-  color: var(--color-text-secondary);
-  font-family: var(--font-family-sans);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  white-space: nowrap;
-}
-
-.pillTab:hover {
-  border-color: var(--color-primary);
-  color: var(--color-text-primary);
-  background-color: var(--color-bg-surface);
-}
-
-.activePillTab {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-text-inverse);
-  box-shadow: var(--shadow-sm);
-}
-
-/* --- Section Toolbar --- */
-.sectionToolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-5);
-}
-
-.sectionTitle {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin: 0;
-}
-
-/* --- KPI Stat Cards --- */
-.summaryStrip {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.statCard {
-  background-color: var(--color-bg-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.statCard.warning {
-  border-left: 4px solid var(--color-warning);
-}
-
-.statCard.danger {
-  border-left: 4px solid var(--color-error);
-}
-
-.statCard.neutral {
-  border-left: 4px solid var(--color-text-tertiary);
-}
-
-.statCard.success {
-  border-left: 4px solid var(--color-success);
-}
-
-.statLabel {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
-
-.statValue {
-  font-size: var(--font-size-2xl);
-  font-weight: 700;
-  color: var(--color-text-primary);
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-}
-
-/* --- Supplier Directory Grid --- */
-.supplierGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: var(--spacing-4);
-}
-
-.supplierCard {
-  background-color: var(--color-bg-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
-}
-
-.supplierCard:hover {
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-border-strong);
-}
-
-.supplierCard.inactive {
-  opacity: 0.6;
-}
-
-.cardTop {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--spacing-2);
-}
-
-.supplierName {
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin: 0;
-}
-
-.supplierDetails {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-}
-
-.detailRow {
-  display: flex;
-  gap: var(--spacing-2);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  align-items: center;
-}
-
-.detailRow svg {
-  flex-shrink: 0;
-  color: var(--color-text-tertiary);
-}
-
-.cardActions {
-  display: flex;
-  gap: var(--spacing-2);
-  padding-top: var(--spacing-3);
-  border-top: 1px solid var(--color-border);
-}
-
-/* --- Badges --- */
-.badge {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  text-transform: capitalize;
-  white-space: nowrap;
-}
-
-.badgeSpecialization {
-  background-color: var(--color-bg-base);
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-border);
-}
-
-.badgeActive {
-  background-color: var(--color-success-bg);
-  color: var(--color-success-text);
-}
-
-.badgeInactive {
-  background-color: var(--color-error-bg);
-  color: var(--color-error);
-}
-
-.badgeDraft {
-  background-color: var(--color-warning-bg);
-  color: var(--color-warning-text);
-}
-
-.badgeSent {
-  background-color: var(--color-info-bg);
-  color: var(--color-info-text);
-}
-
-.badgeReceived {
-  background-color: var(--color-success-bg);
-  color: var(--color-success-text);
-}
-
-.badgeWarning {
-  background-color: var(--color-warning-bg);
-  color: var(--color-warning-text);
-  border: 1px solid var(--color-warning);
-}
-
-
-
-.textMuted {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
-}
-
-.actionCell {
-  display: flex;
-  gap: var(--spacing-2);
-  align-items: center;
-}
-
-/* --- Draft PO Creator --- */
-.draftContainer {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-6);
-  align-items: flex-start;
-}
-
-@media (max-width: 768px) {
-  .draftContainer {
-    grid-template-columns: 1fr;
-  }
-}
-
-.alertsPanel {
-  background-color: var(--color-bg-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-5);
-}
-
-.alertsPanelTitle {
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  margin: 0 0 var(--spacing-1) 0;
-}
-
-.alertsPanelSub {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  margin: 0 0 var(--spacing-4) 0;
-}
-
-.alertsList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-}
-
-.alertItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-3) var(--spacing-4);
-  border-radius: var(--radius-md);
-  border-left: 3px solid var(--color-warning);
-  background-color: var(--color-bg-surface);
-  gap: var(--spacing-3);
-}
-
-.alertItemDark {
-  background-color: var(--color-bg-base);
-}
-
-.alertItemInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-}
-
-.alertItemName {
-  font-weight: 600;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-primary);
-}
-
-.alertItemMeta {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-}
-
-.alertItemStock {
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: var(--color-error);
-}
-
-.formPanel {
-  background-color: var(--color-bg-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-5);
-}
-
-.formPanelTitle {
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  margin: 0 0 var(--spacing-4) 0;
-  padding-bottom: var(--spacing-4);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.formGrid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-}
-
-.formRow {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
-}
-
-.formLabel {
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--color-text-secondary);
-}
-
-.formSelect {
-  width: 100%;
-  padding: var(--spacing-2) var(--spacing-3);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg-surface);
-  color: var(--color-text-primary);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-family-sans);
-  cursor: pointer;
-  transition: border-color var(--transition-fast);
-}
-
-.formSelect:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(225, 111, 45, 0.15);
-}
-
-.formTextarea {
-  width: 100%;
-  padding: var(--spacing-2) var(--spacing-3);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg-surface);
-  color: var(--color-text-primary);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-family-sans);
-  resize: vertical;
-  min-height: 80px;
-  transition: border-color var(--transition-fast);
-}
-
-.formTextarea:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(225, 111, 45, 0.15);
-}
-
-.formActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-2);
-  padding-top: var(--spacing-4);
-  border-top: 1px solid var(--color-border);
-}
-
-.emptyPlaceholder {
-  text-align: center;
-  padding: var(--spacing-12) var(--spacing-8);
-  color: var(--color-text-tertiary);
-}
-
-.emptyPlaceholder svg {
-  margin-bottom: var(--spacing-4);
-  color: var(--color-border-strong);
-}
-
-.emptyPlaceholder h3 {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-base);
-  margin-bottom: var(--spacing-2);
-}
-
-.emptyPlaceholder p {
-  font-size: var(--font-size-sm);
-  margin: 0;
-}
-
-/* --- Supplier Detail Modal --- */
-.modalSection {
-  margin-bottom: var(--spacing-5);
-}
-
-.modalSectionTitle {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-tertiary);
-  margin: 0 0 var(--spacing-3) 0;
-  padding-bottom: var(--spacing-2);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.infoGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-3);
-}
-
-.infoItem {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.infoItemLabel {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
-  font-weight: 500;
-  text-transform: uppercase;
-}
-
-.infoItemValue {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-primary);
-  font-weight: 500;
-}
-
-/* --- States --- */
-.loadingState {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-12);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  gap: var(--spacing-3);
-}
-
-.errorState {
-  background-color: var(--color-error-bg);
-  color: var(--color-error);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-4);
-  font-size: var(--font-size-sm);
-  text-align: center;
-}
-
-.successBanner {
-  background-color: var(--color-success-bg);
-  color: var(--color-success-text);
-  border: 1px solid var(--color-success-border);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-3) var(--spacing-4);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  margin-bottom: var(--spacing-4);
-}
+/* ================================================================
+   suppliers.module.css â€” Suppliers & Procurement Feature Styles
+   Uses global CSS variables from styles/global.css
+   ================================================================ */
+
+/* --- Layout --- */
+.dashboardContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--color-bg-base);
+}
+
+.dashboardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-6) var(--spacing-8);
+  background-color: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.headerInfo h1 {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  margin: 0 0 var(--spacing-1) 0;
+  color: var(--color-text-primary);
+}
+
+.headerInfo p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.dashboardContent {
+  flex: 1;
+  overflow: auto;
+  padding: var(--spacing-6) var(--spacing-8);
+}
+
+/* --- Pill Tab Navigation (Reusing POS Pattern) --- */
+.pillTabsContainer {
+  display: flex;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-4);
+  width: fit-content;
+}
+
+.pillTab {
+  padding: var(--spacing-2) var(--spacing-6);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.pillTab:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-surface);
+}
+
+.activePillTab {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-sm);
+}
+
+/* --- Section Toolbar --- */
+.sectionToolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-5);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+/* --- KPI Stat Cards --- */
+.summaryStrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.statCard {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.statCard.warning {
+  border-left: 4px solid var(--color-warning);
+}
+
+.statCard.danger {
+  border-left: 4px solid var(--color-error);
+}
+
+.statCard.neutral {
+  border-left: 4px solid var(--color-text-tertiary);
+}
+
+.statCard.success {
+  border-left: 4px solid var(--color-success);
+}
+
+.statLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.statValue {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+/* --- Supplier Directory Grid --- */
+.supplierGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-4);
+}
+
+.supplierCard {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.supplierCard:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-strong);
+}
+
+.supplierCard.inactive {
+  opacity: 0.6;
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+}
+
+.supplierName {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.supplierDetails {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.detailRow {
+  display: flex;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  align-items: center;
+}
+
+.detailRow svg {
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+}
+
+.cardActions {
+  display: flex;
+  gap: var(--spacing-2);
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--color-border);
+}
+
+/* --- Badges --- */
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.badgeSpecialization {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.badgeActive {
+  background-color: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.badgeInactive {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.badgeDraft {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.badgeSent {
+  background-color: var(--color-info-bg);
+  color: var(--color-info-text);
+}
+
+.badgeReceived {
+  background-color: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.badgeWarning {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  border: 1px solid var(--color-warning);
+}
+
+
+
+.textMuted {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.actionCell {
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: center;
+}
+
+/* --- Draft PO Creator --- */
+.draftContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-6);
+  align-items: flex-start;
+}
+
+@media (max-width: 768px) {
+  .draftContainer {
+    grid-template-columns: 1fr;
+  }
+}
+
+.alertsPanel {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-5);
+}
+
+.alertsPanelTitle {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  margin: 0 0 var(--spacing-1) 0;
+}
+
+.alertsPanelSub {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-4) 0;
+}
+
+.alertsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.alertItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-warning);
+  background-color: var(--color-bg-surface);
+  gap: var(--spacing-3);
+}
+
+.alertItemDark {
+  background-color: var(--color-bg-base);
+}
+
+.alertItemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.alertItemName {
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.alertItemMeta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.alertItemStock {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-error);
+}
+
+.formPanel {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-5);
+}
+
+.formPanelTitle {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  margin: 0 0 var(--spacing-4) 0;
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.formGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.formRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.formLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.formSelect {
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-sans);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.formSelect:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(225, 111, 45, 0.15);
+}
+
+.formTextarea {
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-sans);
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color var(--transition-fast);
+}
+
+.formTextarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(225, 111, 45, 0.15);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-2);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.emptyPlaceholder {
+  text-align: center;
+  padding: var(--spacing-12) var(--spacing-8);
+  color: var(--color-text-tertiary);
+}
+
+.emptyPlaceholder svg {
+  margin-bottom: var(--spacing-4);
+  color: var(--color-border-strong);
+}
+
+.emptyPlaceholder h3 {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-2);
+}
+
+.emptyPlaceholder p {
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+/* --- Supplier Detail Modal --- */
+.modalSection {
+  margin-bottom: var(--spacing-5);
+}
+
+.modalSectionTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-tertiary);
+  margin: 0 0 var(--spacing-3) 0;
+  padding-bottom: var(--spacing-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-3);
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.infoItemLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.infoItemValue {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+/* --- States --- */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-12);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  gap: var(--spacing-3);
+}
+
+.errorState {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+.successBanner {
+  background-color: var(--color-success-bg);
+  color: var(--color-success-text);
+  border: 1px solid var(--color-success-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  margin-bottom: var(--spacing-4);
+}

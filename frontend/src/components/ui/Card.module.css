@@ -1,46 +1,46 @@
-.card {
-  background-color: var(--color-bg-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: box-shadow var(--transition-base), transform var(--transition-base);
-}
-
-.interactive:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-  cursor: pointer;
-}
-
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.header {
-  padding: var(--spacing-4);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  font-weight: 600;
-  font-size: var(--font-size-lg);
-  color: var(--color-text-primary);
-}
-
-.content {
-  padding: var(--spacing-4);
-  flex: 1;
-}
-
-.footer {
-  padding: var(--spacing-3) var(--spacing-4);
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-  background-color: var(--color-bg-base);
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--spacing-2);
-}
+.card {
+  background-color: var(--color-bg-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+.interactive:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  cursor: pointer;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.header {
+  padding: var(--spacing-4);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-primary);
+}
+
+.content {
+  padding: var(--spacing-4);
+  flex: 1;
+}
+
+.footer {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: var(--color-bg-base);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-2);
+}

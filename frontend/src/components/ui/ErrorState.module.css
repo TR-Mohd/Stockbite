@@ -1,55 +1,55 @@
-.errorStateContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-8) var(--spacing-4);
-  text-align: center;
-  border-radius: var(--radius-lg);
-  background-color: var(--color-bg-base);
-  border: 1px dashed var(--color-error);
-  width: 100%;
-}
-
-.iconWrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background-color: rgba(239, 68, 68, 0.1);
-  color: var(--color-error);
-  margin-bottom: var(--spacing-4);
-}
-
-.title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--color-error);
-  margin: 0 0 var(--spacing-2) 0;
-}
-
-.message {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  max-width: 400px;
-  margin: 0;
-  line-height: 1.5;
-}
-
-.retryBtn {
-  margin-top: var(--spacing-6);
-  padding: var(--spacing-2) var(--spacing-6);
-  border-radius: var(--radius-md);
-  background-color: var(--color-error);
-  color: white;
-  border: none;
-  font-weight: 500;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.retryBtn:hover {
-  opacity: 0.9;
-}
+.errorStateContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-8) var(--spacing-4);
+  text-align: center;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg-base);
+  border: 1px dashed var(--color-error);
+  width: 100%;
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+  margin-bottom: var(--spacing-4);
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-error);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.message {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  max-width: 400px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.retryBtn {
+  margin-top: var(--spacing-6);
+  padding: var(--spacing-2) var(--spacing-6);
+  border-radius: var(--radius-md);
+  background-color: var(--color-error);
+  color: white;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.retryBtn:hover {
+  opacity: 0.9;
+}
