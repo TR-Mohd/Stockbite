@@ -451,15 +451,31 @@
 }
 
 .toggleActionBtn {
-  border: 1px solid var(--color-error, #ef4444);
+  border: 1px solid var(--color-border-strong);
   padding: 0.25rem 0;
   border-radius: 4px;
   font-size: 0.8rem;
   font-weight: 500;
-  color: var(--color-error, #ef4444);
+  color: var(--color-text-secondary);
   width: 85px;
   text-align: center;
   background: transparent;
+  transition: all var(--transition-fast);
+}
+
+.toggleActionBtn:hover {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.toggleActionBtn.activateBtn {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.toggleActionBtn.activateBtn:hover {
+  background-color: var(--color-success-bg);
 }
 
 .modalFooter {
@@ -647,15 +663,31 @@
 }
 
 .toggleActionBtn {
-  border: 1px solid var(--color-error, #ef4444);
+  border: 1px solid var(--color-border-strong);
   padding: 0.25rem 0;
   border-radius: 4px;
   font-size: 0.8rem;
   font-weight: 500;
-  color: var(--color-error, #ef4444);
+  color: var(--color-text-secondary);
   width: 85px;
   text-align: center;
   background: transparent;
+  transition: all var(--transition-fast);
+}
+
+.toggleActionBtn:hover {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.toggleActionBtn.activateBtn {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.toggleActionBtn.activateBtn:hover {
+  background-color: var(--color-success-bg);
 }
 
 .modalFooter {

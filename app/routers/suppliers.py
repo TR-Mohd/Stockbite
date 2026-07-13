@@ -101,6 +101,10 @@ async def create_purchase_order(
     if not ingredient:
         raise HTTPException(status_code=404, detail="Ingredient not found")
         
+    if ingredient.unit and ingredient.unit.lower() == 'pcs':
+        if suggested_qty % 1 != 0:
+            raise HTTPException(status_code=400, detail="Fractional quantities are not allowed for 'pcs'")
+        
     from datetime import datetime
     now = datetime.utcnow()
     yy = str(now.year)[-2:]

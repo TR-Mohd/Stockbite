@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
-import { Input } from '../../../components/ui/Input';
+import { NumberInput } from '../../../components/ui/NumberInput';
+import { formatQuantity } from '../../../utils/formatters';
 import '../../../styles/inventory/modals/InventoryModals.css';
 
 export const LogWasteModal = ({ isOpen, onClose, ingredient, onSubmit }) => {
@@ -25,7 +26,7 @@ export const LogWasteModal = ({ isOpen, onClose, ingredient, onSubmit }) => {
     setWasteQty(val);
     const num = Number(val);
     if (num > ingredient.stock) {
-      setError(`Cannot exceed current stock (${ingredient.stock} ${ingredient.uom})`);
+      setError(`Cannot exceed current stock (${formatQuantity(ingredient.stock, ingredient.uom)} ${ingredient.uom})`);
     } else {
       setError('');
     }
@@ -51,7 +52,7 @@ export const LogWasteModal = ({ isOpen, onClose, ingredient, onSubmit }) => {
       <div className="modal-info-panel">
         <div className="modal-info-row">
           <span className="modal-info-label">Current Stock:</span>
-          <span className="modal-info-value">{ingredient.stock} {ingredient.uom}</span>
+          <span className="modal-info-value">{formatQuantity(ingredient.stock, ingredient.uom)} {ingredient.uom}</span>
         </div>
         <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
           Logging waste will deduct the specified quantity from the current stock level.
@@ -60,13 +61,13 @@ export const LogWasteModal = ({ isOpen, onClose, ingredient, onSubmit }) => {
 
       <div className="modal-form-group">
         <label className="modal-label">Quantity Wasted ({ingredient.uom}) *</label>
-        <input 
-          type="number" 
+        <NumberInput 
+          unit={ingredient.uom}
           className="modal-input" 
           value={wasteQty}
           onChange={(e) => validateQuantity(e.target.value)}
-          min="1"
-          max={ingredient.stock}
+          min="0"
+          placeholder="0"
         />
         {error && <span className="modal-error-text">{error}</span>}
       </div>

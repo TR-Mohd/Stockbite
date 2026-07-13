@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
+import { NumberInput } from '../../../components/ui/NumberInput';
 import api from '../../../core/api/axios';
 import '../../../styles/inventory/modals/InventoryModals.css';
 
@@ -153,8 +154,7 @@ export const AddIngredientModal = ({ isOpen, onClose, inventoryData, onSubmit })
       <div className="modal-form-group" style={{ display: 'flex', gap: '16px' }}>
         <div style={{ flex: 1 }}>
           <label className="modal-label">Unit Cost (Rp)</label>
-          <input 
-            type="number" 
+          <NumberInput 
             className="modal-input" 
             value={unitCost}
             onChange={(e) => setUnitCost(e.target.value)}
@@ -164,8 +164,8 @@ export const AddIngredientModal = ({ isOpen, onClose, inventoryData, onSubmit })
         </div>
         <div style={{ flex: 1 }}>
           <label className="modal-label">Reorder Point</label>
-          <input 
-            type="number" 
+          <NumberInput 
+            unit={unit}
             className="modal-input" 
             value={reorderPoint}
             onChange={(e) => setReorderPoint(e.target.value)}

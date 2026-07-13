@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../../core/api/axios';
-import { formatCurrency, formatDateStandard } from '../../../utils/formatters';
+import { formatCurrency, formatDateStandard, formatQuantity } from '../../../utils/formatters';
 
 const MAX_VISIBLE = 3;
 
@@ -147,7 +147,7 @@ export const POActionWidget = () => {
                 {/* Right: qty + estimated cost */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px', flexShrink: 0, marginLeft: '1rem' }}>
                   <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-text-primary)' }}>
-                    {po.suggested_quantity} {po.unit}
+                    {formatQuantity(po.suggested_quantity, po.unit)} {po.unit}
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)' }}>
                     {estimatedTotal != null

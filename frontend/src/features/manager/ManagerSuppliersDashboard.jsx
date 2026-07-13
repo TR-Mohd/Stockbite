@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { SupplierDirectory } from './SupplierDirectory';
 import { PurchaseOrderHistory } from '../suppliers/PurchaseOrderHistory';
 import styles from '../suppliers/suppliers.module.css';
+import '../../styles/inventory/InventoryDashboard.css';
 
 const TABS = [
   { id: 'directory', label: '🏢 Supplier Directory' },
@@ -32,45 +33,22 @@ export const ManagerSuppliersDashboard = () => {
 
   return (
     <div className={styles.dashboardContainer} style={{ background: 'var(--color-bg-base)' }}>
-      {/* Unified Header */}
-      <div className={styles.dashboardHeader} style={{ padding: 'var(--spacing-6)' }}>
-        <div className={styles.headerInfo}>
-          <h1 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>Suppliers & Procurement</h1>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>Manage your vendor directory and purchase orders</p>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className={styles.tabNavigation} style={{ marginTop: '1.5rem', display: 'flex', gap: '0.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0' }}>
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              style={{
-                background: 'none',
-                border: 'none',
-                borderBottom: activeTab === tab.id ? '2px solid var(--color-primary)' : '2px solid transparent',
-                color: activeTab === tab.id ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-                padding: '0.75rem 1rem',
-                fontSize: '0.95rem',
-                fontWeight: activeTab === tab.id ? '600' : '500',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              onClick={() => handleTabChange(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      <div className={styles.pillTabsContainer} style={{ marginTop: 'var(--spacing-6)', marginLeft: 'var(--spacing-8)' }}>
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            className={`${styles.pillTab} ${activeTab === tab.id ? styles.activePillTab : ''}`}
+            onClick={() => handleTabChange(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Content Area */}
-      <div className={styles.dashboardContent} style={{ padding: '0', background: 'transparent' }}>
+      <div className={styles.dashboardContent} style={{ padding: 'var(--spacing-6) var(--spacing-8)', background: 'transparent' }}>
         {activeTab === 'directory' && <SupplierDirectory />}
-        {activeTab === 'orders' && (
-          <div style={{ padding: '0 var(--spacing-6)' }}>
-            <PurchaseOrderHistory />
-          </div>
-        )}
+        {activeTab === 'orders' && <PurchaseOrderHistory />}
       </div>
     </div>
   );

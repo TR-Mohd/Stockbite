@@ -56,6 +56,17 @@ export const formatCurrency = (amount) => {
   }).format(amount);
 };
 
+export const formatQuantity = (value, unit) => {
+  if (value === undefined || value === null) return '—';
+  const numValue = Number(value);
+  if (isNaN(numValue)) return value;
+  
+  const isPcs = unit && unit.toLowerCase() === 'pcs';
+  return new Intl.NumberFormat('id-ID', {
+    maximumFractionDigits: isPcs ? 0 : 3
+  }).format(numValue);
+};
+
 export const formatDateStandard = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);

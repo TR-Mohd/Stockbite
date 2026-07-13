@@ -6,8 +6,9 @@ import { ErrorState } from '../../components/ui/ErrorState';
 import { useAuthStore } from '../../core/store/authStore';
 import { Modal } from '../../components/ui/Modal';
 import { ReceivePOModal } from './ReceivePOModal';
-import { formatDateStandard, formatCurrency } from '../../utils/formatters';
+import { formatDateStandard, formatCurrency, formatQuantity } from '../../utils/formatters';
 import styles from './suppliers.module.css';
+import '../../styles/inventory/InventoryTable.css';
 
 const STATUS_FLOW = {
   Draft: 'Sent',
@@ -21,6 +22,13 @@ const STATUS_LABELS = {
 };
 
 export const PurchaseOrderHistory = () => {
+  const isOlderThan24Hours = (dateString) => {
+    if (!dateString) return false;
+    const poDate = new Date(dateString);
+    const now = new Date();
+    return (now - poDate) / (1000 * 60 * 60) > 24;
+  };
+
   const { user } = useAuthStore();
   const isManager = user?.role === 'Manager';
   const [orders, setOrders] = useState([]);
@@ -30,6 +38,7 @@ export const PurchaseOrderHistory = () => {
   const [receiveModalOrder, setReceiveModalOrder] = useState(null);
   const [undoConfirmOrder, setUndoConfirmOrder] = useState(null);
   const [sendConfirmOrder, setSendConfirmOrder] = useState(null);
+  const [actionError, setActionError] = useState(null);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -58,7 +67,7 @@ export const PurchaseOrderHistory = () => {
       setSendConfirmOrder(null);
     } catch (err) {
       console.error('Failed to send PO:', err);
-      alert('Failed to send PO. Please try again.');
+      setActionError('Failed to send PO. Please try again.');
     } finally {
       setUpdatingId(null);
     }
@@ -73,7 +82,7 @@ export const PurchaseOrderHistory = () => {
       setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: 'Cancelled', cancelled_reason: reason } : o)));
     } catch (err) {
       console.error('Failed to cancel PO:', err);
-      alert('Failed to cancel PO. Please try again.');
+      setActionError('Failed to cancel PO. Please try again.');
     } finally {
       setUpdatingId(null);
     }
@@ -87,10 +96,10 @@ export const PurchaseOrderHistory = () => {
       setReceiveModalOrder(null);
     } catch (err) {
       if (err.response?.status === 409) {
-        alert('Concurrent inventory update detected. Please retry.');
+        setActionError('Concurrent inventory update detected. Please retry.');
       } else {
         console.error('Failed to receive PO:', err);
-        alert('Failed to receive PO. Please try again.');
+        setActionError('Failed to receive PO. Please try again.');
       }
     } finally {
       setUpdatingId(null);
@@ -106,10 +115,10 @@ export const PurchaseOrderHistory = () => {
       setUndoConfirmOrder(null);
     } catch (err) {
       if (err.response?.status >= 400 && err.response?.data?.detail) {
-        alert(err.response.data.detail);
+        setActionError(err.response.data.detail);
       } else {
         console.error('Failed to undo receive:', err);
-        alert('Failed to undo receipt. Please try again.');
+        setActionError('Failed to undo receipt. Please try again.');
       }
     } finally {
       setUpdatingId(null);
@@ -160,12 +169,29 @@ export const PurchaseOrderHistory = () => {
 
   return (
     <>
-      <div className={styles.sectionToolbar}>
-        <h2 className={styles.sectionTitle}>Purchase Order History</h2>
-        <Button size="sm" variant="secondary" onClick={fetchOrders}>
+      <div className={styles.sectionToolbar} style={{ justifyContent: 'flex-end' }}>
+        <Button size="md" variant="primary" onClick={fetchOrders}>
           Refresh
         </Button>
       </div>
+
+      {actionError && (
+        <div style={{
+          backgroundColor: 'var(--color-error-bg)',
+          border: '1px solid var(--color-error)',
+          color: 'var(--color-error)',
+          padding: '0.75rem 1rem',
+          borderRadius: 'var(--radius-md)',
+          marginBottom: '1rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontSize: '0.875rem'
+        }}>
+          <span>{actionError}</span>
+          <Button variant="ghost" size="sm" onClick={() => setActionError(null)}>Dismiss</Button>
+        </div>
+      )}
 
       <div className={styles.summaryStrip}>
         <div className={`${styles.statCard} ${styles.neutral}`}>
@@ -210,92 +236,106 @@ export const PurchaseOrderHistory = () => {
           />
         </div>
       ) : (
-        <table className={styles.poTable}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: 'right' }}>PO ID</th>
-              <th style={{ textAlign: 'left' }}>Supplier</th>
-              <th style={{ textAlign: 'left' }}>Ingredient</th>
-              <th style={{ textAlign: 'right' }}>Quantity</th>
-              <th style={{ textAlign: 'left' }}>Date</th>
-              <th style={{ textAlign: 'left' }}>Notes</th>
-              <th style={{ textAlign: 'center' }}>Status</th>
-              <th style={{ textAlign: 'center' }}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((order) => (
-              <tr key={order.id}>
-                <td className={styles.textMuted} style={{ textAlign: 'right' }}>#{order.id}</td>
-                <td style={{ fontWeight: 500, textAlign: 'left' }}>{order.supplier_name || order.supplier_id || '—'}</td>
-                <td style={{ textAlign: 'left' }}>{order.ingredient_name || '—'}</td>
-                <td style={{ textAlign: 'right' }}>{order.suggested_quantity} {order.unit || ''}</td>
-                <td className={styles.textMuted} style={{ textAlign: 'left' }}>
-                  {order.date ? formatDateStandard(order.date) : '—'}
-                </td>
-                <td className={styles.textMuted} style={{ textAlign: 'left' }}>{order.notes || '—'}</td>
-                <td style={{ textAlign: 'center' }}>
-                  <span className={`${styles.badge} ${getStatusBadgeClass(order.status)}`}>
-                    {order.status}
-                  </span>
-                </td>
-                <td style={{ textAlign: 'center' }}>
-                  <div className={styles.actionCell} style={{ justifyContent: 'center' }}>
-                    {order.status === 'Draft' && isManager && (
-                      <>
-                        <Button size="sm" variant="primary" onClick={() => setSendConfirmOrder(order)} disabled={updatingId === order.id}>
-                          {updatingId === order.id ? 'Saving...' : 'Mark as Sent'}
-                        </Button>
-                        <Button size="sm" variant="danger" onClick={() => handleCancel(order.id)} disabled={updatingId === order.id}>
-                          Cancel
-                        </Button>
-                      </>
-                    )}
-                    {order.status === 'Draft' && !isManager && (
-                      <span className={`${styles.badge} ${styles.badgeDraft}`} style={{ opacity: 0.8 }}>
-                        Pending Manager
-                      </span>
-                    )}
-                    {order.status === 'Sent' && (
-                      <>
-                        <Button size="sm" variant="secondary" onClick={() => setReceiveModalOrder(order)} disabled={updatingId === order.id}>
-                          Mark as Received
-                        </Button>
-                        {isManager && (
+        <div className="inventory-content">
+          <div className="inventory-table-container">
+            <table className="inventory-table">
+              <thead>
+                <tr>
+                  <th className="text-left">PO ID</th>
+                  <th className="text-left">Supplier</th>
+                  <th className="text-left">Ingredient</th>
+                  <th className="text-right">Quantity</th>
+                  <th className="text-left">Date</th>
+                  <th className="text-left">Notes</th>
+                  <th className="text-center">Status</th>
+                  <th className="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+              {orders.map((order) => (
+                <tr key={order.id}>
+                  <td className="text-muted font-medium text-left" title={`#${order.id}`}>
+                    <div className="truncate-text" style={{ maxWidth: '100px' }}>#{order.id}</div>
+                  </td>
+                  <td className="font-medium text-left">
+                    <div className="tooltip-container" style={{ display: 'block', maxWidth: '250px' }}>
+                      <span className="truncate-text">{order.supplier_name || order.supplier_id || '—'}</span>
+                    </div>
+                  </td>
+                  <td className="text-left">
+                    <div className="truncate-text" style={{ maxWidth: '150px' }}>{order.ingredient_name || '—'}</div>
+                  </td>
+                  <td className="text-right font-medium">{formatQuantity(order.suggested_quantity, order.unit)} {order.unit || ''}</td>
+                  <td className="text-muted text-left">
+                    {order.date ? formatDateStandard(order.date) : '—'}
+                  </td>
+                  <td className="text-muted text-left">{order.notes || '—'}</td>
+                  <td className="text-center">
+                    <span className={`${styles.badge} ${getStatusBadgeClass(order.status)}`}>
+                      {order.status}
+                    </span>
+                  </td>
+                  <td className="text-center">
+                    <div className={styles.actionCell} style={{ justifyContent: 'center' }}>
+                      {order.status === 'Draft' && isManager && (
+                        <>
+                          <Button size="sm" variant="primary" onClick={() => setSendConfirmOrder(order)} disabled={updatingId === order.id}>
+                            {updatingId === order.id ? 'Saving...' : 'Mark as Sent'}
+                          </Button>
                           <Button size="sm" variant="danger" onClick={() => handleCancel(order.id)} disabled={updatingId === order.id}>
                             Cancel
                           </Button>
-                        )}
-                      </>
-                    )}
-                    {(order.status === 'Received' || order.status === 'Partially Received' || order.status === 'Over-Received') && (
-                      <>
-                        <span className={styles.textMuted} style={{ fontSize: 'var(--font-size-xs)' }}>
-                          ✓ Completed
+                        </>
+                      )}
+                      {order.status === 'Draft' && !isManager && (
+                        <span className={`${styles.badge} ${styles.badgeDraft}`} style={{ opacity: 0.8 }}>
+                          Pending Manager
                         </span>
-                        <Button 
-                          size="sm" 
-                          variant="secondary" 
-                          onClick={() => setUndoConfirmOrder(order)} 
-                          disabled={updatingId === order.id || order.actual_received_quantity == null}
-                          title={order.actual_received_quantity == null ? "Legacy PO receipt cannot be undone" : "Undo Receipt"}
-                          style={{ marginLeft: '0.5rem', padding: '0.2rem 0.5rem', fontSize: 'var(--font-size-xs)' }}
-                        >
-                          Undo Receipt
-                        </Button>
-                      </>
-                    )}
-                    {order.status === 'Cancelled' && (
-                      <span className={styles.textMuted} style={{ fontSize: 'var(--font-size-xs)' }}>
-                        ✗ Cancelled
-                      </span>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                      )}
+                      {order.status === 'Sent' && (
+                        <>
+                          <Button size="sm" variant="secondary" onClick={() => setReceiveModalOrder(order)} disabled={updatingId === order.id}>
+                            Mark as Received
+                          </Button>
+                          {isManager && (
+                            <Button size="sm" variant="danger" onClick={() => handleCancel(order.id)} disabled={updatingId === order.id}>
+                              Cancel
+                            </Button>
+                          )}
+                        </>
+                      )}
+                      {(order.status === 'Received' || order.status === 'Partially Received' || order.status === 'Over-Received') && (
+                        <>
+                          <span className={styles.textMuted} style={{ fontSize: 'var(--font-size-xs)' }}>
+                            ✓ Completed
+                          </span>
+                          {(!isOlderThan24Hours(order.date) || order.actual_received_quantity == null) && (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => setUndoConfirmOrder(order)} 
+                              disabled={updatingId === order.id || order.actual_received_quantity == null}
+                              title={order.actual_received_quantity == null ? "Legacy PO receipt cannot be undone" : "Undo Receipt"}
+                              style={{ marginLeft: '0.5rem', padding: '0.2rem 0.5rem', fontSize: 'var(--font-size-xs)' }}
+                            >
+                              Undo Receipt
+                            </Button>
+                          )}
+                        </>
+                      )}
+                      {order.status === 'Cancelled' && (
+                        <span className={styles.textMuted} style={{ fontSize: 'var(--font-size-xs)' }}>
+                          ✗ Cancelled
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          </div>
+        </div>
       )}
       <ReceivePOModal
         isOpen={!!receiveModalOrder}

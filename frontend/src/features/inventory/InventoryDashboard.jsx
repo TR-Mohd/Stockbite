@@ -186,7 +186,7 @@ export const InventoryDashboard = () => {
               to="/suppliers" 
               className={({ isActive }) => isActive ? `${headerStyles.navLink} ${headerStyles.activeLink}` : headerStyles.navLink}
             >
-              Suppliers
+              Purchase Orders
             </NavLink>
           </>
         )}

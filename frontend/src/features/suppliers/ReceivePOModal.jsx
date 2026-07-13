@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
+import { formatQuantity } from '../../utils/formatters';
+import { NumberInput } from '../../components/ui/NumberInput';
 import styles from './suppliers.module.css';
 
 export const ReceivePOModal = ({ isOpen, onClose, order, onSubmit }) => {
@@ -41,16 +43,15 @@ export const ReceivePOModal = ({ isOpen, onClose, order, onSubmit }) => {
             </div>
             <div className={styles.infoItem}>
               <span className={styles.infoItemLabel}>Ordered Quantity</span>
-              <span className={styles.infoItemValue}>{order.suggested_quantity} {order.unit}</span>
+              <span className={styles.infoItemValue}>{formatQuantity(order.suggested_quantity, order.unit)} {order.unit}</span>
             </div>
           </div>
           
           <div className="modal-form-group">
             <label className="modal-label">Actual Quantity Received ({order.unit}) *</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0.01"
+            <NumberInput
+              unit={order.unit}
+              min="0"
               required
               className="modal-input"
               value={actualQuantity}
@@ -63,7 +64,7 @@ export const ReceivePOModal = ({ isOpen, onClose, order, onSubmit }) => {
         </div>
 
         <div className="modal-footer" style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-          <Button type="button" variant="secondary" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={onClose}>
             Cancel
           </Button>
           <Button type="submit" variant="primary">

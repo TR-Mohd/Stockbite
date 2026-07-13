@@ -230,7 +230,7 @@ export const StaffManagement = () => {
                             <EditIcon />
                           </button>
                           <button 
-                            className={`icon-action-btn text-error ${styles.toggleActionBtn}`}
+                            className={`icon-action-btn ${styles.toggleActionBtn} ${staff.status !== 'Active' ? styles.activateBtn : ''}`}
                             title={staff.status === 'Active' ? 'Deactivate' : 'Activate'}
                             onClick={() => toggleStatus(staff.id)}
                           >

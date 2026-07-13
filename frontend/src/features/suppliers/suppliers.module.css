@@ -39,35 +39,39 @@
   padding: var(--spacing-6) var(--spacing-8);
 }
 
-/* --- Tab Navigation --- */
-.tabNavigation {
+/* --- Pill Tab Navigation (Reusing POS Pattern) --- */
+.pillTabsContainer {
   display: flex;
-  gap: 0;
-  border-bottom: 2px solid var(--color-border);
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-4);
+  width: fit-content;
 }
 
-.tabButton {
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
-  padding: var(--spacing-3) var(--spacing-5);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
+.pillTab {
+  padding: var(--spacing-2) var(--spacing-6);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background-color: transparent;
   color: var(--color-text-secondary);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
   cursor: pointer;
-  transition: color var(--transition-fast), border-color var(--transition-fast);
+  transition: all var(--transition-fast);
   white-space: nowrap;
 }
 
-.tabButton:hover {
-  color: var(--color-primary);
+.pillTab:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-surface);
 }
 
-.tabButton.activeTab {
-  color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
-  font-weight: 600;
+.activePillTab {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-sm);
 }
 
 /* --- Section Toolbar --- */
@@ -249,46 +253,7 @@
   border: 1px solid var(--color-warning);
 }
 
-/* --- Purchase Order List --- */
-.poTable {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: var(--color-bg-surface);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-}
 
-.poTable thead {
-  background-color: var(--color-bg-base);
-}
-
-.poTable th {
-  padding: var(--spacing-3) var(--spacing-4);
-  text-align: left;
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-secondary);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.poTable td {
-  padding: var(--spacing-4);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-primary);
-  border-bottom: 1px solid var(--color-border);
-  vertical-align: middle;
-}
-
-.poTable tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.poTable tbody tr:hover {
-  background-color: var(--color-bg-surface-hover);
-}
 
 .textMuted {
   color: var(--color-text-secondary);
