@@ -1,291 +1,291 @@
-/* POS Dashboard Layout â€” Premium Cashier Interface */
-
-.pos-layout-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background-color: var(--color-bg-base);
-  font-family: var(--font-family-sans);
-  overflow: hidden;
-}
-
-/* Top Navigation Bar */
-.pos-header-nav {
-  background-color: var(--color-bg-surface);
-  border-bottom: 1px solid var(--color-border);
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-
-.pos-header-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  padding: var(--spacing-6);
-}
-
-.pos-header-nav h1 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.pos-header-actions {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-/* Navbar Search */
-.pos-nav-search {
-  position: relative;
-  width: 300px;
-}
-
-.pos-nav-search-icon {
-  position: absolute;
-  left: var(--spacing-3);
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-text-secondary);
-  width: 16px;
-  height: 16px;
-  pointer-events: none;
-}
-
-.pos-nav-search-input {
-  width: 100%;
-  padding: 0.625rem 1rem 0.625rem calc(1rem + 24px);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background-color: #ffffff;
-  color: var(--color-text-primary);
-  font-family: inherit;
-  font-size: 0.875rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: border-color var(--transition-fast);
-}
-
-@media (prefers-color-scheme: dark) {
-  .pos-nav-search-input {
-    background-color: #262220;
-  }
-}
-
-.pos-nav-search-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-}
-
-/* Container to group the greeting and button */
-.pos-header-user-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* Greeting text */
-.pos-user-greeting {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--color-text-secondary); 
-}
-
-/* Logout ghost button */
-.pos-logout-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  color: var(--color-error);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.pos-logout-button:hover {
-  background-color: rgba(239, 68, 68, 0.1);
-  border-color: var(--color-error);
-}
-
-.pos-logout-icon {
-  flex-shrink: 0;
-}
-
-/* Main Layout */
-.pos-main-content {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-  background-color: var(--color-bg-base);
-}
-
-/* Left Panel â€” Menu Section (73%) */
-.pos-menu-section {
-  flex: 0 0 73%;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  padding: var(--spacing-6);
-  /* Removed border-right to prevent double borders; relies on cart's border-left */
-}
-
-/* Header */
-.pos-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  min-height: 36px;
-  margin-bottom: var(--spacing-3);
-}
-
-.pos-header-title {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  color: var(--color-text-primary);
-  margin: 0;
-  line-height: 1.2;
-}
-
-.pos-header-subtitle {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  margin: 0;
-  font-weight: 500;
-}
-
-/* Right Panel â€” Order Details (27%) */
-.pos-cart-section {
-  flex: 0 0 27%;
-  display: flex;
-  flex-direction: column;
-  padding: var(--spacing-6);
-  overflow-y: auto;
-  background-color: var(--color-bg-surface);
-  border-left: 1px solid var(--color-border);
-}
-
-.pos-cart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  min-height: 36px;
-  margin-bottom: var(--spacing-3);
-}
-
-.pos-cart-title {
-  color: var(--color-text-primary);
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  margin: 0;
-  line-height: 1.2;
-}
-
-.btn-empty-cart {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  background-color: transparent;
-  border: 1px solid var(--color-error);
-  color: var(--color-error);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  cursor: pointer;
-  padding: var(--spacing-2) var(--spacing-3);
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
-}
-
-.btn-empty-cart:hover {
-  background-color: var(--color-error);
-  color: #FFFFFF;
-}
-
-/* Order Summary */
-.pos-order-summary {
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--spacing-4);
-  margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
-}
-
-.pos-summary-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-}
-
-.pos-summary-row.total {
-  font-size: var(--font-size-lg);
-  font-weight: 700;
-  color: var(--color-text-primary);
-  padding-top: var(--spacing-3);
-  border-top: 1px solid var(--color-border);
-}
-
-.pos-summary-row.total .pos-summary-value {
-  color: var(--color-primary);
-  font-size: var(--font-size-xl);
-}
-
-/* Make Order CTA */
-.btn-make-order {
-  width: 100%;
-  padding: var(--spacing-4);
-  background-color: var(--color-primary);
-  color: var(--color-text-inverse);
-  border: none;
-  border-radius: var(--radius-md);
-  font-family: var(--font-family-sans);
-  font-size: var(--font-size-base);
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color var(--transition-fast);
-  margin-top: var(--spacing-4);
-}
-
-.btn-make-order:hover:not(:disabled) {
-  background-color: var(--color-primary-light);
-}
-
-.btn-make-order:disabled {
-  background-color: var(--color-text-tertiary);
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-/* Responsive */
-@media (max-width: 1200px) {
-  .pos-menu-section {
-    flex: 0 0 65%;
-  }
-  .pos-cart-section {
-    flex: 0 0 calc(35% - var(--spacing-6));
-  }
-}
-
-@media (max-width: 1024px) {
-  .pos-main-content {
-    flex-direction: column;
-    height: auto;
-    overflow: visible;
-  }
-
-  .pos-menu-section,
-  .pos-cart-section {
-    flex: none;
-    width: 100%;
-    overflow-y: visible;
-  }
-}
+/* POS Dashboard Layout â€” Premium Cashier Interface */
+
+.pos-layout-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--color-bg-base);
+  font-family: var(--font-family-sans);
+  overflow: hidden;
+}
+
+/* Top Navigation Bar */
+.pos-header-nav {
+  background-color: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.pos-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: var(--spacing-6);
+}
+
+.pos-header-nav h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.pos-header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* Navbar Search */
+.pos-nav-search {
+  position: relative;
+  width: 300px;
+}
+
+.pos-nav-search-icon {
+  position: absolute;
+  left: var(--spacing-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-secondary);
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+.pos-nav-search-input {
+  width: 100%;
+  padding: 0.625rem 1rem 0.625rem calc(1rem + 24px);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 0.875rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: border-color var(--transition-fast);
+}
+
+@media (prefers-color-scheme: dark) {
+  .pos-nav-search-input {
+    background-color: #262220;
+  }
+}
+
+.pos-nav-search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Container to group the greeting and button */
+.pos-header-user-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Greeting text */
+.pos-user-greeting {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary); 
+}
+
+/* Logout ghost button */
+.pos-logout-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-error);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pos-logout-button:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: var(--color-error);
+}
+
+.pos-logout-icon {
+  flex-shrink: 0;
+}
+
+/* Main Layout */
+.pos-main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  background-color: var(--color-bg-base);
+}
+
+/* Left Panel â€” Menu Section (73%) */
+.pos-menu-section {
+  flex: 0 0 73%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: var(--spacing-6);
+  /* Removed border-right to prevent double borders; relies on cart's border-left */
+}
+
+/* Header */
+.pos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 36px;
+  margin-bottom: var(--spacing-3);
+}
+
+.pos-header-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.pos-header-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Right Panel â€” Order Details (27%) */
+.pos-cart-section {
+  flex: 0 0 27%;
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-6);
+  overflow-y: auto;
+  background-color: var(--color-bg-surface);
+  border-left: 1px solid var(--color-border);
+}
+
+.pos-cart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 36px;
+  margin-bottom: var(--spacing-3);
+}
+
+.pos-cart-title {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.btn-empty-cart {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  background-color: transparent;
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.btn-empty-cart:hover {
+  background-color: var(--color-error);
+  color: #FFFFFF;
+}
+
+/* Order Summary */
+.pos-order-summary {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--spacing-4);
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.pos-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.pos-summary-row.total {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.pos-summary-row.total .pos-summary-value {
+  color: var(--color-primary);
+  font-size: var(--font-size-xl);
+}
+
+/* Make Order CTA */
+.btn-make-order {
+  width: 100%;
+  padding: var(--spacing-4);
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  margin-top: var(--spacing-4);
+}
+
+.btn-make-order:hover:not(:disabled) {
+  background-color: var(--color-primary-light);
+}
+
+.btn-make-order:disabled {
+  background-color: var(--color-text-tertiary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .pos-menu-section {
+    flex: 0 0 65%;
+  }
+  .pos-cart-section {
+    flex: 0 0 calc(35% - var(--spacing-6));
+  }
+}
+
+@media (max-width: 1024px) {
+  .pos-main-content {
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+  }
+
+  .pos-menu-section,
+  .pos-cart-section {
+    flex: none;
+    width: 100%;
+    overflow-y: visible;
+  }
+}

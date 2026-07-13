@@ -1,179 +1,179 @@
-.container {
-  padding: var(--spacing-6);
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.title {
-  margin: 0 0 var(--spacing-4) 0;
-  color: var(--color-text-primary);
-  font-size: 1.5rem;
-}
-
-.toolbar {
-  display: flex;
-  gap: var(--spacing-4);
-  align-items: center;
-  background: var(--color-bg-base);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-4);
-  border: 1px solid var(--color-border);
-  margin-bottom: var(--spacing-6);
-}
-
-.controlGroup {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-}
-
-.controlLabel {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
-
-.select, .dateInput {
-  padding: var(--spacing-2) var(--spacing-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg-surface);
-  color: var(--color-text-primary);
-  font-size: 0.875rem;
-  height: 36px;
-  box-sizing: border-box;
-}
-
-.select:focus, .dateInput:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-.summaryLine {
-  margin-bottom: var(--spacing-4);
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
-
-.tableContainer {
-  background: var(--color-bg-surface);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  overflow: hidden;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-.table th {
-  background: var(--color-bg-base);
-  padding: 12px 16px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  font-size: 0.875rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-text-primary);
-  font-size: 0.875rem;
-}
-
-.table tr:last-child td {
-  border-bottom: none;
-}
-
-.table tbody tr:nth-child(even) {
-  background-color: var(--color-bg-base);
-}
-
-.table tbody tr:hover {
-  background-color: rgba(0, 0, 0, 0.02);
-}
-
-.statusBadge {
-  padding: 4px 8px;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  display: inline-block;
-}
-
-.statusCompleted {
-  background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
-}
-
-.statusVoided {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-}
-
-.typeBadge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  background: var(--color-bg-base);
-  border: 1px solid var(--color-border);
-}
-
-.tableNumber {
-  color: var(--color-text-secondary);
-  font-size: 0.875rem;
-}
-
-.cashierName {
-  color: var(--color-text-secondary);
-}
-
-.emptyState {
-  padding: var(--spacing-8);
-  text-align: center;
-  color: var(--color-text-secondary);
-}
-
-.pagination {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-4);
-  border-top: 1px solid var(--color-border);
-  background: var(--color-bg-surface);
-}
-
-.pageInfo {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-}
-
-.pageControls {
-  display: flex;
-  gap: var(--spacing-2);
-}
-
-.pageBtn {
-  padding: var(--spacing-2) var(--spacing-4);
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-surface);
-  color: var(--color-text-primary);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: all 0.2s;
-}
-
-.pageBtn:not(:disabled):hover {
-  background: var(--color-bg-base);
-  border-color: var(--color-text-secondary);
-}
-
-.pageBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.container {
+  padding: var(--spacing-6);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  margin: 0 0 var(--spacing-4) 0;
+  color: var(--color-text-primary);
+  font-size: 1.5rem;
+}
+
+.toolbar {
+  display: flex;
+  gap: var(--spacing-4);
+  align-items: center;
+  background: var(--color-bg-base);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  border: 1px solid var(--color-border);
+  margin-bottom: var(--spacing-6);
+}
+
+.controlGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.controlLabel {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.select, .dateInput {
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.select:focus, .dateInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.summaryLine {
+  margin-bottom: var(--spacing-4);
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.tableContainer {
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th {
+  background: var(--color-bg-base);
+  padding: 12px 16px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: var(--color-bg-base);
+}
+
+.table tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.statusBadge {
+  padding: 4px 8px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.statusCompleted {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.statusVoided {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.typeBadge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border);
+}
+
+.tableNumber {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.cashierName {
+  color: var(--color-text-secondary);
+}
+
+.emptyState {
+  padding: var(--spacing-8);
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-4);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-surface);
+}
+
+.pageInfo {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.pageControls {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+.pageBtn {
+  padding: var(--spacing-2) var(--spacing-4);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.pageBtn:not(:disabled):hover {
+  background: var(--color-bg-base);
+  border-color: var(--color-text-secondary);
+}
+
+.pageBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

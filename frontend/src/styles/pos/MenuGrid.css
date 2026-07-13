@@ -1,96 +1,96 @@
-/* Menu Grid â€” Category Tabs, Search, 4-Column Grid */
-
-/* Category Tabs */
-.menu-category-tabs {
-  display: flex;
-  gap: var(--spacing-3);
-  flex-wrap: wrap;
-  background-color: transparent;
-  margin-bottom: var(--spacing-6);
-  border-radius: 999px;
-  width: fit-content;
-}
-
-.menu-category-tab {
-  padding: var(--spacing-2) var(--spacing-6);
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  background-color: transparent;
-  color: var(--color-text-secondary);
-  font-family: var(--font-family-sans);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  white-space: nowrap;
-}
-
-.menu-category-tab:hover {
-  border-color: var(--color-primary);
-  color: var(--color-text-primary);
-  background-color: var(--color-bg-surface);
-}
-
-.menu-category-tab.active {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-text-inverse);
-  box-shadow: var(--shadow-sm);
-}
-
-.menu-category-count {
-  display: none; /* Hide count to perfectly match reference layout */
-}
-
-/* Product Grid â€” 3 columns on desktop for wider horizontal cards */
-.menu-grid-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-4);
-  width: 100%;
-}
-
-/* Loading State */
-.menu-loading-state {
-  text-align: center;
-  padding: var(--spacing-12);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-lg);
-  font-weight: 500;
-  grid-column: 1 / -1;
-}
-
-/* Empty state when no results found */
-.menu-empty-state {
-  text-align: center;
-  padding: var(--spacing-12);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-base);
-  grid-column: 1 / -1;
-}
-
-@media (max-width: 1200px) {
-  .menu-grid-container {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .menu-grid-container {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-3);
-  }
-
-  .menu-category-tabs {
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
-  }
-}
-
-@media (max-width: 480px) {
-  .menu-grid-container {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
+/* Menu Grid â€” Category Tabs, Search, 4-Column Grid */
+
+/* Category Tabs */
+.menu-category-tabs {
+  display: flex;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+  background-color: transparent;
+  margin-bottom: var(--spacing-6);
+  border-radius: 999px;
+  width: fit-content;
+}
+
+.menu-category-tab {
+  padding: var(--spacing-2) var(--spacing-6);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.menu-category-tab:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-surface);
+}
+
+.menu-category-tab.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-sm);
+}
+
+.menu-category-count {
+  display: none; /* Hide count to perfectly match reference layout */
+}
+
+/* Product Grid â€” 3 columns on desktop for wider horizontal cards */
+.menu-grid-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-4);
+  width: 100%;
+}
+
+/* Loading State */
+.menu-loading-state {
+  text-align: center;
+  padding: var(--spacing-12);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  grid-column: 1 / -1;
+}
+
+/* Empty state when no results found */
+.menu-empty-state {
+  text-align: center;
+  padding: var(--spacing-12);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-base);
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 1200px) {
+  .menu-grid-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .menu-grid-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-3);
+  }
+
+  .menu-category-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 480px) {
+  .menu-grid-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
