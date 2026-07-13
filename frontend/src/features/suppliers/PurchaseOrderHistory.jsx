@@ -8,6 +8,7 @@ import { Modal } from '../../components/ui/Modal';
 import { ReceivePOModal } from './ReceivePOModal';
 import { formatDateStandard, formatCurrency } from '../../utils/formatters';
 import styles from './suppliers.module.css';
+import '../../styles/inventory/InventoryTable.css';
 
 const STATUS_FLOW = {
   Draft: 'Sent',
@@ -161,9 +162,8 @@ export const PurchaseOrderHistory = () => {
 
   return (
     <>
-      <div className={styles.sectionToolbar}>
-        <h2 className={styles.sectionTitle}>Purchase Order History</h2>
-        <Button size="sm" variant="secondary" onClick={fetchOrders}>
+      <div className={styles.sectionToolbar} style={{ justifyContent: 'flex-end' }}>
+        <Button size="md" variant="primary" onClick={fetchOrders}>
           Refresh
         </Button>
       </div>
@@ -230,36 +230,45 @@ export const PurchaseOrderHistory = () => {
         </div>
       ) : (
         <div className="inventory-content">
-          <table className={styles.poTable}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: 'right' }}>PO ID</th>
-                <th style={{ textAlign: 'left' }}>Supplier</th>
-                <th style={{ textAlign: 'left' }}>Ingredient</th>
-                <th style={{ textAlign: 'right' }}>Quantity</th>
-                <th style={{ textAlign: 'left' }}>Date</th>
-                <th style={{ textAlign: 'left' }}>Notes</th>
-                <th style={{ textAlign: 'center' }}>Status</th>
-                <th style={{ textAlign: 'center' }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
+          <div className="inventory-table-container">
+            <table className="inventory-table">
+              <thead>
+                <tr>
+                  <th className="text-left">PO ID</th>
+                  <th className="text-left">Supplier</th>
+                  <th className="text-left">Ingredient</th>
+                  <th className="text-right">Quantity</th>
+                  <th className="text-left">Date</th>
+                  <th className="text-left">Notes</th>
+                  <th className="text-center">Status</th>
+                  <th className="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
               {orders.map((order) => (
                 <tr key={order.id}>
-                  <td className={styles.textMuted} style={{ textAlign: 'right', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={`#${order.id}`}>#{order.id}</td>
-                  <td style={{ fontWeight: 500, textAlign: 'left', maxWidth: '250px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={order.supplier_name || order.supplier_id || '—'}>{order.supplier_name || order.supplier_id || '—'}</td>
-                  <td style={{ textAlign: 'left', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={order.ingredient_name || '—'}>{order.ingredient_name || '—'}</td>
-                  <td style={{ textAlign: 'right' }}>{order.suggested_quantity} {order.unit || ''}</td>
-                  <td className={styles.textMuted} style={{ textAlign: 'left' }}>
+                  <td className="text-muted font-medium text-left" title={`#${order.id}`}>
+                    <div className="truncate-text" style={{ maxWidth: '100px' }}>#{order.id}</div>
+                  </td>
+                  <td className="font-medium text-left">
+                    <div className="tooltip-container" style={{ display: 'block', maxWidth: '250px' }}>
+                      <span className="truncate-text">{order.supplier_name || order.supplier_id || '—'}</span>
+                    </div>
+                  </td>
+                  <td className="text-left">
+                    <div className="truncate-text" style={{ maxWidth: '150px' }}>{order.ingredient_name || '—'}</div>
+                  </td>
+                  <td className="text-right font-medium">{order.suggested_quantity} {order.unit || ''}</td>
+                  <td className="text-muted text-left">
                     {order.date ? formatDateStandard(order.date) : '—'}
                   </td>
-                  <td className={styles.textMuted} style={{ textAlign: 'left' }}>{order.notes || '—'}</td>
-                  <td style={{ textAlign: 'center' }}>
+                  <td className="text-muted text-left">{order.notes || '—'}</td>
+                  <td className="text-center">
                     <span className={`${styles.badge} ${getStatusBadgeClass(order.status)}`}>
                       {order.status}
                     </span>
                   </td>
-                  <td style={{ textAlign: 'center' }}>
+                  <td className="text-center">
                     <div className={styles.actionCell} style={{ justifyContent: 'center' }}>
                       {order.status === 'Draft' && isManager && (
                         <>
@@ -295,7 +304,7 @@ export const PurchaseOrderHistory = () => {
                           </span>
                           <Button 
                             size="sm" 
-                            variant="secondary" 
+                            variant="outline" 
                             onClick={() => setUndoConfirmOrder(order)} 
                             disabled={updatingId === order.id || order.actual_received_quantity == null}
                             title={order.actual_received_quantity == null ? "Legacy PO receipt cannot be undone" : "Undo Receipt"}
@@ -316,6 +325,7 @@ export const PurchaseOrderHistory = () => {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
       <ReceivePOModal
