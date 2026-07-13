@@ -5,13 +5,14 @@ import { GlobalHeader } from '../../components/layout/GlobalHeader';
 import headerStyles from '../../components/layout/GlobalHeader.module.css';
 import { NavLink } from 'react-router-dom';
 import styles from './suppliers.module.css';
+import '../../styles/inventory/InventoryDashboard.css';
 
 export const SuppliersDashboard = () => {
   const { user } = useAuthStore();
   
   return (
-    <div className={styles.dashboardContainer}>
-      <GlobalHeader title="Suppliers & Procurement">
+    <div className="inventory-dashboard">
+      <GlobalHeader title="Purchase Orders">
         {user?.role === 'Warehouse' && (
           <>
             <NavLink 
@@ -24,23 +25,17 @@ export const SuppliersDashboard = () => {
               to="/suppliers" 
               className={({ isActive }) => isActive ? `${headerStyles.navLink} ${headerStyles.activeLink}` : headerStyles.navLink}
             >
-              Suppliers
+              Purchase Orders
             </NavLink>
           </>
         )}
       </GlobalHeader>
 
-      {/* Header */}
-      <div className={styles.dashboardHeader}>
-        <div className={styles.headerInfo}>
-          <h1>Purchase Orders</h1>
-          <p>Track and manage supplier purchase orders</p>
-        </div>
-      </div>
-
       {/* Content Area */}
-      <div className={styles.dashboardContent}>
-        <PurchaseOrderHistory />
+      <div className="inventory-main-container">
+        <div className="inventory-table-section" style={{ background: 'transparent', border: 'none', padding: 0 }}>
+          <PurchaseOrderHistory />
+        </div>
       </div>
     </div>
   );
