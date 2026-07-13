@@ -22,6 +22,13 @@ const STATUS_LABELS = {
 };
 
 export const PurchaseOrderHistory = () => {
+  const isOlderThan24Hours = (dateString) => {
+    if (!dateString) return false;
+    const poDate = new Date(dateString);
+    const now = new Date();
+    return (now - poDate) / (1000 * 60 * 60) > 24;
+  };
+
   const { user } = useAuthStore();
   const isManager = user?.role === 'Manager';
   const [orders, setOrders] = useState([]);
@@ -306,8 +313,8 @@ export const PurchaseOrderHistory = () => {
                             size="sm" 
                             variant="outline" 
                             onClick={() => setUndoConfirmOrder(order)} 
-                            disabled={updatingId === order.id || order.actual_received_quantity == null}
-                            title={order.actual_received_quantity == null ? "Legacy PO receipt cannot be undone" : "Undo Receipt"}
+                            disabled={updatingId === order.id || order.actual_received_quantity == null || isOlderThan24Hours(order.date)}
+                            title={order.actual_received_quantity == null ? "Legacy PO receipt cannot be undone" : isOlderThan24Hours(order.date) ? "Cannot undo receipt after 24 hours" : "Undo Receipt"}
                             style={{ marginLeft: '0.5rem', padding: '0.2rem 0.5rem', fontSize: 'var(--font-size-xs)' }}
                           >
                             Undo Receipt
