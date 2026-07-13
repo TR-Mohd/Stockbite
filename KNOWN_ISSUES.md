@@ -27,6 +27,16 @@
 - **Description**: The original sticky-header approach in the shared `Table.jsx` component had a persistent, unresolved stacking/z-index bug after three fix attempts where rows would overlap the sticky header during scroll.
 - **Resolution**: Resolved by redesigning the Drill-Down tables to a non-sticky header pattern matching `OrderHistory.jsx`. This explicitly trades away the sticky-header convenience for guaranteed visual stability. This is logged as a resolved tradeoff, not a deferred bug, so no further CSS fixes should be investigated or applied.
 
+## Resolved: Float/Decimal Precision Display
+- **Status**: Resolved by Design Decision.
+- **Description**: The numeric migration in the database accurately converted `stock_level` and `reorder_point` to `NUMERIC(10,3)`. However, Decimal fields serialize as JSON STRINGS rather than numbers by default. This broke strict equality checks in the frontend (e.g. `stock === 0` in `InventoryTable.jsx`) and caused formatting irregularities.
+- **Resolution**: Resolved by enforcing explicit `float()` casting on `stock_level` and `reorder_point` during Pydantic schema serialization (`IngredientResponse` and `PurchaseOrderResponse`). This ensures Pydantic emits clean JSON numbers to the frontend, solving the strict equality bugs without applying hacky `parseFloat` bandaids across every React component.
+
+## Resolved: Fractional PCS Quantities
+- **Status**: Resolved by Core Implementation.
+- **Description**: Ingredients measured in `pcs` (like Tortilla Wraps) could be adjusted with decimal values (e.g. `15.01 pcs`), which is physically impossible and breaks data integrity.
+- **Resolution**: Resolved both frontend and backend. Built a global, unit-aware `<NumberInput />` that restricts `step` to whole numbers for `pcs`, and added central API validation that rejects any non-integer `pcs` payload with a 400 Bad Request error. Centralized display using `formatQuantity` to completely strip decimals from `pcs` globally.
+
 ## Purchase Order Detail View
 - **Missing Feature**: The Purchase Order History table is currently read-only. Clicking a row does not open a detail or timeline view.
 
@@ -37,3 +47,8 @@
 - **`test_pos_checkout.py`**: Fails with a `RuntimeError` (`got Future attached to a different loop`), which is a known issue with `pytest-asyncio` test fixture scopes and multiple `AsyncSession` creations.
 
 **Reason for Acceptance**: These are pre-existing issues and do not reflect new regressions. They are deferred to a dedicated test-suite cleanup phase so that current feature work remains scoped.
+
+## Draft PO Modal: Misleading "Deficit" Logic
+- **Description**: In `DraftPOModal.jsx`, the "Deficit" value is calculated strictly as `Math.max(ROP - Stock, 0)`. When an ingredient hits its exact ROP threshold (e.g., Stock = 24, ROP = 24), the system correctly flags it as "Low Stock" and triggers the PO creation flow. However, the UI mathematically shows `Deficit: 0 pcs`, which contradicts the warning and confusingly implies no order is needed. 
+
+**Reason for Acceptance**: Accepted as technical debt for the MVP phase. It was proposed to replace the "Deficit" label with "Recommended Order" (displaying `ROP * 2` or similar logic matching the actual input pre-fill), but this was deferred to a future UI polish sprint.
