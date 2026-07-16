@@ -120,6 +120,7 @@ class MenuItemResponse(BaseModel):
     category: Optional[str] = None
     image: Optional[str] = None
     is_active: bool
+    is_available: bool = True
     modifier_groups: List[ModifierGroupResponse] = []
     model_config = ConfigDict(from_attributes=True)
 

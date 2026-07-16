@@ -20,11 +20,24 @@ async def get_menu(db: AsyncSession = Depends(get_db), current_user: User = Depe
     result = await db.execute(
         select(MenuItem)
         .options(
-            selectinload(MenuItem.modifier_groups).selectinload(ItemModifierGroup.modifiers)
+            selectinload(MenuItem.modifier_groups).selectinload(ItemModifierGroup.modifiers),
+            selectinload(MenuItem.recipes).selectinload(Recipe.ingredient)
         )
         .where(MenuItem.is_active == True)
     )
-    return result.scalars().all()
+    items = result.scalars().all()
+    for item in items:
+        try:
+            item.is_available = True
+            for recipe in item.recipes:
+                if recipe.ingredient and recipe.ingredient.stock_level <= 0:
+                    item.is_available = False
+                    break
+        except Exception as e:
+            logger.error(f"Error checking stock for item {item.id}: {e}")
+            item.is_available = True
+            
+    return items
 
 @router.post("/checkout", response_model=TransactionResponse)
 async def checkout(
