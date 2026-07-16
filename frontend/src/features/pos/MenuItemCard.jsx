@@ -1,7 +1,7 @@
 import '../../styles/POS/MenuItemCard.css';
 
 const MenuItemCard = ({ item, onAddToCart, onUpdateQuantity, cartQty, isSelected }) => {
-  const isOutOfStock = item.stock <= 0;
+  const isOutOfStock = item.is_available === false;
 
   const cardClasses = [
     'menu-item-card',

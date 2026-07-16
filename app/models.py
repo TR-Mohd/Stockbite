@@ -99,6 +99,14 @@ class MenuItem(Base):
 
     recipes = relationship("Recipe", back_populates="menu_item")
     modifier_groups = relationship("ItemModifierGroup", back_populates="menu_item")
+    
+    @property
+    def is_available(self) -> bool:
+        return getattr(self, "_is_available", True)
+
+    @is_available.setter
+    def is_available(self, value: bool):
+        self._is_available = value
 
 class ItemModifierGroup(Base):
     __tablename__ = "item_modifier_groups"
