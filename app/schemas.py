@@ -7,8 +7,12 @@ from .models import RoleEnum, StatusEnum, POStatusEnum, PaymentMethodEnum, Order
 class PinAuthRequest(BaseModel):
     pin: str
 
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
 
 class TokenData(BaseModel):

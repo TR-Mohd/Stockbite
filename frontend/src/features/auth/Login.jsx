@@ -66,7 +66,7 @@ export const Login = () => {
         userObj = { username, role: 'Cashier' };
       }
 
-      login(response.data.access_token, userObj);
+      login(response.data.access_token, response.data.refresh_token, userObj);
       
       const role = userObj.role || 'Cashier';
       if (role === 'Cashier') {
