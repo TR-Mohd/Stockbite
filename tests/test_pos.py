@@ -102,9 +102,9 @@ async def test_checkout_mathematics(client, token):
     # 1. Price is 50.0
     # 2. Qty is 1
     # 3. Subtotal = 50.0 * 1 = 50.0
-    # 4. Tax = 50.0 * 0.11 = 5.5
-    # 5. Total = 50.0 + 5.5 = 55.5
-    # 6. Change due = 100.0 - 55.5 = 44.5
+    # 4. Tax = 50.0 * 0.11 = 5.5 -> Rounds to 6.0
+    # 5. Total = 50.0 + 6.0 = 56.0
+    # 6. Change due = 100.0 - 56.0 = 44.0
     # 7. COGS per unit = 5.0 (recipe qty) * 10.0 (unit cost) = 50.0
     
     payload = {
@@ -124,9 +124,9 @@ async def test_checkout_mathematics(client, token):
     
     data = res.json()
     assert data["subtotal"] == 50.0
-    assert data["tax"] == 5.5
-    assert data["total_amount"] == 55.5
-    assert data["change"] == 44.5
+    assert data["tax"] == 6.0
+    assert data["total_amount"] == 56.0
+    assert data["change"] == 44.0
     assert data["order_type"] == "Takeaway"
     
     # Check COGS

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 from typing import List, Optional
 from datetime import datetime
 from decimal import Decimal
@@ -101,6 +101,11 @@ class ModifierResponse(BaseModel):
     id: str
     name: str
     price_adjustment: float
+
+    @field_serializer('price_adjustment')
+    def serialize_float(self, v) -> float | None:
+        return float(v) if v is not None else None
+
     model_config = ConfigDict(from_attributes=True)
 
 class ModifierGroupResponse(BaseModel):
@@ -122,6 +127,11 @@ class MenuItemResponse(BaseModel):
     is_active: bool
     is_available: bool = True
     modifier_groups: List[ModifierGroupResponse] = []
+
+    @field_serializer('price')
+    def serialize_float(self, v) -> float | None:
+        return float(v) if v is not None else None
+
     model_config = ConfigDict(from_attributes=True)
 
 class CartItemCreate(BaseModel):
@@ -132,7 +142,7 @@ class CartItemCreate(BaseModel):
 
 class TransactionCreate(BaseModel):
     payment_method: PaymentMethodEnum
-    amount_tendered: Optional[float] = None
+    amount_tendered: Optional[Decimal] = None
     whatsapp: Optional[str] = None
     email: Optional[str] = None
     order_type: OrderTypeEnum
@@ -153,6 +163,11 @@ class TransactionResponse(BaseModel):
     routing_number: Optional[str]
     whatsapp: Optional[str]
     email: Optional[str]
+
+    @field_serializer('subtotal', 'tax', 'total_amount', 'amount_tendered', 'change')
+    def serialize_float(self, v) -> float | None:
+        return float(v) if v is not None else None
+
     model_config = ConfigDict(from_attributes=True)
 
 class OrderHistoryItem(BaseModel):
@@ -167,6 +182,10 @@ class OrderHistoryItem(BaseModel):
     status: StatusEnum
     cashier_name: Optional[str]
     
+    @field_serializer('subtotal', 'tax', 'total_amount')
+    def serialize_float(self, v) -> float | None:
+        return float(v) if v is not None else None
+
     model_config = ConfigDict(from_attributes=True)
 
 class PaginatedOrderHistory(BaseModel):
@@ -175,6 +194,10 @@ class PaginatedOrderHistory(BaseModel):
     total_revenue: float
     page: int
     size: int
+
+    @field_serializer('total_revenue')
+    def serialize_float(self, v) -> float | None:
+        return float(v) if v is not None else None
 
 class SupplierBase(BaseModel):
     name: str
@@ -199,6 +222,10 @@ class SupplierResponse(SupplierBase):
 class RevenueTrendItem(BaseModel):
     date: str
     revenue: float
+
+    @field_serializer('revenue')
+    def serialize_float(self, v) -> float | None:
+        return float(v) if v is not None else None
 
 class BestSellerItem(BaseModel):
     menu_item_name: str
@@ -226,12 +253,20 @@ class MenuEngineeringItem(BaseModel):
     avg_contribution_margin_per_unit: float
     category: str # "Star", "Plowhorse", "Puzzle", "Dog", or "Insufficient Data"
 
+    @field_serializer('avg_contribution_margin_per_unit')
+    def serialize_float(self, v) -> float | None:
+        return float(v) if v is not None else None
+
 class MenuEngineeringResponse(BaseModel):
     insufficient_data: bool
     total_orders: int
     average_volume: float
     average_margin: float
     items: List[MenuEngineeringItem]
+
+    @field_serializer('average_volume', 'average_margin')
+    def serialize_float(self, v) -> float | None:
+        return float(v) if v is not None else None
 
 class KPITransactionItem(BaseModel):
     id: str
@@ -242,6 +277,10 @@ class KPITransactionItem(BaseModel):
     cogs: float
     net_revenue: float
     
+    @field_serializer('gross_revenue', 'tax', 'cogs', 'net_revenue')
+    def serialize_float(self, v) -> float | None:
+        return float(v) if v is not None else None
+
     model_config = ConfigDict(from_attributes=True)
 
 class PaginatedKPITransactions(BaseModel):
@@ -260,12 +299,20 @@ class COGSBreakdownItem(BaseModel):
     percentage_of_total_cogs: float
     food_cost_percentage: float
 
+    @field_serializer('item_cogs', 'modifier_cogs', 'total_cogs', 'percentage_of_total_cogs', 'food_cost_percentage')
+    def serialize_float(self, v) -> float | None:
+        return float(v) if v is not None else None
+
 class PaginatedCOGSBreakdown(BaseModel):
     items: List[COGSBreakdownItem]
     total: int
     page: int
     size: int
     summary_total_cogs: float
+
+    @field_serializer('summary_total_cogs')
+    def serialize_float(self, v) -> float | None:
+        return float(v) if v is not None else None
 
 class MarginTrendItem(BaseModel):
     date: str
@@ -274,10 +321,18 @@ class MarginTrendItem(BaseModel):
     net_revenue: float
     profit_margin_percent: float
 
+    @field_serializer('gross_revenue', 'cogs', 'net_revenue', 'profit_margin_percent')
+    def serialize_float(self, v) -> float | None:
+        return float(v) if v is not None else None
+
 class ATSBucketItem(BaseModel):
     bucket: str
     order_count: int
     percentage: float
+
+    @field_serializer('percentage')
+    def serialize_float(self, v) -> float | None:
+        return float(v) if v is not None else None
 
 class PurchaseOrderResponse(BaseModel):
     id: str

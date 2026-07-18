@@ -108,7 +108,7 @@ const CheckoutModal = ({ isOpen, onClose, cartItems, total, onCheckoutSuccess })
       console.error('Checkout failed', err);
       // Handle 409 Optimistic Locking conflict specifically
       if (err.response?.status === 409) {
-        setError('System error occurred. Please try again.');
+        setError('Inventory was updated by another action. Your order is safe — please tap Confirm again to retry.');
       } else {
         let errorMsg = err.response?.data?.detail || 'System error occurred. Please try again.';
         if (Array.isArray(errorMsg)) {

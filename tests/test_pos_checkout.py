@@ -13,23 +13,30 @@ from app.models import MenuItem, Ingredient, Recipe, ItemModifierGroup, ItemModi
 
 TEST_DATABASE_URL = "postgresql+asyncpg://stockbite_user:stockbite_password@localhost:5432/stockbite_test"
 
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def setup_db():
-    test_engine = create_async_engine(TEST_DATABASE_URL, echo=False, poolclass=NullPool)
-    TestSessionLocal = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
+@pytest_asyncio.fixture(scope="session")
+async def db_engine():
+    engine = create_async_engine(TEST_DATABASE_URL, echo=False, poolclass=NullPool)
+    yield engine
+    await engine.dispose()
 
+@pytest_asyncio.fixture(scope="session")
+async def db_maker(db_engine):
+    yield async_sessionmaker(db_engine, class_=AsyncSession, expire_on_commit=False)
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def setup_db(db_engine, db_maker):
     async def override_get_db():
-        async with TestSessionLocal() as session:
+        async with db_maker() as session:
             yield session
 
     app.dependency_overrides[get_db] = override_get_db
 
-    async with test_engine.begin() as conn:
+    async with db_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     
     # Seed data
-    async with TestSessionLocal() as session:
+    async with db_maker() as session:
         user = User(name="test_cashier", username="test_cashier", role=RoleEnum.Cashier, hashed_password=get_password_hash("pass"))
         session.add(user)
         await session.commit()
@@ -37,11 +44,13 @@ async def setup_db():
     yield
 
 @pytest_asyncio.fixture
-async def async_db():
-    test_engine = create_async_engine(TEST_DATABASE_URL, echo=False, poolclass=NullPool)
-    TestSessionLocal = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
-    async with TestSessionLocal() as session:
-        yield session
+async def async_db(db_maker):
+    session = db_maker()
+    yield session
+    try:
+        await session.close()
+    except RuntimeError:
+        pass
 
 @pytest_asyncio.fixture
 async def client():
@@ -177,3 +186,54 @@ async def test_checkout_insufficient_stock(client, token, async_db):
     async_db.expire_all()
     ing_final = await async_db.execute(select(Ingredient).where(Ingredient.id == ing_id))
     assert ing_final.scalars().first().stock_level == 5.0
+
+@pytest.mark.asyncio
+async def test_checkout_concurrency(client, token, async_db):
+    import asyncio
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    # Create ingredient with stock=1
+    ing = Ingredient(name="High Contention Item", unit="pcs", stock_level=1.0, unit_cost=5.0)
+    async_db.add(ing)
+    await async_db.commit()
+    await async_db.refresh(ing)
+    ing_id = ing.id
+    
+    mi = MenuItem(name="Contention Meal", price=10.0, category="Foods", is_active=True)
+    async_db.add(mi)
+    await async_db.commit()
+    await async_db.refresh(mi)
+    
+    recipe = Recipe(menu_item_id=mi.id, ingredient_id=ing_id, quantity=1.0)
+    async_db.add(recipe)
+    await async_db.commit()
+    
+    checkout_payload = {
+        "order_type": "Takeaway",
+        "payment_method": "Cash",
+        "amount_tendered": 20.0,
+        "items": [
+            {
+                "menu_item_id": mi.id,
+                "quantity": 1,
+                "modifier_ids": []
+            }
+        ]
+    }
+    
+    # Fire 2 concurrent checkout requests
+    async def make_req():
+        return await client.post("/pos/checkout", json=checkout_payload, headers=headers)
+        
+    responses = await asyncio.gather(make_req(), make_req())
+    
+    status_codes = [resp.status_code for resp in responses]
+    
+    # Since stock=1 and quantity=1, exactly one should succeed (200)
+    # The other should fail with 400 (Insufficient stock) or 409 (Optimistic locking backstop)
+    assert status_codes.count(200) == 1, f"Expected exactly one success, got status codes: {status_codes}"
+    assert (status_codes.count(400) == 1 or status_codes.count(409) == 1), f"Expected one failure, got status codes: {status_codes}"
+    
+    async_db.expire_all()
+    ing_final = await async_db.execute(select(Ingredient).where(Ingredient.id == ing_id))
+    assert ing_final.scalars().first().stock_level == 0.0
