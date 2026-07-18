@@ -92,7 +92,7 @@ class MenuItem(Base):
     __tablename__ = "menu_items"
     id = Column(String, primary_key=True, default=generate_uuid)
     name = Column(String, nullable=False)
-    price = Column(Float, nullable=False)
+    price = Column(Numeric(12, 0), nullable=False)
     category = Column(String, nullable=False)
     image = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
@@ -125,7 +125,7 @@ class ItemModifier(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     group_id = Column(String, ForeignKey("item_modifier_groups.id"), nullable=False)
     name = Column(String, nullable=False)
-    price_adjustment = Column(Float, default=0.0)
+    price_adjustment = Column(Numeric(12, 0), default=0.0)
     
     group = relationship("ItemModifierGroup", back_populates="modifiers")
     modifier_recipes = relationship("ModifierRecipe", back_populates="modifier")
@@ -153,12 +153,12 @@ class Recipe(Base):
 class Transaction(Base):
     __tablename__ = "transactions"
     id = Column(String, primary_key=True, default=generate_uuid)
-    subtotal = Column(Float, nullable=False, server_default="0.0")
-    tax = Column(Float, nullable=False, server_default="0.0")
-    total_amount = Column(Float, nullable=False)
+    subtotal = Column(Numeric(12, 0), nullable=False, server_default="0.0")
+    tax = Column(Numeric(12, 0), nullable=False, server_default="0.0")
+    total_amount = Column(Numeric(12, 0), nullable=False)
     payment_method = Column(Enum(PaymentMethodEnum), nullable=False)
-    amount_tendered = Column(Float, nullable=True)
-    change = Column(Float, nullable=True)
+    amount_tendered = Column(Numeric(12, 0), nullable=True)
+    change = Column(Numeric(12, 0), nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
     whatsapp = Column(String, nullable=True)
     email = Column(String, nullable=True)
@@ -177,8 +177,8 @@ class TransactionItem(Base):
     menu_item_id = Column(String, ForeignKey("menu_items.id"))
     quantity = Column(Integer, nullable=False)
     notes = Column(String, nullable=True)
-    price_at_time = Column(Float, nullable=False)
-    cogs_per_unit = Column(Float, nullable=False, server_default="0.0")
+    price_at_time = Column(Numeric(12, 0), nullable=False)
+    cogs_per_unit = Column(Numeric(14, 4), nullable=False, server_default="0.0")
 
     transaction = relationship("Transaction", back_populates="items")
     menu_item = relationship("MenuItem")
@@ -189,8 +189,8 @@ class TransactionItemModifier(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     transaction_item_id = Column(String, ForeignKey("transaction_items.id"), nullable=False)
     modifier_id = Column(String, ForeignKey("item_modifiers.id"), nullable=False)
-    price_at_time = Column(Float, nullable=False)
-    cogs_per_unit = Column(Float, nullable=False, server_default="0.0")
+    price_at_time = Column(Numeric(12, 0), nullable=False)
+    cogs_per_unit = Column(Numeric(14, 4), nullable=False, server_default="0.0")
 
     transaction_item = relationship("TransactionItem", back_populates="selected_modifiers")
     modifier = relationship("ItemModifier")

@@ -67,7 +67,7 @@ async def checkout(
         )
         modifiers = {m.id: m for m in result_mods.scalars().all()}
 
-    subtotal = 0.0
+    subtotal = Decimal("0.0")
     ingredient_deductions = {}
 
     # Calculate total and required ingredients
@@ -81,13 +81,13 @@ async def checkout(
         if not mi.is_active:
             raise HTTPException(status_code=400, detail=f"Menu item {mi.name} is inactive")
         
-        item_price = mi.price
+        item_price = Decimal(str(mi.price))
         
         # Process modifiers
         for m_id in item.modifier_ids:
             if m_id not in modifiers:
                 raise HTTPException(status_code=400, detail=f"Modifier {m_id} not found")
-            item_price += modifiers[m_id].price_adjustment
+            item_price += Decimal(str(modifiers[m_id].price_adjustment))
             
             for m_recipe in modifiers[m_id].modifier_recipes:
                 if m_recipe.ingredient_id not in ingredient_deductions:
@@ -101,8 +101,13 @@ async def checkout(
                 ingredient_deductions[recipe.ingredient_id] = Decimal("0.0")
             ingredient_deductions[recipe.ingredient_id] += recipe.quantity * item.quantity
 
-    # Fetch required ingredients to verify stock
-    ing_result = await db.execute(select(Ingredient).where(Ingredient.id.in_(ingredient_deductions.keys())))
+    # Fetch required ingredients to verify stock with pessimistic lock (SELECT FOR UPDATE)
+    ing_result = await db.execute(
+        select(Ingredient)
+        .where(Ingredient.id.in_(ingredient_deductions.keys()))
+        .order_by(Ingredient.id.asc())
+        .with_for_update()
+    )
     ingredients = {ing.id: ing for ing in ing_result.scalars().all()}
 
     for ing_id, required_qty in ingredient_deductions.items():
@@ -115,18 +120,20 @@ async def checkout(
         # Deduct stock (will trigger Optimistic Locking version_id bump on commit)
         ing.stock_level -= required_qty
 
-    # Calculate tax and final total
-    tax = subtotal * 0.11
+    # Calculate tax and round early for IDR precision
+    from decimal import ROUND_HALF_UP
+    tax = (subtotal * Decimal("0.11")).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
     total_amount = subtotal + tax
 
     # Calculate change
-    change = 0.0
+    change = Decimal("0.0")
     if order.payment_method == "Cash":
         if order.amount_tendered is None:
             raise HTTPException(status_code=400, detail="Amount tendered is required for Cash payments")
-        if order.amount_tendered < total_amount:
+        amount_tendered = Decimal(str(order.amount_tendered))
+        if amount_tendered < total_amount:
             raise HTTPException(status_code=400, detail="Insufficient amount tendered")
-        change = order.amount_tendered - total_amount
+        change = amount_tendered - total_amount
 
     # Create Transaction
     db_txn = Transaction(

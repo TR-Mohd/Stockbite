@@ -253,7 +253,7 @@ async def get_kpis(
         .where(Transaction.timestamp >= start_utc)
         .where(Transaction.timestamp <= end_utc)
     )
-    gross_revenue = result.scalar() or 0.0
+    gross_revenue = float(result.scalar() or 0.0)
 
     tax_result = await db.execute(
         select(func.sum(Transaction.tax))
@@ -261,7 +261,7 @@ async def get_kpis(
         .where(Transaction.timestamp >= start_utc)
         .where(Transaction.timestamp <= end_utc)
     )
-    tax_collected = tax_result.scalar() or 0.0
+    tax_collected = float(tax_result.scalar() or 0.0)
 
     # Calculate base COGS from TransactionItems
     cogs_items_res = await db.execute(
@@ -272,7 +272,7 @@ async def get_kpis(
         .where(Transaction.timestamp >= start_utc)
         .where(Transaction.timestamp <= end_utc)
     )
-    cogs_items = cogs_items_res.scalar() or 0.0
+    cogs_items = float(cogs_items_res.scalar() or 0.0)
 
     # Calculate modifier COGS from TransactionItemModifiers
     cogs_mods_res = await db.execute(
@@ -284,7 +284,7 @@ async def get_kpis(
         .where(Transaction.timestamp >= start_utc)
         .where(Transaction.timestamp <= end_utc)
     )
-    cogs_mods = cogs_mods_res.scalar() or 0.0
+    cogs_mods = float(cogs_mods_res.scalar() or 0.0)
 
     cogs = cogs_items + cogs_mods
     net_revenue = gross_revenue - cogs
@@ -302,7 +302,7 @@ async def get_kpis(
     )
     orders_row = orders_result.first()
     total_orders = orders_row[0] or 0
-    total_subtotal = orders_row[1] or 0.0
+    total_subtotal = float(orders_row[1] or 0.0)
     average_ticket_size = (total_subtotal / total_orders) if total_orders > 0 else 0.0
 
     return {
@@ -698,9 +698,9 @@ async def get_order_history(
             order_type=txn.order_type,
             routing_number=txn.routing_number,
             payment_method=txn.payment_method,
-            subtotal=txn.subtotal,
-            tax=txn.tax,
-            total_amount=txn.total_amount,
+            subtotal=float(txn.subtotal),
+            tax=float(txn.tax),
+            total_amount=float(txn.total_amount),
             status=txn.status,
             cashier_name=cashier_name
         ))

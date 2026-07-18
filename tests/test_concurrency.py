@@ -11,23 +11,30 @@ import pytest_asyncio
 
 TEST_DATABASE_URL = "postgresql+asyncpg://stockbite_user:stockbite_password@localhost:5432/stockbite_test"
 
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def setup_db():
-    test_engine = create_async_engine(TEST_DATABASE_URL, echo=False, poolclass=NullPool)
-    TestSessionLocal = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
+@pytest_asyncio.fixture(scope="session")
+async def db_engine():
+    engine = create_async_engine(TEST_DATABASE_URL, echo=False, poolclass=NullPool)
+    yield engine
+    await engine.dispose()
 
+@pytest_asyncio.fixture(scope="session")
+async def db_maker(db_engine):
+    yield async_sessionmaker(db_engine, class_=AsyncSession, expire_on_commit=False)
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def setup_db(db_engine, db_maker):
     async def override_get_db():
-        async with TestSessionLocal() as session:
+        async with db_maker() as session:
             yield session
 
     app.dependency_overrides[get_db] = override_get_db
 
-    async with test_engine.begin() as conn:
+    async with db_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     
     # Seed data
-    async with TestSessionLocal() as session:
+    async with db_maker() as session:
         user = User(name="test_manager", username="test_manager", role=RoleEnum.Manager, hashed_password=get_password_hash("pass"))
         session.add(user)
         await session.commit()
