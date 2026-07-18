@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from .database import get_db
 from .models import User, RoleEnum, AuditLog
-from .schemas import TokenData, PinAuthRequest
+from .schemas import TokenData, PinAuthRequest, RefreshTokenRequest
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -23,7 +23,7 @@ if not SECRET_KEY:
     raise RuntimeError("JWT_SECRET_KEY environment variable not set")
 ALGORITHM = "HS256"
 logger = logging.getLogger(__name__)
-ACCESS_TOKEN_EXPIRE_MINUTES = 480 # 8 hours (typical shift)
+ACCESS_TOKEN_EXPIRE_MINUTES = 15 # 15 minutes
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
@@ -103,6 +103,10 @@ async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequ
     access_token = create_access_token(
         data={"sub": user.username, "role": user.role.value}, expires_delta=access_token_expires
     )
+    refresh_token_expires = timedelta(hours=24)
+    refresh_token = create_access_token(
+        data={"sub": user.username, "type": "refresh"}, expires_delta=refresh_token_expires
+    )
     
     # Record login activity
     audit_log = AuditLog(
@@ -115,8 +119,40 @@ async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequ
     await db.commit()
     return {
         "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer",
         "user": {"username": user.name, "role": user.role.value}
+    }
+
+@router.post("/refresh")
+@limiter.limit("5/minute")
+async def refresh_token(request: Request, refresh_request: RefreshTokenRequest, db: AsyncSession = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(refresh_request.refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        token_type: str = payload.get("type")
+        if username is None or token_type != "refresh":
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    result = await db.execute(select(User).where(User.username == username))
+    user = result.scalars().first()
+    if user is None or not user.is_active:
+        raise credentials_exception
+
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username, "role": user.role.value}, expires_delta=access_token_expires
+    )
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
     }
 
 @router.post("/pin-auth")
