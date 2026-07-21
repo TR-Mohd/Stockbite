@@ -51,6 +51,15 @@ from ..schemas import (
 )
 from ..models import OrderTypeEnum
 
+MOD_STATS_CTE = """
+        WITH ModStats AS (
+            SELECT transaction_item_id,
+                   sum(price_at_time) as mod_revenue_per_unit,
+                   sum(cogs_per_unit) as mod_cogs_per_unit
+            FROM transaction_item_modifiers
+            GROUP BY transaction_item_id
+        )"""
+
 router = APIRouter(prefix="/manager", tags=["Manager BI"])
 
 @router.get("/staff", response_model=List[StaffResponse])
@@ -61,21 +70,25 @@ async def get_staff(
     result = await db.execute(select(User))
     users = result.scalars().all()
     
+    tx_result = await db.execute(
+        select(Transaction.cashier_id, func.max(Transaction.timestamp))
+        .group_by(Transaction.cashier_id)
+    )
+    tx_map = {row[0]: row[1] for row in tx_result.all()}
+
+    audit_result = await db.execute(
+        select(AuditLog.user_id, func.max(AuditLog.timestamp))
+        .group_by(AuditLog.user_id)
+    )
+    audit_map = {row[0]: row[1] for row in audit_result.all()}
+
     staff_list = []
     for u in users:
         # Find latest transaction as proxy for last active (for cashiers)
-        last_transaction = None
-        if u.role == RoleEnum.Cashier:
-            res_tx = await db.execute(
-                select(func.max(Transaction.timestamp)).where(Transaction.cashier_id == u.id)
-            )
-            last_transaction = res_tx.scalar()
+        last_transaction = tx_map.get(u.id) if u.role == RoleEnum.Cashier else None
 
         # Find latest audit log (e.g. login)
-        res_audit = await db.execute(
-            select(func.max(AuditLog.timestamp)).where(AuditLog.user_id == u.id)
-        )
-        last_audit = res_audit.scalar()
+        last_audit = audit_map.get(u.id)
 
         # True last active is the most recent of the two
         timestamps = [t for t in (last_transaction, last_audit) if t is not None]
@@ -469,14 +482,7 @@ async def get_menu_engineering(
         )
         
     # 2. Get fully-loaded margin and volume per menu item
-    query = text("""
-        WITH ModStats AS (
-            SELECT transaction_item_id,
-                   sum(price_at_time) as mod_revenue_per_unit,
-                   sum(cogs_per_unit) as mod_cogs_per_unit
-            FROM transaction_item_modifiers
-            GROUP BY transaction_item_id
-        )
+    query = text(MOD_STATS_CTE + """
         SELECT 
             ti.menu_item_id, 
             mi.name,
@@ -818,14 +824,7 @@ async def get_cogs_breakdown(
     summary_total_cogs = cogs_items_total + cogs_mods_total
 
     # Use raw SQL to group by menu_item_id exactly like menu engineering
-    query = text("""
-        WITH ModStats AS (
-            SELECT transaction_item_id,
-                   sum(price_at_time) as mod_revenue_per_unit,
-                   sum(cogs_per_unit) as mod_cogs_per_unit
-            FROM transaction_item_modifiers
-            GROUP BY transaction_item_id
-        )
+    query = text(MOD_STATS_CTE + """
         SELECT 
             ti.menu_item_id, 
             mi.name,

@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .routers import pos, inventory, suppliers, manager, purchase_orders
 
 import logging
+import logging.handlers
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
@@ -15,7 +16,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     handlers=[
-        logging.FileHandler("app.log"),
+        logging.handlers.RotatingFileHandler("app.log", maxBytes=10*1024*1024, backupCount=5),
         logging.StreamHandler()
     ]
 )
