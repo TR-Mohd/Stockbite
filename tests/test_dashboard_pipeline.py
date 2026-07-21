@@ -32,7 +32,7 @@ async def test_dashboard_pipeline(setup_test_db):
     async with TestSessionLocal() as db:
         cashier_id = "EMP-CSH-99999"
         random_name = "Cashier Mock..."
-        cashier = User(id=cashier_id, name=random_name, role=RoleEnum.Cashier, hashed_password="mock", is_active=True)
+        cashier = User(id=cashier_id, name=random_name, username="cashier", role=RoleEnum.Cashier, hashed_password="mock", is_active=True)
         db.add(cashier)
         await db.commit()
 

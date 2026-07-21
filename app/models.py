@@ -38,7 +38,7 @@ class User(Base):
     __tablename__ = "users"
     id = Column(String, primary_key=True, default=generate_uuid)
     name = Column(String, nullable=False)
-    username = Column(String, nullable=True)
+    username = Column(String, nullable=False)
     role = Column(Enum(RoleEnum), nullable=False)
     hashed_password = Column(String, nullable=False)
     hashed_pin = Column(String, nullable=True)

@@ -54,11 +54,11 @@ async def seed_db():
             
         print("Seeding team users...")
         users = [
-            User(name="mohammed", role=RoleEnum.Manager, hashed_password=get_password_hash("password123")),
-            User(name="daffa", role=RoleEnum.Cashier, hashed_password=get_password_hash("password123")),
-            User(name="anita", role=RoleEnum.Manager, hashed_password=get_password_hash("password123")),
-            User(name="abel", role=RoleEnum.Warehouse, hashed_password=get_password_hash("password123")),
-            User(name="farrell", role=RoleEnum.Manager, hashed_password=get_password_hash("password123")),
+            User(name="mohammed", username="mohammed", role=RoleEnum.Manager, hashed_password=get_password_hash("password123")),
+            User(name="daffa", username="daffa", role=RoleEnum.Cashier, hashed_password=get_password_hash("password123")),
+            User(name="anita", username="anita", role=RoleEnum.Manager, hashed_password=get_password_hash("password123")),
+            User(name="abel", username="abel", role=RoleEnum.Warehouse, hashed_password=get_password_hash("password123")),
+            User(name="farrell", username="farrell", role=RoleEnum.Manager, hashed_password=get_password_hash("password123")),
         ]
         session.add_all(users)
         await session.commit()
