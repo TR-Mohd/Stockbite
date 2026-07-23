@@ -1,20 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import select, func, and_, text, case
+from sqlalchemy import select, func, and_, text, case, delete, update
 from sqlalchemy.exc import IntegrityError
 
 from ..database import get_db
 from ..auth import role_required, get_password_hash
-from ..models import User, RoleEnum, Transaction, TransactionItem, StatusEnum, AuditLog, MenuItem, TransactionItemModifier
+from ..models import (
+    User, RoleEnum, Transaction, TransactionItem, StatusEnum, AuditLog, 
+    MenuItem, TransactionItemModifier, Ingredient, Recipe, 
+    ItemModifierGroup, ItemModifier, ModifierRecipe
+)
 
-from sqlalchemy.orm import aliased
+from sqlalchemy.orm import aliased, joinedload, selectinload
 from datetime import datetime, timedelta
 from typing import List, Optional
 from datetime import date
-from sqlalchemy.orm import joinedload
 from zoneinfo import ZoneInfo
-from sqlalchemy import and_
 
 def get_timeframe_boundaries(timeframe: str):
     tz = ZoneInfo("Asia/Jakarta")
@@ -47,7 +49,9 @@ from ..schemas import (
     MenuEngineeringResponse, MenuEngineeringItem,
     KPITransactionItem, PaginatedKPITransactions,
     COGSBreakdownItem, PaginatedCOGSBreakdown,
-    MarginTrendItem, ATSBucketItem
+    MarginTrendItem, ATSBucketItem,
+    MenuItemResponse, MenuItemDetailResponse, MenuItemCreate, MenuItemUpdate,
+    RecipeEntryInput, RecipeEntryResponse
 )
 from ..models import OrderTypeEnum
 
@@ -250,6 +254,276 @@ async def delete_staff(
         raise HTTPException(status_code=400, detail="Cannot delete staff with transaction history. Please deactivate instead.")
         
     return {"message": "Employee deleted"}
+
+# --- MENU MANAGEMENT HELPERS & ENDPOINTS ---
+
+async def _check_duplicate_menu_name(db: AsyncSession, name: str, exclude_id: Optional[str] = None):
+    stmt = select(MenuItem.id).where(
+        func.lower(MenuItem.name) == name.strip().lower(),
+        MenuItem.is_active == True
+    )
+    if exclude_id:
+        stmt = stmt.where(MenuItem.id != exclude_id)
+    result = await db.execute(stmt)
+    if result.first():
+        raise HTTPException(
+            status_code=400,
+            detail=f"A menu item named '{name.strip()}' already exists."
+        )
+
+async def _validate_ingredient_ids(db: AsyncSession, recipe_inputs: List[RecipeEntryInput]):
+    provided_ids = {r.ingredient_id for r in recipe_inputs}
+    if not provided_ids:
+        return
+    result = await db.execute(select(Ingredient.id).where(Ingredient.id.in_(provided_ids)))
+    found_ids = {row[0] for row in result.all()}
+    missing = provided_ids - found_ids
+    if missing:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unknown ingredient IDs: {', '.join(sorted(missing))}"
+        )
+
+def _format_menu_item_detail(item: MenuItem) -> MenuItemDetailResponse:
+    recipe_responses = []
+    if item.recipes:
+        for r in item.recipes:
+            recipe_responses.append(
+                RecipeEntryResponse(
+                    ingredient_id=r.ingredient_id,
+                    ingredient_name=r.ingredient.name if r.ingredient else "",
+                    unit=r.ingredient.unit if r.ingredient else "",
+                    quantity=float(r.quantity)
+                )
+            )
+    return MenuItemDetailResponse(
+        id=item.id,
+        name=item.name,
+        description=getattr(item, "description", None),
+        price=float(item.price),
+        category=item.category,
+        image=item.image,
+        is_active=item.is_active,
+        is_available=item.is_available,
+        recipes=recipe_responses
+    )
+
+@router.get("/menu", response_model=List[MenuItemResponse])
+async def get_manager_menu(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    result = await db.execute(
+        select(MenuItem)
+        .options(
+            selectinload(MenuItem.modifier_groups).selectinload(ItemModifierGroup.modifiers)
+        )
+    )
+    items = result.scalars().all()
+    return items
+
+@router.get("/menu/{item_id}", response_model=MenuItemDetailResponse)
+async def get_manager_menu_detail(
+    item_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    result = await db.execute(
+        select(MenuItem)
+        .options(
+            selectinload(MenuItem.recipes).selectinload(Recipe.ingredient),
+            selectinload(MenuItem.modifier_groups).selectinload(ItemModifierGroup.modifiers)
+        )
+        .where(MenuItem.id == item_id)
+    )
+    item = result.scalars().first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Menu item not found")
+    return _format_menu_item_detail(item)
+
+@router.post("/menu", response_model=MenuItemDetailResponse, status_code=201)
+async def create_menu_item(
+    item_in: MenuItemCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    current_user_id = current_user.id
+    await _check_duplicate_menu_name(db, item_in.name)
+    await _validate_ingredient_ids(db, item_in.recipes)
+
+    new_item = MenuItem(
+        name=item_in.name.strip(),
+        category=item_in.category.strip(),
+        price=item_in.price,
+        image=item_in.image,
+        is_active=item_in.is_active
+    )
+    db.add(new_item)
+    await db.flush()
+
+    for r_in in item_in.recipes:
+        recipe = Recipe(
+            menu_item_id=new_item.id,
+            ingredient_id=r_in.ingredient_id,
+            quantity=r_in.quantity
+        )
+        db.add(recipe)
+
+    audit = AuditLog(
+        user_id=current_user_id,
+        action="Create Menu Item",
+        resource=f"MenuItem:{new_item.name}",
+        outcome="Success"
+    )
+    db.add(audit)
+
+    await db.commit()
+
+    result = await db.execute(
+        select(MenuItem)
+        .options(
+            selectinload(MenuItem.recipes).selectinload(Recipe.ingredient),
+            selectinload(MenuItem.modifier_groups)
+        )
+        .where(MenuItem.id == new_item.id)
+    )
+    created_item = result.scalars().first()
+    return _format_menu_item_detail(created_item)
+
+@router.put("/menu/{item_id}", response_model=MenuItemDetailResponse)
+async def update_menu_item(
+    item_id: str,
+    item_in: MenuItemUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    current_user_id = current_user.id
+    result = await db.execute(
+        select(MenuItem)
+        .options(
+            selectinload(MenuItem.recipes),
+            selectinload(MenuItem.modifier_groups)
+        )
+        .where(MenuItem.id == item_id)
+    )
+    item = result.scalars().first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Menu item not found")
+
+    update_data = item_in.model_dump(exclude_unset=True)
+
+    if "name" in update_data and update_data["name"] is not None:
+        new_name = update_data["name"].strip()
+        if new_name.lower() != item.name.lower():
+            await _check_duplicate_menu_name(db, new_name, exclude_id=item_id)
+        item.name = new_name
+
+    if "category" in update_data and update_data["category"] is not None:
+        item.category = update_data["category"].strip()
+
+    if "price" in update_data and update_data["price"] is not None:
+        item.price = update_data["price"]
+
+    if "image" in update_data:
+        item.image = update_data["image"]
+
+    if "is_active" in update_data and update_data["is_active"] is not None:
+        item.is_active = update_data["is_active"]
+
+    if item_in.recipes is not None:
+        await _validate_ingredient_ids(db, item_in.recipes)
+        await db.execute(delete(Recipe).where(Recipe.menu_item_id == item_id))
+        for r_in in item_in.recipes:
+            db.add(Recipe(
+                menu_item_id=item_id,
+                ingredient_id=r_in.ingredient_id,
+                quantity=r_in.quantity
+            ))
+
+    audit = AuditLog(
+        user_id=current_user_id,
+        action="Update Menu Item",
+        resource=f"MenuItem:{item.name}",
+        outcome="Success"
+    )
+    db.add(audit)
+
+    await db.commit()
+
+    res = await db.execute(
+        select(MenuItem)
+        .options(
+            selectinload(MenuItem.recipes).selectinload(Recipe.ingredient),
+            selectinload(MenuItem.modifier_groups)
+        )
+        .where(MenuItem.id == item_id)
+        .execution_options(populate_existing=True)
+    )
+    updated_item = res.scalars().first()
+    return _format_menu_item_detail(updated_item)
+
+@router.delete("/menu/{item_id}")
+async def delete_menu_item(
+    item_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(role_required([RoleEnum.Manager]))
+):
+    current_user_id = current_user.id
+    result = await db.execute(select(MenuItem).where(MenuItem.id == item_id))
+    item = result.scalars().first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Menu item not found")
+
+    item_name = item.name
+
+    # Delete all children explicitly in dependency order
+    await db.execute(delete(ModifierRecipe).where(
+        ModifierRecipe.modifier_id.in_(
+            select(ItemModifier.id).where(
+                ItemModifier.group_id.in_(
+                    select(ItemModifierGroup.id).where(ItemModifierGroup.menu_item_id == item_id)
+                )
+            )
+        )
+    ))
+    await db.execute(delete(ItemModifier).where(
+        ItemModifier.group_id.in_(
+            select(ItemModifierGroup.id).where(ItemModifierGroup.menu_item_id == item_id)
+        )
+    ))
+    await db.execute(delete(ItemModifierGroup).where(ItemModifierGroup.menu_item_id == item_id))
+    await db.execute(delete(Recipe).where(Recipe.menu_item_id == item_id))
+
+    await db.delete(item)
+
+    try:
+        await db.commit()
+        audit = AuditLog(
+            user_id=current_user_id,
+            action="Delete Menu Item",
+            resource=f"MenuItem:{item_name}",
+            outcome="Hard Deleted"
+        )
+        db.add(audit)
+        await db.commit()
+        return {"status": "deleted"}
+    except IntegrityError:
+        await db.rollback()
+        await db.execute(
+            update(MenuItem)
+            .where(MenuItem.id == item_id)
+            .values(is_active=False)
+        )
+        audit = AuditLog(
+            user_id=current_user_id,
+            action="Deactivate Menu Item",
+            resource=f"MenuItem:{item_name}",
+            outcome="Soft Deactivated (has transactions)"
+        )
+        db.add(audit)
+        await db.commit()
+        return {"status": "deactivated"}
+
 
 @router.get("/dashboard/kpis")
 async def get_kpis(

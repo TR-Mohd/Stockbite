@@ -28,7 +28,7 @@ export const MenuManagement = () => {
   const fetchMenu = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get('/pos/menu');
+      const response = await api.get('/manager/menu');
       setMenuList(response.data);
     } catch (err) {
       console.error('Error fetching menu:', err);
@@ -52,10 +52,15 @@ export const MenuManagement = () => {
     }
   };
 
-  const handleEdit = (id) => {
-    const item = menuList.find(m => m.id === id);
-    setSelectedMenu(item);
-    setIsModalOpen(true);
+  const handleEdit = async (id) => {
+    try {
+      const response = await api.get(`/manager/menu/${id}`);
+      setSelectedMenu(response.data);
+      setIsModalOpen(true);
+    } catch (err) {
+      console.error('Error fetching menu item details:', err);
+      alert(err.response?.data?.detail || 'Failed to fetch menu item details');
+    }
   };
 
   const handleAdd = () => {
