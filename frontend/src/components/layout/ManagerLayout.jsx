@@ -50,6 +50,12 @@ export const ManagerLayout = () => {
         >
           Menu Engineering
         </NavLink>
+        <NavLink 
+          to="/manager/menu" 
+          className={({ isActive }) => isActive ? `${headerStyles.navLink} ${headerStyles.activeLink}` : headerStyles.navLink}
+        >
+          Menu Management
+        </NavLink>
       </GlobalHeader>
 
       <main className={styles.mainContent}>

@@ -121,6 +121,26 @@ class ModifierGroupResponse(BaseModel):
     modifiers: List[ModifierResponse] = []
     model_config = ConfigDict(from_attributes=True)
 
+class RecipeEntryInput(BaseModel):
+    ingredient_id: str
+    quantity: Decimal = Field(..., gt=Decimal("0.0"))
+
+class MenuItemCreate(BaseModel):
+    name: str
+    category: str
+    price: Decimal = Field(..., ge=Decimal("0.0"))
+    image: Optional[str] = None
+    is_active: bool = True
+    recipes: List[RecipeEntryInput] = []
+
+class MenuItemUpdate(BaseModel):
+    name: Optional[str] = None
+    category: Optional[str] = None
+    price: Optional[Decimal] = Field(default=None, ge=Decimal("0.0"))
+    image: Optional[str] = None
+    is_active: Optional[bool] = None
+    recipes: Optional[List[RecipeEntryInput]] = None
+
 class MenuItemResponse(BaseModel):
     id: str
     name: str
@@ -137,6 +157,16 @@ class MenuItemResponse(BaseModel):
         return float(v) if v is not None else None
 
     model_config = ConfigDict(from_attributes=True)
+
+class RecipeEntryResponse(BaseModel):
+    ingredient_id: str
+    ingredient_name: str
+    unit: str
+    quantity: float
+    model_config = ConfigDict(from_attributes=True)
+
+class MenuItemDetailResponse(MenuItemResponse):
+    recipes: List[RecipeEntryResponse] = []
 
 class CartItemCreate(BaseModel):
     menu_item_id: str

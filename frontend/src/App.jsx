@@ -13,6 +13,7 @@ import { OrderHistory } from './features/manager/OrderHistory/OrderHistory';
 import { ManagerSuppliersDashboard } from './features/manager/ManagerSuppliersDashboard';
 import { StaffManagement } from './features/manager/StaffManagement';
 import { MenuEngineering } from './features/manager/MenuEngineering';
+import { MenuManagement } from './features/manager/MenuManagement';
 
 const RoleRedirect = () => {
   const { user } = useAuthStore();
@@ -46,6 +47,7 @@ function App() {
             <Route path="staff" element={<StaffManagement />} />
             <Route path="orders" element={<OrderHistory />} />
             <Route path="menu-engineering" element={<MenuEngineering />} />
+            <Route path="menu" element={<MenuManagement />} />
           </Route>
         </Route>
 
