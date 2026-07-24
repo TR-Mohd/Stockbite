@@ -10,9 +10,11 @@ from fastapi import Depends, HTTPException, status, APIRouter, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from .database import get_db
 from .models import User, RoleEnum, AuditLog
-from .schemas import TokenData, PinAuthRequest, RefreshTokenRequest
+from .schemas import TokenData, PinAuthRequest, RefreshTokenRequest, InitialSetupRequest
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -54,9 +56,10 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         role: str = payload.get("role")
+        is_super_admin: bool = payload.get("is_super_admin", False)
         if username is None:
             raise HTTPException(status_code=401, detail="Could not validate credentials: Username is None")
-        token_data = TokenData(username=username, role=role)
+        token_data = TokenData(username=username, role=role, is_super_admin=is_super_admin)
     except JWTError as e:
         logger.error(f"JWTError: {str(e)}")
         raise credentials_exception
@@ -82,6 +85,83 @@ def role_required(required_roles: list[RoleEnum]):
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+@router.get("/setup-status")
+async def get_setup_status(db: AsyncSession = Depends(get_db)):
+    res = await db.execute(select(func.count(User.id)))
+    user_count = res.scalar() or 0
+    return {"setup_required": user_count == 0}
+
+@router.post("/setup")
+@limiter.limit("5/minute")
+async def initial_setup(request: Request, setup_data: InitialSetupRequest, db: AsyncSession = Depends(get_db)):
+    res_count = await db.execute(select(func.count(User.id)))
+    user_count = res_count.scalar() or 0
+    if user_count > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Initial setup has already been completed"
+        )
+
+    res_user = await db.execute(select(User).where(User.username == setup_data.username))
+    if res_user.scalars().first():
+        raise HTTPException(status_code=400, detail="Username already exists")
+
+    from datetime import datetime, timezone
+    year = str(datetime.now(timezone.utc).year)[-2:]
+    res_seq = await db.execute(
+        select(User.id)
+        .where(User.id.like(f"EMP-%-{year}%"))
+        .order_by(User.id.desc())
+    )
+    max_id = res_seq.scalars().first()
+    if max_id:
+        try:
+            seq = int(max_id[-3:])
+            init_id = f"EMP-MGR-{year}{seq + 1:03d}"
+        except ValueError:
+            init_id = f"EMP-MGR-{year}100"
+    else:
+        init_id = f"EMP-MGR-{year}100"
+
+    new_user = User(
+        id=init_id,
+        name=setup_data.name,
+        username=setup_data.username,
+        role=RoleEnum.Manager,
+        hashed_password=get_password_hash(setup_data.password),
+        phone_number=setup_data.phone_number,
+        email=setup_data.email,
+        is_active=True,
+        is_super_admin=True
+    )
+
+    db.add(new_user)
+    
+    audit_entry = AuditLog(
+        user_id=new_user.id,
+        action="initial_setup",
+        resource=f"users/{new_user.id}",
+        outcome="success",
+        details={"username": new_user.username, "role": new_user.role.value, "is_super_admin": True}
+    )
+    db.add(audit_entry)
+    
+    try:
+        await db.commit()
+        await db.refresh(new_user)
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Initial setup has already been completed or username already exists")
+
+    return {
+        "id": new_user.id,
+        "name": new_user.name,
+        "username": new_user.username,
+        "role": new_user.role.value,
+        "is_super_admin": new_user.is_super_admin,
+        "message": "Initial setup completed successfully"
+    }
+
 @router.post("/token")
 @limiter.limit("5/minute")
 async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
@@ -101,7 +181,7 @@ async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequ
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username, "role": user.role.value}, expires_delta=access_token_expires
+        data={"sub": user.username, "role": user.role.value, "is_super_admin": user.is_super_admin}, expires_delta=access_token_expires
     )
     refresh_token_expires = timedelta(hours=24)
     refresh_token = create_access_token(
@@ -121,7 +201,7 @@ async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequ
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
-        "user": {"username": user.name, "role": user.role.value}
+        "user": {"username": user.name, "role": user.role.value, "is_super_admin": user.is_super_admin}
     }
 
 @router.post("/refresh")
@@ -148,12 +228,13 @@ async def refresh_token(request: Request, refresh_request: RefreshTokenRequest, 
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username, "role": user.role.value}, expires_delta=access_token_expires
+        data={"sub": user.username, "role": user.role.value, "is_super_admin": user.is_super_admin}, expires_delta=access_token_expires
     )
     return {
         "access_token": access_token,
         "token_type": "bearer"
     }
+
 
 @router.post("/pin-auth")
 @limiter.limit("5/minute")
