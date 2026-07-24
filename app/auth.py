@@ -13,7 +13,7 @@ from sqlalchemy.future import select
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from .database import get_db
-from .models import User, RoleEnum, AuditLog
+from .models import User, RoleEnum, AuditLog, SystemConfig
 from .schemas import TokenData, PinAuthRequest, RefreshTokenRequest, InitialSetupRequest
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -87,6 +87,10 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.get("/setup-status")
 async def get_setup_status(db: AsyncSession = Depends(get_db)):
+    res_cfg = await db.execute(select(SystemConfig).where(SystemConfig.key == "is_initialized"))
+    cfg = res_cfg.scalars().first()
+    if cfg and cfg.value == "true":
+        return {"setup_required": False}
     res = await db.execute(select(func.count(User.id)))
     user_count = res.scalar() or 0
     return {"setup_required": user_count == 0}
@@ -94,6 +98,13 @@ async def get_setup_status(db: AsyncSession = Depends(get_db)):
 @router.post("/setup")
 @limiter.limit("5/minute")
 async def initial_setup(request: Request, setup_data: InitialSetupRequest, db: AsyncSession = Depends(get_db)):
+    res_cfg = await db.execute(select(SystemConfig).where(SystemConfig.key == "is_initialized"))
+    if res_cfg.scalars().first():
+        raise HTTPException(
+            status_code=400,
+            detail="Initial setup has already been completed"
+        )
+
     res_count = await db.execute(select(func.count(User.id)))
     user_count = res_count.scalar() or 0
     if user_count > 0:
@@ -137,6 +148,9 @@ async def initial_setup(request: Request, setup_data: InitialSetupRequest, db: A
 
     db.add(new_user)
     
+    setup_lock = SystemConfig(key="is_initialized", value="true")
+    db.add(setup_lock)
+
     audit_entry = AuditLog(
         user_id=new_user.id,
         action="initial_setup",
