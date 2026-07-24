@@ -196,4 +196,36 @@ async def test_setup_and_manager_created_ids_are_sequential(client):
     assert mgr_seq == admin_seq + 1, f"Expected sequential IDs, got admin_id={admin_id} and mgr_id={mgr_id}"
 
 
+@pytest.mark.asyncio
+async def test_create_second_super_admin_success(client):
+    # 1. Setup initial super admin (sa1)
+    setup_res = await client.post("/auth/setup", json={
+        "name": "Founding Admin",
+        "username": "founding_admin",
+        "password": "supersecurepassword123"
+    })
+    assert setup_res.status_code == 200
+    assert setup_res.json()["is_super_admin"] is True
+
+    # Login as sa1
+    login_res = await client.post("/auth/token", data={"username": "founding_admin", "password": "supersecurepassword123"})
+    sa1_token = login_res.json()["access_token"]
+    sa1_headers = {"Authorization": f"Bearer {sa1_token}"}
+
+    # 2. sa1 creates a SECOND Super-Admin via /manager/staff with is_super_admin=True
+    second_sa_res = await client.post("/manager/staff", json={
+        "name": "Second Super Admin",
+        "username": "second_sa",
+        "password": "anotherpassword123",
+        "role": "Manager",
+        "is_super_admin": True
+    }, headers=sa1_headers)
+
+    assert second_sa_res.status_code == 200, f"Failed to create second super admin: {second_sa_res.text}"
+    data = second_sa_res.json()
+    assert data["username"] == "second_sa"
+    assert data["is_super_admin"] is True
+
+
+
 
