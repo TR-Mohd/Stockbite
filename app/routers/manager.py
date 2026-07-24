@@ -109,7 +109,8 @@ async def get_staff(
             "email": u.email,
             "last_active": last_active,
             "status": "Active" if u.is_active else "Inactive",
-            "has_transactions": has_transactions
+            "has_transactions": has_transactions,
+            "is_super_admin": u.is_super_admin
         })
     return staff_list
 
@@ -124,6 +125,10 @@ async def create_staff(
     if res.scalars().first():
         raise HTTPException(status_code=400, detail="Username already exists")
 
+    # Only an existing super admin can create another super admin account
+    can_grant_super_admin = current_user.is_super_admin if hasattr(current_user, 'is_super_admin') else False
+    is_super_admin = staff.is_super_admin if can_grant_super_admin else False
+
     user_data = {
         "name": staff.name,
         "username": staff.username,
@@ -131,7 +136,8 @@ async def create_staff(
         "hashed_password": get_password_hash(staff.password),
         "phone_number": staff.phone_number,
         "email": staff.email,
-        "is_active": True
+        "is_active": True,
+        "is_super_admin": is_super_admin
     }
     if staff.id is not None:
         user_data["id"] = staff.id
@@ -169,7 +175,8 @@ async def create_staff(
         "email": new_user.email,
         "last_active": None,
         "status": "Active",
-        "has_transactions": False
+        "has_transactions": False,
+        "is_super_admin": new_user.is_super_admin
     }
 
 @router.put("/staff/{user_id}", response_model=StaffResponse)
@@ -195,6 +202,9 @@ async def update_staff(
     user.role = staff.role
     user.phone_number = staff.phone_number
     user.email = staff.email
+    if current_user.is_super_admin and staff.is_super_admin is not None:
+        user.is_super_admin = staff.is_super_admin
+
     if staff.password:
         user.hashed_password = get_password_hash(staff.password)
     await db.commit()
@@ -208,7 +218,8 @@ async def update_staff(
         "email": user.email,
         "last_active": None, # For simplicity, omitting full computation here. The frontend will likely refetch the list.
         "status": "Active" if user.is_active else "Inactive",
-        "has_transactions": False
+        "has_transactions": False,
+        "is_super_admin": user.is_super_admin
     }
 
 @router.put("/staff/{user_id}/toggle-status")
@@ -224,6 +235,14 @@ async def toggle_staff_status(
     user = res.scalars().first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    # Protect last Super-Admin from being deactivated
+    if user.is_super_admin and user.is_active:
+        res_sa = await db.execute(
+            select(func.count(User.id)).where(User.is_super_admin == True, User.is_active == True)
+        )
+        if (res_sa.scalar() or 0) <= 1:
+            raise HTTPException(status_code=400, detail="Cannot deactivate the system's last remaining active Super-Admin.")
 
     user.is_active = not user.is_active
     await db.commit()
@@ -243,8 +262,15 @@ async def delete_staff(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if user.role == RoleEnum.Manager and current_user.name != "mohammed":
-        raise HTTPException(status_code=403, detail="Only Mohammed can delete managers")
+    if user.role == RoleEnum.Manager and not current_user.is_super_admin:
+        raise HTTPException(status_code=403, detail="Only Super-Admins can delete managers")
+
+    if user.is_super_admin:
+        res_sa = await db.execute(
+            select(func.count(User.id)).where(User.is_super_admin == True, User.is_active == True)
+        )
+        if (res_sa.scalar() or 0) <= 1:
+            raise HTTPException(status_code=400, detail="Cannot delete the system's last remaining active Super-Admin.")
 
     try:
         await db.delete(user)

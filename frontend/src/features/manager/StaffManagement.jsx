@@ -238,7 +238,7 @@ export const StaffManagement = () => {
                           </button>
                           {(() => {
                             const isSelf = staff.name === user?.username;
-                            const isProtectedManager = staff.role === 'Manager' && user?.username !== 'mohammed';
+                            const isProtectedManager = staff.role === 'Manager' && !user?.is_super_admin;
                             const hasHistory = staff.has_transactions;
                             
                             const isDisabled = isSelf || isProtectedManager || hasHistory;

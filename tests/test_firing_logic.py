@@ -19,6 +19,8 @@ def login(username, password):
             return {"error": e.code, "detail": json.loads(raw_err)}
         except json.JSONDecodeError:
             return {"error": e.code, "detail": {"detail": raw_err}}
+    except urllib.error.URLError:
+        pytest.skip("Server not running on localhost:8000")
 
 def get_staff(token):
     req = urllib.request.Request(f"{BASE_URL}/manager/staff", headers={"Authorization": f"Bearer {token}"})
@@ -115,9 +117,9 @@ def test_firing_logic():
     status_code, _ = delete_staff(std_token, target_csh["id"])
     assert status_code == 200, f"Standard manager failed to delete cashier, got {status_code}"
     
-    # Test 4: 'mohammed' successfully bypasses the manager deletion lock (200)
+    # Test 4: Super-Admin successfully deletes manager account (200)
     status_code, _ = delete_staff(token, target_mgr["id"])
-    assert status_code == 200, f"Mohammed failed to bypass manager lock, got {status_code}"
+    assert status_code == 200, f"Super-Admin failed to delete manager, got {status_code}"
     
     # Cleanup std_mgr
     delete_staff(token, std_mgr["id"])

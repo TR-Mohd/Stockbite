@@ -18,6 +18,14 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: Optional[str] = None
     role: Optional[RoleEnum] = None
+    is_super_admin: Optional[bool] = False
+
+class InitialSetupRequest(BaseModel):
+    name: str
+    username: str
+    password: str = Field(..., min_length=8)
+    email: Optional[str] = None
+    phone_number: Optional[str] = None
 
 class UserBase(BaseModel):
     name: str
@@ -25,6 +33,7 @@ class UserBase(BaseModel):
     role: RoleEnum
     phone_number: Optional[str] = None
     email: Optional[str] = None
+    is_super_admin: bool = False
 
 class UserCreate(UserBase):
     password: str
@@ -37,6 +46,7 @@ class UserUpdate(BaseModel):
     password: Optional[str] = None
     phone_number: Optional[str] = None
     email: Optional[str] = None
+    is_super_admin: Optional[bool] = None
 
 class UserResponse(UserBase):
     id: str
@@ -52,6 +62,7 @@ class StaffResponse(BaseModel):
     last_active: Optional[datetime] = None
     status: str
     has_transactions: bool = False
+    is_super_admin: bool = False
 
 class IngredientResponse(BaseModel):
     id: str

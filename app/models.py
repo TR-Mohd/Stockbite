@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Float, Integer, Boolean, ForeignKey, DateTime, Enum, JSON, Numeric
+from sqlalchemy import Column, String, Float, Integer, Boolean, ForeignKey, DateTime, Enum, JSON, Numeric, Index, text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -36,6 +36,14 @@ class PaymentMethodEnum(str, enum.Enum):
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = (
+        Index(
+            "uix_users_super_admin",
+            "is_super_admin",
+            unique=True,
+            postgresql_where=text("is_super_admin = true")
+        ),
+    )
     id = Column(String, primary_key=True, default=generate_uuid)
     name = Column(String, nullable=False)
     username = Column(String, nullable=False)
@@ -45,6 +53,8 @@ class User(Base):
     phone_number = Column(String, nullable=True)
     email = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
+    is_super_admin = Column(Boolean, default=False, nullable=False)
+
 
 class Shift(Base):
     __tablename__ = "shifts"
