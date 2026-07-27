@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 
 from ..database import get_db
 from ..auth import role_required, get_password_hash
+from ..services import get_next_id_sequence
 from ..models import (
     User, RoleEnum, Transaction, TransactionItem, StatusEnum, AuditLog, 
     MenuItem, TransactionItemModifier, Ingredient, Recipe, 
@@ -141,29 +142,44 @@ async def create_staff(
     }
     if staff.id is not None:
         user_data["id"] = staff.id
+        new_user = User(**user_data)
+        db.add(new_user)
+        try:
+            await db.commit()
+        except IntegrityError:
+            await db.rollback()
+            raise HTTPException(status_code=400, detail="User ID already exists")
     else:
         from datetime import datetime
         year = str(datetime.utcnow().year)[-2:]
         role_map = {'Manager': 'MGR', 'Cashier': 'CSH', 'Warehouse': 'WHS'}
         role_code = role_map.get(staff.role.value, 'UNK')
+        key = f"EMP-{year}"
+        prefix_pattern = f"EMP-%-{year}%"
         
-        res_seq = await db.execute(
-            select(User.id)
-            .where(User.id.like(f"EMP-%-{year}%"))
-            .order_by(User.id.desc())
-        )
-        max_id = res_seq.scalars().first()
-        if max_id:
+        max_retries = 3
+        for attempt in range(max_retries):
+            seq_val = await get_next_id_sequence(
+                db=db,
+                key=key,
+                model=User,
+                prefix_pattern=prefix_pattern,
+                default_start_val=100,
+                extract_seq_fn=lambda mid: int(mid[-3:])
+            )
+            user_data["id"] = f"EMP-{role_code}-{year}{seq_val:03d}"
+            new_user = User(**user_data)
+            db.add(new_user)
             try:
-                seq = int(max_id[-3:])
-                user_data["id"] = f"EMP-{role_code}-{year}{seq + 1:03d}"
-            except ValueError:
-                user_data["id"] = f"EMP-{role_code}-{year}100"
-        else:
-            user_data["id"] = f"EMP-{role_code}-{year}100"
-    new_user = User(**user_data)
-    db.add(new_user)
-    await db.commit()
+                await db.commit()
+                break
+            except IntegrityError:
+                await db.rollback()
+                if attempt == max_retries - 1:
+                    raise HTTPException(
+                        status_code=409,
+                        detail="Could not generate a unique employee ID due to concurrent request contention. Please retry."
+                    )
     await db.refresh(new_user)
 
     return {

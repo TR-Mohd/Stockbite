@@ -40,6 +40,11 @@ class SystemConfig(Base):
     value = Column(String, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+class IDSequence(Base):
+    __tablename__ = "id_sequences"
+    key = Column(String, primary_key=True)
+    current_value = Column(Integer, nullable=False)
+
 class User(Base):
     __tablename__ = "users"
     id = Column(String, primary_key=True, default=generate_uuid)
