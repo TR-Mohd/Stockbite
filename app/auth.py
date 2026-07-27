@@ -14,6 +14,7 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from .database import get_db
 from .models import User, RoleEnum, AuditLog, SystemConfig
+from .services import get_next_id_sequence
 from .schemas import TokenData, PinAuthRequest, RefreshTokenRequest, InitialSetupRequest
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -119,53 +120,54 @@ async def initial_setup(request: Request, setup_data: InitialSetupRequest, db: A
 
     from datetime import datetime, timezone
     year = str(datetime.now(timezone.utc).year)[-2:]
-    res_seq = await db.execute(
-        select(User.id)
-        .where(User.id.like(f"EMP-%-{year}%"))
-        .order_by(User.id.desc())
-    )
-    max_id = res_seq.scalars().first()
-    if max_id:
+    key = f"EMP-{year}"
+    prefix_pattern = f"EMP-%-{year}%"
+
+    max_retries = 3
+    for attempt in range(max_retries):
+        seq_val = await get_next_id_sequence(
+            db=db,
+            key=key,
+            model=User,
+            prefix_pattern=prefix_pattern,
+            default_start_val=100,
+            extract_seq_fn=lambda mid: int(mid[-3:])
+        )
+        init_id = f"EMP-MGR-{year}{seq_val:03d}"
+
+        new_user = User(
+            id=init_id,
+            name=setup_data.name,
+            username=setup_data.username,
+            role=RoleEnum.Manager,
+            hashed_password=get_password_hash(setup_data.password),
+            phone_number=setup_data.phone_number,
+            email=setup_data.email,
+            is_active=True,
+            is_super_admin=True
+        )
+
+        db.add(new_user)
+        setup_lock = SystemConfig(key="is_initialized", value="true")
+        db.add(setup_lock)
+
+        audit_entry = AuditLog(
+            user_id=new_user.id,
+            action="initial_setup",
+            resource=f"users/{new_user.id}",
+            outcome="success",
+            details={"username": new_user.username, "role": new_user.role.value, "is_super_admin": True}
+        )
+        db.add(audit_entry)
+
         try:
-            seq = int(max_id[-3:])
-            init_id = f"EMP-MGR-{year}{seq + 1:03d}"
-        except ValueError:
-            init_id = f"EMP-MGR-{year}100"
-    else:
-        init_id = f"EMP-MGR-{year}100"
-
-    new_user = User(
-        id=init_id,
-        name=setup_data.name,
-        username=setup_data.username,
-        role=RoleEnum.Manager,
-        hashed_password=get_password_hash(setup_data.password),
-        phone_number=setup_data.phone_number,
-        email=setup_data.email,
-        is_active=True,
-        is_super_admin=True
-    )
-
-    db.add(new_user)
-    
-    setup_lock = SystemConfig(key="is_initialized", value="true")
-    db.add(setup_lock)
-
-    audit_entry = AuditLog(
-        user_id=new_user.id,
-        action="initial_setup",
-        resource=f"users/{new_user.id}",
-        outcome="success",
-        details={"username": new_user.username, "role": new_user.role.value, "is_super_admin": True}
-    )
-    db.add(audit_entry)
-    
-    try:
-        await db.commit()
-        await db.refresh(new_user)
-    except IntegrityError:
-        await db.rollback()
-        raise HTTPException(status_code=400, detail="Initial setup has already been completed or username already exists")
+            await db.commit()
+            await db.refresh(new_user)
+            break
+        except IntegrityError:
+            await db.rollback()
+            if attempt == max_retries - 1:
+                raise HTTPException(status_code=400, detail="Initial setup has already been completed or username already exists")
 
     return {
         "id": new_user.id,
