@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_serializer
 from typing import List, Optional
 from datetime import datetime
 from decimal import Decimal
-from .models import RoleEnum, StatusEnum, POStatusEnum, PaymentMethodEnum, OrderTypeEnum
+from .models import RoleEnum, StatusEnum, POStatusEnum, PaymentMethodEnum, OrderTypeEnum, MenuCategoryEnum
 
 class PinAuthRequest(BaseModel):
     pin: str
@@ -138,7 +138,7 @@ class RecipeEntryInput(BaseModel):
 
 class MenuItemCreate(BaseModel):
     name: str
-    category: str
+    category: MenuCategoryEnum
     price: Decimal = Field(..., ge=Decimal("0.0"))
     image: Optional[str] = None
     is_active: bool = True
@@ -146,7 +146,7 @@ class MenuItemCreate(BaseModel):
 
 class MenuItemUpdate(BaseModel):
     name: Optional[str] = None
-    category: Optional[str] = None
+    category: Optional[MenuCategoryEnum] = None
     price: Optional[Decimal] = Field(default=None, ge=Decimal("0.0"))
     image: Optional[str] = None
     is_active: Optional[bool] = None
