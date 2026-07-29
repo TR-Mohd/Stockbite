@@ -135,10 +135,10 @@ async def seed_db():
 
         print("Seeding POS Menu Items...")
         
-        m1 = MenuItem(name="Classic Burger", price=45000, category="Foods")
-        m2 = MenuItem(name="Cheeseburger", price=55000, category="Foods")
-        m3 = MenuItem(name="Chicken Sandwich", price=40000, category="Foods")
-        m4 = MenuItem(name="Fries", price=20000, category="Foods")
+        m1 = MenuItem(name="Classic Burger", price=45000, category="Main Course")
+        m2 = MenuItem(name="Cheeseburger", price=55000, category="Main Course")
+        m3 = MenuItem(name="Chicken Sandwich", price=40000, category="Main Course")
+        m4 = MenuItem(name="Fries", price=20000, category="Main Course")
         
         m5 = MenuItem(name="Cola", price=15000, category="Beverage")
         m6 = MenuItem(name="Fresh Lemonade", price=25000, category="Beverage")

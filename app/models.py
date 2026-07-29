@@ -34,6 +34,12 @@ class PaymentMethodEnum(str, enum.Enum):
     Cash = "Cash"
     QRIS = "QRIS"
 
+class MenuCategoryEnum(str, enum.Enum):
+    Main_Course = "Main Course"
+    Beverage = "Beverage"
+    Appetizer = "Appetizer"
+    Dessert = "Dessert"
+
 class SystemConfig(Base):
     __tablename__ = "system_config"
     key = Column(String, primary_key=True)

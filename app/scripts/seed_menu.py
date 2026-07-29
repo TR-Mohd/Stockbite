@@ -27,32 +27,32 @@ async def seed():
         print("Seeding Foods...")
         foods = []
         
-        item1 = MenuItem(name="Spicy Indonesian Noodle", price=15000, category="Foods")
+        item1 = MenuItem(name="Spicy Indonesian Noodle", price=15000, category="Main Course")
         group1 = ItemModifierGroup(menu_item=item1, name="Heat Level", is_required=True, min_selections=1, max_selections=1)
         mod1_1 = ItemModifier(group=group1, name="Level 6", price_adjustment=0)
         mod1_2 = ItemModifier(group=group1, name="Level 8", price_adjustment=0)
         foods.extend([item1, group1, mod1_1, mod1_2])
 
-        item2 = MenuItem(name="Udang Keju", price=20000, category="Foods")
+        item2 = MenuItem(name="Udang Keju", price=20000, category="Main Course")
         foods.append(item2)
 
-        item3 = MenuItem(name="Chicken Shawarma", price=25000, category="Foods")
+        item3 = MenuItem(name="Chicken Shawarma", price=25000, category="Main Course")
         group3 = ItemModifierGroup(menu_item=item3, name="Add-ons", is_required=False, min_selections=0, max_selections=2)
         mod3_1 = ItemModifier(group=group3, name="Extra Garlic Sauce", price_adjustment=3000)
         mod3_2 = ItemModifier(group=group3, name="Extra Pickles", price_adjustment=2000)
         foods.extend([item3, group3, mod3_1, mod3_2])
 
-        item4 = MenuItem(name="Triple Whopper Jr with Cheese", price=45000, category="Foods")
+        item4 = MenuItem(name="Triple Whopper Jr with Cheese", price=45000, category="Main Course")
         foods.append(item4)
 
-        item5 = MenuItem(name="Nasi Goreng Spesial", price=20000, category="Foods")
+        item5 = MenuItem(name="Nasi Goreng Spesial", price=20000, category="Main Course")
         group5 = ItemModifierGroup(menu_item=item5, name="Heat Level", is_required=True, min_selections=1, max_selections=1)
         mod5_1 = ItemModifier(group=group5, name="Not Spicy", price_adjustment=0)
         mod5_2 = ItemModifier(group=group5, name="Medium", price_adjustment=0)
         mod5_3 = ItemModifier(group=group5, name="Very Spicy", price_adjustment=0)
         foods.extend([item5, group5, mod5_1, mod5_2, mod5_3])
 
-        item6 = MenuItem(name="Sate Ayam (10 pcs)", price=25000, category="Foods")
+        item6 = MenuItem(name="Sate Ayam (10 pcs)", price=25000, category="Main Course")
         group6 = ItemModifierGroup(menu_item=item6, name="Sauce Type", is_required=True, min_selections=1, max_selections=1)
         mod6_1 = ItemModifier(group=group6, name="Peanut Sauce", price_adjustment=0)
         mod6_2 = ItemModifier(group=group6, name="Sweet Soy Sauce", price_adjustment=0)

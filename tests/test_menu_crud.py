@@ -157,6 +157,18 @@ async def test_create_menu_item_zero_price(client, token):
     assert res.status_code == 201
     assert res.json()["price"] == 0.0
 
+@pytest.mark.asyncio
+async def test_create_menu_item_invalid_category(client, token):
+    """POST /manager/menu with an invalid category -> 422."""
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {
+        "name": "Bogus Category Item",
+        "category": "InvalidCategory",
+        "price": 25000
+    }
+    res = await client.post("/manager/menu", json=payload, headers=headers)
+    assert res.status_code == 422
+
 # === PUT /manager/menu/{id} ===
 
 @pytest.mark.asyncio
@@ -269,6 +281,29 @@ async def test_update_rename_duplicate(client, token):
     update_res = await client.put(f"/manager/menu/{item_b_id}", json={"name": "fries"}, headers=headers)
     assert update_res.status_code == 400
     assert "already exists" in update_res.json()["detail"]
+
+@pytest.mark.asyncio
+async def test_update_menu_item_invalid_category(client, token):
+    """PUT /manager/menu/{id} with an invalid category -> 422, leaves category unchanged."""
+    headers = {"Authorization": f"Bearer {token}"}
+    create_payload = {
+        "name": "Valid Item For Update",
+        "category": "Main Course",
+        "price": 30000
+    }
+    create_res = await client.post("/manager/menu", json=create_payload, headers=headers)
+    assert create_res.status_code == 201
+    item_id = create_res.json()["id"]
+
+    update_payload = {
+        "category": "InvalidCategory"
+    }
+    update_res = await client.put(f"/manager/menu/{item_id}", json=update_payload, headers=headers)
+    assert update_res.status_code == 422
+
+    get_res = await client.get(f"/manager/menu/{item_id}", headers=headers)
+    assert get_res.status_code == 200
+    assert get_res.json()["category"] == "Main Course"
 
 # === DELETE /manager/menu/{id} ===
 
@@ -398,7 +433,7 @@ async def test_get_detail_not_found(client, token):
 async def test_get_manager_menu_list(client, token):
     """GET /manager/menu -> 200, returns list including active and inactive items."""
     headers = {"Authorization": f"Bearer {token}"}
-    await client.post("/manager/menu", json={"name": "Item Active", "category": "Main", "price": 10000}, headers=headers)
+    await client.post("/manager/menu", json={"name": "Item Active", "category": "Main Course", "price": 10000}, headers=headers)
     res = await client.get("/manager/menu", headers=headers)
     assert res.status_code == 200
     assert len(res.json()) >= 1

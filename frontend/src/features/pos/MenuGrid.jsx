@@ -37,7 +37,7 @@ const MenuGrid = ({ onAddToCart, onUpdateQuantity, searchQuery, cartItems }) => 
     const counts = { all: menuItems.length, food: 0, beverage: 0, other: 0 };
     menuItems.forEach((item) => {
       const cat = (item.category || 'other').toLowerCase();
-      if (cat === 'food' || cat === 'foods' || cat === 'main') {
+      if (cat === 'food' || cat === 'foods' || cat === 'main' || cat === 'main course') {
         counts.food += 1;
       } else if (cat === 'beverage' || cat === 'beverages' || cat === 'drink' || cat === 'drinks') {
         counts.beverage += 1;
@@ -51,7 +51,7 @@ const MenuGrid = ({ onAddToCart, onUpdateQuantity, searchQuery, cartItems }) => 
   // Normalize category for filtering
   const normalizeCategory = (cat) => {
     const lower = (cat || 'other').toLowerCase();
-    if (['food', 'foods', 'main'].includes(lower)) return 'food';
+    if (['food', 'foods', 'main', 'main course'].includes(lower)) return 'food';
     if (['beverage', 'beverages', 'drink', 'drinks'].includes(lower)) return 'beverage';
     return 'other';
   };
