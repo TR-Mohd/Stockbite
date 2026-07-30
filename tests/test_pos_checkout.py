@@ -38,7 +38,8 @@ async def setup_db(db_engine, db_maker):
     # Seed data
     async with db_maker() as session:
         user = User(name="test_cashier", username="test_cashier", role=RoleEnum.Cashier, hashed_password=get_password_hash("pass"))
-        session.add(user)
+        manager = User(name="test_manager", username="test_manager", role=RoleEnum.Manager, hashed_password=get_password_hash("pass"))
+        session.add_all([user, manager])
         await session.commit()
     
     yield
@@ -237,3 +238,20 @@ async def test_checkout_concurrency(client, token, async_db):
     async_db.expire_all()
     ing_final = await async_db.execute(select(Ingredient).where(Ingredient.id == ing_id))
     assert ing_final.scalars().first().stock_level == 0.0
+
+
+@pytest.mark.asyncio
+async def test_checkout_forbidden_for_manager(client):
+    manager_token = create_access_token(data={"sub": "test_manager", "role": "Manager"})
+    headers = {"Authorization": f"Bearer {manager_token}"}
+    
+    checkout_payload = {
+        "order_type": "Takeaway",
+        "payment_method": "Cash",
+        "amount_tendered": 20.0,
+        "items": []
+    }
+    
+    response = await client.post("/pos/checkout", json=checkout_payload, headers=headers)
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Operation not permitted"
