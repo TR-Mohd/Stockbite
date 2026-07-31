@@ -219,11 +219,6 @@ class PurchaseOrder(Base):
     __tablename__ = "purchase_orders"
     id = Column(String, primary_key=True, default=generate_uuid)
     supplier_id = Column(String, ForeignKey("suppliers.id"))
-    ingredient_id = Column(String, ForeignKey("ingredients.id"))
-    current_stock = Column(Numeric(10, 3), nullable=False)
-    reorder_point = Column(Numeric(10, 3), nullable=False)
-    suggested_quantity = Column(Numeric(10, 3), nullable=False)
-    actual_received_quantity = Column(Numeric(10, 3), nullable=True)
     date = Column(DateTime, default=datetime.utcnow)
     status = Column(Enum(POStatusEnum, values_callable=lambda obj: [e.value for e in obj]), default=POStatusEnum.Draft)
     notes = Column(String, nullable=True)
@@ -232,9 +227,25 @@ class PurchaseOrder(Base):
     cancelled_reason = Column(String, nullable=True)
 
     supplier = relationship("Supplier")
-    ingredient = relationship("Ingredient")
     created_by = relationship("User", foreign_keys=[created_by_id])
     sent_by = relationship("User", foreign_keys=[sent_by_id])
+    items = relationship("PurchaseOrderItem", back_populates="purchase_order", cascade="all, delete-orphan")
+
+class PurchaseOrderItem(Base):
+    __tablename__ = "purchase_order_items"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    purchase_order_id = Column(String, ForeignKey("purchase_orders.id"), nullable=False)
+    ingredient_id = Column(String, ForeignKey("ingredients.id"), nullable=False)
+    current_stock = Column(Numeric(10, 3), nullable=False)
+    reorder_point = Column(Numeric(10, 3), nullable=False)
+    suggested_quantity = Column(Numeric(10, 3), nullable=False)
+    actual_received_quantity = Column(Numeric(10, 3), nullable=True)
+    received_at = Column(DateTime, nullable=True)
+    unit_cost_at_time = Column(Numeric(10, 2), nullable=False)
+    ingredient_unit_cost_before_receipt = Column(Numeric(10, 2), nullable=True)
+
+    purchase_order = relationship("PurchaseOrder", back_populates="items")
+    ingredient = relationship("Ingredient")
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
