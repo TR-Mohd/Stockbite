@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import HTTPException
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from .models import Ingredient, AuditLog
 
 def update_ingredient_stock(db: AsyncSession, ingredient: Ingredient, amount: Decimal, user_id: str, action: str, reason: str = None, extra_details: dict = None):
@@ -37,6 +37,61 @@ def update_ingredient_stock(db: AsyncSession, ingredient: Ingredient, amount: De
     )
     db.add(audit)
     return new_stock
+
+def update_ingredient_cost_and_stock(
+    db: AsyncSession,
+    ingredient: Ingredient,
+    received_qty: Decimal,
+    received_unit_cost: Decimal,
+    user_id: str,
+    action: str,
+    reason: str = None,
+    extra_details: dict = None
+):
+    """
+    Shared function to update ingredient WAC cost and stock level and record an AuditLog.
+    Does NOT commit the transaction. The caller is responsible for db.commit() and catching StaleDataError.
+    """
+    old_stock = Decimal(str(ingredient.stock_level))
+    old_cost = Decimal(str(ingredient.unit_cost))
+    received_qty = Decimal(str(received_qty))
+    received_unit_cost = Decimal(str(received_unit_cost))
+
+    new_stock = old_stock + received_qty
+    if ingredient.unit and ingredient.unit.lower() == 'pcs':
+        if received_qty % 1 != 0 or new_stock % 1 != 0:
+            raise HTTPException(status_code=400, detail="Fractional quantities are not allowed for 'pcs'")
+
+    if new_stock <= Decimal("0.0"):
+        new_wac = received_unit_cost
+    else:
+        new_wac = (old_stock * old_cost + received_qty * received_unit_cost) / new_stock
+        new_wac = new_wac.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+    ingredient.stock_level = new_stock
+    ingredient.unit_cost = new_wac
+
+    details = {
+        "old_cost": float(old_cost),
+        "new_cost": float(new_wac),
+        "old_stock": float(old_stock),
+        "new_stock": float(new_stock),
+        "delta": float(received_qty)
+    }
+    if reason:
+        details["reason"] = reason
+    if extra_details:
+        details.update(extra_details)
+
+    audit = AuditLog(
+        user_id=user_id,
+        action=action,
+        resource=f"Ingredient:{ingredient.name}",
+        outcome="Success",
+        details=details
+    )
+    db.add(audit)
+    return new_stock, new_wac
 
 from typing import Callable, Type
 from sqlalchemy.dialects.postgresql import insert as pg_insert
