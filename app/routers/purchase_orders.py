@@ -197,6 +197,7 @@ async def receive_purchase_order(
         .where(Ingredient.id.in_(ingredient_ids))
         .order_by(Ingredient.id.asc())
         .with_for_update()
+        .execution_options(populate_existing=True)
     )
     ing_map = {ing.id: ing for ing in res_ings.scalars().all()}
     if len(ing_map) != len(ingredient_ids):
@@ -309,6 +310,7 @@ async def undo_receive_purchase_order(
         .where(Ingredient.id.in_(ingredient_ids))
         .order_by(Ingredient.id.asc())
         .with_for_update()
+        .execution_options(populate_existing=True)
     )
     ing_map = {ing.id: ing for ing in res_ings.scalars().all()}
     if len(ing_map) != len(ingredient_ids):
