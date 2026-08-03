@@ -100,15 +100,17 @@ export const PurchaseOrderHistory = () => {
     }
   };
 
-  const handleReceiveSubmit = async (orderId, actualQuantity) => {
+  const handleReceiveSubmit = async (orderId, payload) => {
     setUpdatingId(orderId);
     try {
-      await api.post(`/purchase-orders/${orderId}/receive`, { actual_quantity: actualQuantity });
+      await api.post(`/purchase-orders/${orderId}/receive`, payload);
       await fetchOrders(); // Re-fetch to get updated status and actual_received_quantity
       setReceiveModalOrder(null);
     } catch (err) {
       if (err.response?.status === 409) {
         setActionError('Concurrent inventory update detected. Please retry.');
+      } else if (err.response?.data?.detail) {
+        setActionError(err.response.data.detail);
       } else {
         console.error('Failed to receive PO:', err);
         setActionError('Failed to receive PO. Please try again.');
@@ -367,18 +369,18 @@ export const PurchaseOrderHistory = () => {
                           )}
                         </>
                       )}
-                      {(order.status === 'Received' || order.status === 'Partially Received' || order.status === 'Over-Received') && (
+                      {['Received', 'Partially Received', 'Over-Received'].includes(order.status) && (
                         <>
                           <span className={styles.textMuted} style={{ fontSize: 'var(--font-size-xs)' }}>
                             ✓ Completed
                           </span>
-                          {(!isOlderThan24Hours(order.date) || order.actual_received_quantity == null) && (
+                          {!isOlderThan24Hours(order.date) && (
                             <Button 
                               size="sm" 
                               variant="outline" 
                               onClick={() => setUndoConfirmOrder(order)} 
-                              disabled={updatingId === order.id || order.actual_received_quantity == null}
-                              title={order.actual_received_quantity == null ? "Legacy PO receipt cannot be undone" : "Undo Receipt"}
+                              disabled={updatingId === order.id}
+                              title="Undo Receipt"
                               style={{ marginLeft: '0.5rem', padding: '0.2rem 0.5rem', fontSize: 'var(--font-size-xs)' }}
                             >
                               Undo Receipt
