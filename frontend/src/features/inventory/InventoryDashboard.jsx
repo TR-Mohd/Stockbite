@@ -90,15 +90,11 @@ export const InventoryDashboard = () => {
 
   const handleDraftPO = async (data) => {
     try {
-      // Endpoint expects query parameters
-      await api.post(`/suppliers/${data.supplier}/po`, null, {
-        params: {
-          ingredient_id: data.ingredientId,
-          suggested_qty: data.quantity,
-          notes: data.notes
-        }
+      await api.post(`/suppliers/${data.supplier}/po`, {
+        items: data.items,
+        notes: data.notes
       });
-      console.log(`PO ${data.actionType} for item ${data.ingredientId}`);
+      console.log(`PO drafted for supplier ${data.supplier}`);
       await fetchInventory(); // Refresh from DB to update badges
     } catch (error) {
       console.error("Failed to draft PO:", error);

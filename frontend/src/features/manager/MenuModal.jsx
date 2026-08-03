@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { NumberInput } from '../../components/ui/NumberInput';
+import { IngredientCombobox } from '../../components/ui/IngredientCombobox';
 import api from '../../core/api/axios';
 import '../../styles/manager/ManagerDashboard.module.css';
 import '../../styles/inventory/modals/InventoryModals.css'; // Reuse modal styles
@@ -15,7 +16,6 @@ export const MenuModal = ({ isOpen, onClose, onSave, menuItem }) => {
     is_active: true
   });
   const [ingredients, setIngredients] = useState([]);
-  const [ingredientSearch, setIngredientSearch] = useState('');
   const [recipeRows, setRecipeRows] = useState([]);
   const [error, setError] = useState('');
 
@@ -50,7 +50,6 @@ export const MenuModal = ({ isOpen, onClose, onSave, menuItem }) => {
         });
         setRecipeRows([]);
       }
-      setIngredientSearch('');
       setError('');
     }
   }, [isOpen, menuItem]);
@@ -82,7 +81,6 @@ export const MenuModal = ({ isOpen, onClose, onSave, menuItem }) => {
         quantity: '1'
       }
     ]);
-    setIngredientSearch('');
   };
 
   const handleQuantityChange = (ingredient_id, newQty) => {
@@ -127,10 +125,6 @@ export const MenuModal = ({ isOpen, onClose, onSave, menuItem }) => {
     onSave(payload);
   };
 
-  const filteredIngredients = ingredients.filter(ing => 
-    ing.name.toLowerCase().includes(ingredientSearch.toLowerCase().trim()) &&
-    !recipeRows.some(r => r.ingredient_id === ing.id)
-  );
 
   const footer = (
     <>
@@ -218,58 +212,12 @@ export const MenuModal = ({ isOpen, onClose, onSave, menuItem }) => {
           Search and add ingredients required to prepare this item.
         </p>
 
-        <div style={{ position: 'relative', marginBottom: '0.75rem' }}>
-          <input
-            type="text"
-            className="modal-input"
-            value={ingredientSearch}
-            onChange={(e) => setIngredientSearch(e.target.value)}
-            placeholder="Search ingredient to add..."
-          />
-          {ingredientSearch.trim() !== '' && (
-            <div 
-              style={{
-                position: 'absolute',
-                top: '100%',
-                left: 0,
-                right: 0,
-                maxHeight: '160px',
-                overflowY: 'auto',
-                backgroundColor: 'var(--color-bg-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-md)',
-                zIndex: 10,
-                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
-              }}
-            >
-              {filteredIngredients.length === 0 ? (
-                <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-                  No matching ingredients found
-                </div>
-              ) : (
-                filteredIngredients.map(ing => (
-                  <div
-                    key={ing.id}
-                    onClick={() => handleAddIngredientRow(ing)}
-                    style={{
-                      padding: '0.5rem 0.75rem',
-                      cursor: 'pointer',
-                      fontSize: '0.85rem',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      borderBottom: '1px solid var(--color-border)'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-bg-surface-hover)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <span>{ing.name}</span>
-                    <span style={{ color: 'var(--color-text-secondary)' }}>({ing.unit})</span>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-        </div>
+        <IngredientCombobox
+          ingredients={ingredients}
+          selectedIds={recipeRows.map((r) => r.ingredient_id)}
+          onSelect={handleAddIngredientRow}
+          placeholder="Search ingredient to add..."
+        />
 
         {recipeRows.length === 0 ? (
           <div style={{ padding: '0.75rem', textAlign: 'center', backgroundColor: 'var(--color-bg-surface-hover)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>

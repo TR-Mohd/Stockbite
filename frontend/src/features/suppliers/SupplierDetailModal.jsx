@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import api from '../../core/api/axios';
+import { formatCurrency } from '../../utils/formatters';
 import styles from './suppliers.module.css';
 
 export const SupplierDetailModal = ({ supplier, onClose }) => {
@@ -105,8 +106,8 @@ export const SupplierDetailModal = ({ supplier, onClose }) => {
                 <thead>
                   <tr>
                     <th>PO ID</th>
-                    <th>Ingredient</th>
-                    <th>Qty</th>
+                    <th>Ingredient(s)</th>
+                    <th>Total Value</th>
                     <th>Date</th>
                     <th>Status</th>
                   </tr>
@@ -115,8 +116,29 @@ export const SupplierDetailModal = ({ supplier, onClose }) => {
                   {orders.map((order) => (
                     <tr key={order.id}>
                       <td className={styles.textMuted}>#{order.id}</td>
-                      <td>{order.ingredient_name || '—'}</td>
-                      <td>{order.suggested_quantity} {order.unit || ''}</td>
+                      <td>
+                        {(() => {
+                          const items = order.items || [];
+                          return items.length > 1
+                            ? `${items.length} items (${items.map((i) => i.ingredient_name).slice(0, 2).join(', ')}${items.length > 2 ? '...' : ''})`
+                            : items[0]?.ingredient_name || order.ingredient_name || '—';
+                        })()}
+                      </td>
+                      <td>
+                        {(() => {
+                          const items = order.items || [];
+                          const total = items.reduce((sum, i) => {
+                            const qty =
+                              i.actual_received_quantity != null
+                                ? Number(i.actual_received_quantity)
+                                : Number(i.suggested_quantity) || 0;
+                            return (
+                              sum + qty * (Number(i.unit_cost_at_time) || 0)
+                            );
+                          }, 0);
+                          return formatCurrency(total);
+                        })()}
+                      </td>
                       <td className={styles.textMuted}>
                         {order.date ? new Date(order.date).toLocaleDateString('id-ID') : '—'}
                       </td>
