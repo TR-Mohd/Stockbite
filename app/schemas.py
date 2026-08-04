@@ -379,28 +379,62 @@ class ATSBucketItem(BaseModel):
     def serialize_float(self, v) -> float | None:
         return float(v) if v is not None else None
 
-class PurchaseOrderResponse(BaseModel):
-    id: str
-    supplier_id: str
+class DraftPOItemCreate(BaseModel):
     ingredient_id: str
-    supplier_name: Optional[str] = None
+    ordered_quantity: Decimal = Field(..., gt=Decimal("0.0"))
+    unit_cost: Decimal = Field(..., ge=Decimal("0.0"))
+
+class DraftPOCreateRequest(BaseModel):
+    items: List[DraftPOItemCreate]
+    notes: Optional[str] = None
+
+class PurchaseOrderItemResponse(BaseModel):
+    id: str
+    purchase_order_id: str
+    ingredient_id: str
     ingredient_name: Optional[str] = None
     unit: Optional[str] = None
-    unit_cost: Optional[float] = None
     current_stock: float
     reorder_point: float
     suggested_quantity: float
     actual_received_quantity: Optional[float] = None
+    received_at: Optional[datetime] = None
+    unit_cost_at_time: float
+    ingredient_unit_cost_before_receipt: Optional[float] = None
+
+    @field_serializer(
+        "current_stock",
+        "reorder_point",
+        "suggested_quantity",
+        "actual_received_quantity",
+        "unit_cost_at_time",
+        "ingredient_unit_cost_before_receipt",
+    )
+    def serialize_float(self, v) -> float | None:
+        return float(v) if v is not None else None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class PurchaseOrderResponse(BaseModel):
+    id: str
+    supplier_id: str
+    supplier_name: Optional[str] = None
     date: datetime
     status: POStatusEnum
     notes: Optional[str] = None
     created_by_id: Optional[str] = None
     sent_by_id: Optional[str] = None
     cancelled_reason: Optional[str] = None
+    items: List[PurchaseOrderItemResponse] = []
     model_config = ConfigDict(from_attributes=True)
 
-class ReceivePORequest(BaseModel):
+class ReceivePOItemRequest(BaseModel):
+    item_id: str
     actual_quantity: Decimal = Field(..., gt=Decimal("0.0"))
+    actual_unit_cost: Decimal = Field(..., ge=Decimal("0.0"))
+
+class ReceivePORequest(BaseModel):
+    items: List[ReceivePOItemRequest]
 
 class CancelPORequest(BaseModel):
     reason: str

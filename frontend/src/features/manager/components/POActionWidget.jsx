@@ -29,8 +29,17 @@ export const POActionWidget = () => {
   const hiddenCount = draftPOs.length - MAX_VISIBLE;
 
   const totalDraftCost = draftPOs.reduce((sum, po) => {
-    const cost = (po.suggested_quantity != null && po.unit_cost != null) ? po.suggested_quantity * po.unit_cost : 0;
-    return sum + cost;
+    const poItems = po.items || [];
+    const poCost = poItems.reduce((s, i) => {
+      const cost =
+        i.suggested_quantity != null && i.unit_cost_at_time != null
+          ? i.suggested_quantity * i.unit_cost_at_time
+          : po.suggested_quantity != null && po.unit_cost != null
+          ? po.suggested_quantity * po.unit_cost
+          : 0;
+      return s + cost;
+    }, 0);
+    return sum + poCost;
   }, 0);
 
   const isStale = (dateStr) => {
@@ -111,9 +120,19 @@ export const POActionWidget = () => {
             </div>
           </div>
           {visiblePOs.map((po, index) => {
-            const estimatedTotal = (po.suggested_quantity != null && po.unit_cost != null)
-              ? po.suggested_quantity * po.unit_cost
-              : null;
+            const poItems = po.items || [];
+            const isMulti = poItems.length > 1;
+            const title = isMulti
+              ? `${poItems.length} items (${poItems.map((i) => i.ingredient_name).slice(0, 2).join(', ')}${poItems.length > 2 ? '...' : ''})`
+              : poItems[0]?.ingredient_name || po.ingredient_name || 'Unknown Ingredient';
+
+            const estimatedTotal = poItems.reduce((s, i) => {
+              return (
+                s +
+                (Number(i.suggested_quantity) || 0) *
+                  (Number(i.unit_cost_at_time) || 0)
+              );
+            }, 0);
 
             return (
               <div
@@ -131,13 +150,19 @@ export const POActionWidget = () => {
                   cursor: 'pointer',
                   transition: 'background-color 0.15s',
                 }}
-                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--color-bg-surface-hover)'}
-                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--color-bg-base)'}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor =
+                    'var(--color-bg-surface-hover)')
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor =
+                    'var(--color-bg-base)')
+                }
               >
                 {/* Left: ingredient + supplier */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0, flex: 1 }}>
                   <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {po.ingredient_name || 'Unknown Ingredient'}
+                    {title}
                   </div>
                   <div style={{ fontSize: '0.78rem', color: isStale(po.date) ? 'var(--color-error)' : 'var(--color-text-secondary)' }}>
                     {po.supplier_name || '—'} · {formatDateStandard(po.date)} {isStale(po.date) && '⚠️'}
@@ -147,13 +172,18 @@ export const POActionWidget = () => {
                 {/* Right: qty + estimated cost */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px', flexShrink: 0, marginLeft: '1rem' }}>
                   <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-text-primary)' }}>
-                    {formatQuantity(po.suggested_quantity, po.unit)} {po.unit}
+                    {isMulti
+                      ? `${poItems.length} items`
+                      : `${formatQuantity(poItems[0]?.suggested_quantity || po.suggested_quantity, poItems[0]?.unit || po.unit)} ${poItems[0]?.unit || po.unit || ''}`}
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)' }}>
-                    {estimatedTotal != null
-                      ? <span>~{formatCurrency(estimatedTotal)} <span style={{ opacity: 0.7 }}>(est.)</span></span>
-                      : <span style={{ opacity: 0.5 }}>cost unavailable</span>
-                    }
+                    {estimatedTotal != null ? (
+                      <span>
+                        ~{formatCurrency(estimatedTotal)} <span style={{ opacity: 0.7 }}>(est.)</span>
+                      </span>
+                    ) : (
+                      <span style={{ opacity: 0.5 }}>cost unavailable</span>
+                    )}
                   </div>
                 </div>
               </div>

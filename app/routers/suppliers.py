@@ -7,8 +7,10 @@ from typing import List
 from ..database import get_db
 from ..auth import role_required
 from ..services import get_next_id_sequence
-from ..models import User, RoleEnum, Supplier, PurchaseOrder, AuditLog, Ingredient
-from ..schemas import SupplierResponse, SupplierCreate, SupplierUpdate
+from ..models import User, RoleEnum, Supplier, PurchaseOrder, PurchaseOrderItem, AuditLog, Ingredient
+from ..schemas import SupplierResponse, SupplierCreate, SupplierUpdate, DraftPOCreateRequest, PurchaseOrderResponse
+from sqlalchemy.orm import selectinload
+from .purchase_orders import format_po
 
 router = APIRouter(prefix="/suppliers", tags=["Suppliers"])
 
@@ -105,24 +107,32 @@ async def toggle_supplier_status(
     await db.refresh(supplier)
     return supplier
 
-@router.post("/{supplier_id}/po")
+@router.post("/{supplier_id}/po", response_model=PurchaseOrderResponse)
 async def create_purchase_order(
     supplier_id: str,
-    ingredient_id: str,
-    suggested_qty: float,
-    notes: str = None,
+    request: DraftPOCreateRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(role_required([RoleEnum.Manager, RoleEnum.Warehouse]))
 ):
-    result = await db.execute(select(Ingredient).where(Ingredient.id == ingredient_id))
-    ingredient = result.scalars().first()
-    if not ingredient:
-        raise HTTPException(status_code=404, detail="Ingredient not found")
-        
-    if ingredient.unit and ingredient.unit.lower() == 'pcs':
-        if suggested_qty % 1 != 0:
-            raise HTTPException(status_code=400, detail="Fractional quantities are not allowed for 'pcs'")
-        
+    if not request.items:
+        raise HTTPException(status_code=400, detail="At least one item is required")
+
+    result_sup = await db.execute(select(Supplier).where(Supplier.id == supplier_id))
+    supplier = result_sup.scalars().first()
+    if not supplier:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+
+    items_data = []
+    for item_req in request.items:
+        res_ing = await db.execute(select(Ingredient).where(Ingredient.id == item_req.ingredient_id))
+        ing = res_ing.scalars().first()
+        if not ing:
+            raise HTTPException(status_code=404, detail=f"Ingredient {item_req.ingredient_id} not found")
+        if ing.unit and ing.unit.lower() == 'pcs':
+            if item_req.ordered_quantity % 1 != 0:
+                raise HTTPException(status_code=400, detail="Fractional quantities are not allowed for 'pcs'")
+        items_data.append((item_req, ing))
+
     from datetime import datetime
     now = datetime.utcnow()
     yy = str(now.year)[-2:]
@@ -145,14 +155,22 @@ async def create_purchase_order(
         po = PurchaseOrder(
             id=po_id,
             supplier_id=supplier_id,
-            ingredient_id=ingredient_id,
-            current_stock=ingredient.stock_level,
-            reorder_point=ingredient.reorder_point,
-            suggested_quantity=suggested_qty,
-            notes=notes,
+            notes=request.notes,
             created_by_id=current_user.id
         )
         db.add(po)
+
+        for idx, (item_req, ing) in enumerate(items_data):
+            poi = PurchaseOrderItem(
+                id=f"{po_id}-item-{idx+1}",
+                purchase_order_id=po_id,
+                ingredient_id=item_req.ingredient_id,
+                current_stock=ing.stock_level,
+                reorder_point=ing.reorder_point,
+                suggested_quantity=item_req.ordered_quantity,
+                unit_cost_at_time=item_req.unit_cost
+            )
+            db.add(poi)
 
         audit = AuditLog(
             user_id=current_user.id,
@@ -164,8 +182,17 @@ async def create_purchase_order(
 
         try:
             await db.commit()
-            await db.refresh(po)
-            return po
+            query = (
+                select(PurchaseOrder, Supplier)
+                .where(PurchaseOrder.id == po_id)
+                .outerjoin(Supplier, PurchaseOrder.supplier_id == Supplier.id)
+                .options(
+                    selectinload(PurchaseOrder.items).selectinload(PurchaseOrderItem.ingredient)
+                )
+            )
+            result = await db.execute(query)
+            po, supplier = result.first()
+            return format_po(po, supplier)
         except IntegrityError:
             await db.rollback()
             if attempt == max_retries - 1:

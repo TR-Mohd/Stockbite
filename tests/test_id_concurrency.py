@@ -113,13 +113,23 @@ async def test_purchase_order_id_concurrency(client, manager_token, test_session
 
     async with test_sessionmaker() as session:
         sup = Supplier(id="SUP-NAT-26100", name="Test Supplier")
-        ing = Ingredient(id="ING-001", name="Coffee Beans", unit="kg", stock_level=10.0, reorder_point=5.0)
+        ing = Ingredient(id="ING-001", name="Coffee Beans", unit="kg", stock_level=10.0, reorder_point=5.0, unit_cost=10.0)
         session.add(sup)
         session.add(ing)
         await session.commit()
 
     async def create_po_req(i):
-        return await client.post(f"/suppliers/SUP-NAT-26100/po?ingredient_id=ING-001&suggested_qty=5.0&notes=Test{i}", headers=headers)
+        payload = {
+            "items": [
+                {
+                    "ingredient_id": "ING-001",
+                    "ordered_quantity": 5.0,
+                    "unit_cost": 10.0,
+                }
+            ],
+            "notes": f"Test{i}",
+        }
+        return await client.post("/suppliers/SUP-NAT-26100/po", json=payload, headers=headers)
 
     results = await asyncio.gather(*[create_po_req(i) for i in range(10)])
     status_codes = [r.status_code for r in results]

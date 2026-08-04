@@ -19,9 +19,10 @@ async def get_inventory(
     result = await db.execute(select(Ingredient))
     ingredients = result.scalars().all()
     
-    from ..models import PurchaseOrder, POStatusEnum
+    from ..models import PurchaseOrder, PurchaseOrderItem, POStatusEnum
     po_result = await db.execute(
-        select(PurchaseOrder.ingredient_id, PurchaseOrder.status)
+        select(PurchaseOrderItem.ingredient_id, PurchaseOrder.status)
+        .join(PurchaseOrder, PurchaseOrderItem.purchase_order_id == PurchaseOrder.id)
         .where(PurchaseOrder.status.in_([POStatusEnum.Draft, POStatusEnum.Sent]))
     )
     po_statuses = {row.ingredient_id: row.status.value for row in po_result}
@@ -106,9 +107,10 @@ async def get_low_stock_alerts(
     result = await db.execute(select(Ingredient).where(Ingredient.stock_level <= Ingredient.reorder_point))
     ingredients = result.scalars().all()
     
-    from ..models import PurchaseOrder, POStatusEnum
+    from ..models import PurchaseOrder, PurchaseOrderItem, POStatusEnum
     po_result = await db.execute(
-        select(PurchaseOrder.ingredient_id, PurchaseOrder.status)
+        select(PurchaseOrderItem.ingredient_id, PurchaseOrder.status)
+        .join(PurchaseOrder, PurchaseOrderItem.purchase_order_id == PurchaseOrder.id)
         .where(PurchaseOrder.status.in_([POStatusEnum.Draft, POStatusEnum.Sent]))
     )
     po_statuses = {row.ingredient_id: row.status.value for row in po_result}

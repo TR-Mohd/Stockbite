@@ -7,6 +7,7 @@ import { useAuthStore } from '../../core/store/authStore';
 import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
 import { ReceivePOModal } from './ReceivePOModal';
+import { PODetailModal } from './PODetailModal';
 import { formatDateStandard, formatCurrency, formatQuantity } from '../../utils/formatters';
 import styles from './suppliers.module.css';
 import '../../styles/inventory/InventoryTable.css';
@@ -40,6 +41,7 @@ export const PurchaseOrderHistory = () => {
   const [undoConfirmOrder, setUndoConfirmOrder] = useState(null);
   const [sendConfirmOrder, setSendConfirmOrder] = useState(null);
   const [cancelModalOrder, setCancelModalOrder] = useState(null);
+  const [detailModalOrder, setDetailModalOrder] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
   const [actionError, setActionError] = useState(null);
 
@@ -98,15 +100,17 @@ export const PurchaseOrderHistory = () => {
     }
   };
 
-  const handleReceiveSubmit = async (orderId, actualQuantity) => {
+  const handleReceiveSubmit = async (orderId, payload) => {
     setUpdatingId(orderId);
     try {
-      await api.post(`/purchase-orders/${orderId}/receive`, { actual_quantity: actualQuantity });
+      await api.post(`/purchase-orders/${orderId}/receive`, payload);
       await fetchOrders(); // Re-fetch to get updated status and actual_received_quantity
       setReceiveModalOrder(null);
     } catch (err) {
       if (err.response?.status === 409) {
         setActionError('Concurrent inventory update detected. Please retry.');
+      } else if (err.response?.data?.detail) {
+        setActionError(err.response.data.detail);
       } else {
         console.error('Failed to receive PO:', err);
         setActionError('Failed to receive PO. Please try again.');
@@ -253,8 +257,8 @@ export const PurchaseOrderHistory = () => {
                 <tr>
                   <th className="text-left">PO ID</th>
                   <th className="text-left">Supplier</th>
-                  <th className="text-left">Ingredient</th>
-                  <th className="text-right">Quantity</th>
+                  <th className="text-left">Ingredient(s)</th>
+                  <th className="text-right">Total Value</th>
                   <th className="text-left">Date</th>
                   <th className="text-left">Notes</th>
                   <th className="text-center">Status</th>
@@ -273,9 +277,57 @@ export const PurchaseOrderHistory = () => {
                     </div>
                   </td>
                   <td className="text-left">
-                    <div className="truncate-text" style={{ maxWidth: '150px' }}>{order.ingredient_name || '—'}</div>
+                    {(() => {
+                      const items = order.items || [];
+                      const isMulti = items.length > 1;
+                      const title = isMulti ? `${items.length} items` : (items[0]?.ingredient_name || order.ingredient_name || '—');
+                      const subtitle = isMulti 
+                        ? items.map(i => i.ingredient_name).slice(0, 2).join(', ') + (items.length > 2 ? ` +${items.length - 2} more` : '') 
+                        : null;
+                      return (
+                        <>
+                          <div className="truncate-text" style={{ maxWidth: '160px', fontWeight: 600 }}>{title}</div>
+                          {subtitle && (
+                            <div className="truncate-text" style={{ maxWidth: '160px', fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                              {subtitle}
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </td>
-                  <td className="text-right font-medium">{formatQuantity(order.suggested_quantity, order.unit)} {order.unit || ''}</td>
+                  <td className="text-right font-medium">
+                    {(() => {
+                      const items = order.items || [];
+                      const totalValue = items.reduce((sum, i) => {
+                        const qty =
+                          i.actual_received_quantity != null
+                            ? Number(i.actual_received_quantity)
+                            : Number(i.suggested_quantity) || 0;
+                        return (
+                          sum + qty * (Number(i.unit_cost_at_time) || 0)
+                        );
+                      }, 0);
+                      return (
+                        <>
+                          <div>{formatCurrency(totalValue)}</div>
+                          {items.length === 1 && (
+                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                              {(() => {
+                                const i = items[0] || {};
+                                const qty =
+                                  i.actual_received_quantity != null
+                                    ? i.actual_received_quantity
+                                    : i.suggested_quantity || order.suggested_quantity;
+                                const uom = i.unit || order.unit || '';
+                                return `${formatQuantity(qty, uom)} ${uom}`;
+                              })()}
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </td>
                   <td className="text-muted text-left">
                     {order.date ? formatDateStandard(order.date) : '—'}
                   </td>
@@ -287,6 +339,9 @@ export const PurchaseOrderHistory = () => {
                   </td>
                   <td className="text-center">
                     <div className={styles.actionCell} style={{ justifyContent: 'center' }}>
+                      <Button size="sm" variant="outline" onClick={() => setDetailModalOrder(order)}>
+                        View Details
+                      </Button>
                       {order.status === 'Draft' && isManager && (
                         <>
                           <Button size="sm" variant="primary" onClick={() => setSendConfirmOrder(order)} disabled={updatingId === order.id}>
@@ -314,18 +369,18 @@ export const PurchaseOrderHistory = () => {
                           )}
                         </>
                       )}
-                      {(order.status === 'Received' || order.status === 'Partially Received' || order.status === 'Over-Received') && (
+                      {['Received', 'Partially Received', 'Over-Received'].includes(order.status) && (
                         <>
                           <span className={styles.textMuted} style={{ fontSize: 'var(--font-size-xs)' }}>
                             ✓ Completed
                           </span>
-                          {(!isOlderThan24Hours(order.date) || order.actual_received_quantity == null) && (
+                          {!isOlderThan24Hours(order.date) && (
                             <Button 
                               size="sm" 
                               variant="outline" 
                               onClick={() => setUndoConfirmOrder(order)} 
-                              disabled={updatingId === order.id || order.actual_received_quantity == null}
-                              title={order.actual_received_quantity == null ? "Legacy PO receipt cannot be undone" : "Undo Receipt"}
+                              disabled={updatingId === order.id}
+                              title="Undo Receipt"
                               style={{ marginLeft: '0.5rem', padding: '0.2rem 0.5rem', fontSize: 'var(--font-size-xs)' }}
                             >
                               Undo Receipt
@@ -442,6 +497,12 @@ export const PurchaseOrderHistory = () => {
           />
         </div>
       </Modal>
+
+      <PODetailModal
+        isOpen={!!detailModalOrder}
+        onClose={() => setDetailModalOrder(null)}
+        order={detailModalOrder}
+      />
     </>
   );
 };
