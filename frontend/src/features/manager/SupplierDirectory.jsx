@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import api from '../../core/api/axios';
 import '../../styles/inventory/InventoryTable.css';
 import styles from '../../styles/manager/ManagerDashboard.module.css';
 import { SupplierModal } from './SupplierModal';
@@ -25,33 +26,22 @@ export const SupplierDirectory = () => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
-  const token = localStorage.getItem('token');
-
   const fetchSuppliers = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8000/suppliers/', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setSuppliers(data);
-      } else {
-        throw new Error('Failed to fetch suppliers');
-      }
+      const response = await api.get('/suppliers/');
+      setSuppliers(response.data);
     } catch (err) {
       console.error(err);
-      setError(err.message);
+      setError(err.message || 'Failed to fetch suppliers');
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
-    if (token) {
-      fetchSuppliers();
-    }
-  }, [token, fetchSuppliers]);
+    fetchSuppliers();
+  }, [fetchSuppliers]);
 
   const handleAddSupplier = () => {
     setSelectedSupplier(null);
@@ -86,29 +76,18 @@ export const SupplierDirectory = () => {
       
       payload.region = payload.coverage === 'National' ? 'NAT' : payload.regionCode;
       
-      const url = isEditing 
-        ? `http://localhost:8000/suppliers/${selectedSupplier.id}` 
-        : 'http://localhost:8000/suppliers/';
-      
-      const method = isEditing ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
-      
-      if (response.ok) {
-        const responseData = await response.json();
-        setIsModalOpen(false);
-        addNotification(<span><strong>{payload.name}</strong> ({responseData.id}) {isEditing ? 'updated' : 'added'}.</span>);
-        fetchSuppliers();
+      let responseData;
+      if (isEditing) {
+        const response = await api.put(`/suppliers/${selectedSupplier.id}`, payload);
+        responseData = response.data;
       } else {
-        console.error('Failed to save supplier');
+        const response = await api.post('/suppliers/', payload);
+        responseData = response.data;
       }
+      
+      setIsModalOpen(false);
+      addNotification(<span><strong>{payload.name}</strong> ({responseData.id}) {isEditing ? 'updated' : 'added'}.</span>);
+      fetchSuppliers();
     } catch (error) {
       console.error('Error saving supplier:', error);
     }
@@ -116,22 +95,12 @@ export const SupplierDirectory = () => {
 
   const handleToggleStatus = async (supplierId) => {
     try {
-      const response = await fetch(`http://localhost:8000/suppliers/${supplierId}/toggle-status`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const supplier = suppliers.find(s => s.id === supplierId);
-        if (supplier) {
-          addNotification(<span><strong>{supplier.name}</strong> ({supplier.id}) {supplier.is_active ? 'deactivated' : 'activated'}.</span>);
-        }
-        fetchSuppliers();
-      } else {
-        console.error('Failed to toggle status');
+      await api.put(`/suppliers/${supplierId}/toggle-status`, {});
+      const supplier = suppliers.find(s => s.id === supplierId);
+      if (supplier) {
+        addNotification(<span><strong>{supplier.name}</strong> ({supplier.id}) {supplier.is_active ? 'deactivated' : 'activated'}.</span>);
       }
+      fetchSuppliers();
     } catch (error) {
       console.error('Error toggling status:', error);
     }

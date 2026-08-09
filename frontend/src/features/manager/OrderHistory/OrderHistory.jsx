@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../../../core/store/authStore';
+import api from '../../../core/api/axios';
 import styles from '../../../styles/manager/OrderHistory.module.css';
 
 export const OrderHistory = () => {
-  const { token } = useAuthStore();
   const [data, setData] = useState({ items: [], total: 0, total_revenue: 0, page: 1, size: 20 });
   const [loading, setLoading] = useState(true);
   
@@ -25,18 +24,8 @@ export const OrderHistory = () => {
       if (dateFrom) queryParams.append('date_from', dateFrom);
       if (dateTo) queryParams.append('date_to', dateTo);
 
-      const response = await fetch(`http://localhost:8000/manager/orders?${queryParams.toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        setData(result);
-      } else {
-        console.error('Failed to fetch orders');
-      }
+      const response = await api.get(`/manager/orders?${queryParams.toString()}`);
+      setData(response.data);
     } catch (error) {
       console.error('Error fetching orders:', error);
     } finally {
