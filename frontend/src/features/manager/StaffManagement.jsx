@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api from '../../core/api/axios';
 import { useAuthStore } from '../../core/store/authStore';
 import '../../styles/inventory/InventoryTable.css';
 import styles from '../../styles/manager/ManagerDashboard.module.css';
@@ -25,7 +25,6 @@ export const StaffManagement = () => {
   const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const token = useAuthStore(state => state.token);
   const user = useAuthStore(state => state.user);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,9 +47,7 @@ export const StaffManagement = () => {
   const fetchStaff = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:8000/manager/staff', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/manager/staff');
       setStaffList(response.data);
     } catch (err) {
       console.error('Error fetching staff:', err);
@@ -58,19 +55,15 @@ export const StaffManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
-    if (token) {
-      fetchStaff();
-    }
-  }, [token, fetchStaff]);
+    fetchStaff();
+  }, [fetchStaff]);
 
   const toggleStatus = async (id) => {
     try {
-      await axios.put(`http://localhost:8000/manager/staff/${id}/toggle-status`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.put(`/manager/staff/${id}/toggle-status`, {});
       const staff = staffList.find(s => s.id === id);
       if (staff) {
         addNotification(<span><strong>{staff.name}</strong> ({staff.id}) {staff.status === 'Active' ? 'deactivated' : 'activated'}.</span>);
@@ -99,13 +92,9 @@ export const StaffManagement = () => {
       let newId;
       if (selectedStaff) {
         newId = selectedStaff.id;
-        await axios.put(`http://localhost:8000/manager/staff/${selectedStaff.id}`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.put(`/manager/staff/${selectedStaff.id}`, payload);
       } else {
-        const response = await axios.post('http://localhost:8000/manager/staff', payload, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await api.post('/manager/staff', payload);
         newId = response.data.id;
       }
       setIsModalOpen(false);
@@ -125,9 +114,7 @@ export const StaffManagement = () => {
   const executeDelete = async () => {
     if (!staffToDelete) return;
     try {
-      await axios.delete(`http://localhost:8000/manager/staff/${staffToDelete.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/manager/staff/${staffToDelete.id}`);
       addNotification(<span><strong>{staffToDelete.name}</strong> ({staffToDelete.id}) deleted.</span>);
       setIsDeleteModalOpen(false);
       setStaffToDelete(null);
