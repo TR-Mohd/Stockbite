@@ -6,12 +6,12 @@ An integrated Management Information System for fast-paced franchise restaurants
 
 | | |
 | --- | --- |
-| **Version** | v5 |
-| **Date** | 22 July 2026 |
+| **Version** | v6 |
+| **Date** | 19 August 2026 |
 | **Team** | MBG (Mahasiswa Berprestasi Global) |
 | **Product Owner** | Mohammed Aatef Saleh |
 | **Client / Stakeholder** | Restaurant / F&B Business Owner |
-| **Status** | Pre-Sale Hardening / Production-Ready Candidate |
+| **Status** | Production-Ready Candidate / Feature Complete |
 
 ---
 
@@ -143,10 +143,10 @@ Cashiers, warehouse operators, and managers cannot efficiently coordinate daily 
 | FR-025 | System | Record an immutable audit log entry for security-sensitive events: user login, PIN auth, checkout, stock adjustment, and PO status change. | When any of the listed events occurs. | High | M | ⚠️ Partially Implemented / Divergent (Implemented for login, PIN auth, checkout, stock ops, PO ops; missing for logout, failed login, account modifications via PUT /staff/{id}) |
 | FR-026 | Manager | View and filter the audit log by date range, user, and event type. | When the manager navigates to the “Audit Logs” section. | Medium | S | ❌ Not Implemented (Documented Gap — AuditLog table is write-only from API; no manager read/filter endpoint or UI exists) |
 | FR-027 | Manager | Export BI dashboard data (revenue, COGS, profit, best sellers) and inventory reports as a downloadable CSV or PDF file. | When the manager selects a report type, date range, and clicks “Export Report.” | Medium | C | ❌ Not Implemented (Documented Gap — No export API or UI download function exists) |
-| FR-028 | Manager | Manage the menu catalog: add new menu items (with name, price, category, image, and linked digital recipe), edit existing items, and deactivate items. | When the manager navigates to “Menu Management” and performs a catalog action. | Critical | M | ❌ Critical Gap (Frontend MenuManagement.jsx exists but calls non-existent backend API endpoints `/manager/menu`) |
+| FR-028 | Manager | Manage the menu catalog via `/manager/menu` CRUD endpoints: create new menu items with validated category enum (`Main Course`, `Beverage`, `Appetizer`, `Dessert`), price, image, and digital recipe ingredient associations; update existing items; toggle active status; and delete items with duplicate name validation and child modifier/recipe cascade deletion. | When the manager navigates to “Menu Management” and performs a catalog action. | Critical | M | ✅ Implemented |
 | **F-029** | Manager | Display an accurate "Last Active" timestamp for each employee in the User Management list by aggregating their latest POS transaction or login event. | When the manager views the Staff list in the User Management module. | Medium | S | ✅ Implemented |
-| **F-030** | System | Automatically generate structured IDs for new employees (`EMP-<ROLE>-<YY><SEQ>`), suppliers (`SUP-<HUB>-<YY><SEQ>`), and purchase orders (`PO-<YYMM>-<SEQ>`) server-side instead of default UUIDs. | When adding a new user, supplier, or drafting a Purchase Order. | High | S | ✅ Implemented |
-| **F-031** | System | Restrict the permanent deletion ("Firing") of Manager accounts exclusively to a predefined Super-Admin account. | When a deletion request is sent or the Staff Management UI is rendered. | High | M | ⚠️ Partially Implemented / Known Limitation (Restricted via hardcoded check against username `"mohammed"`, documented as a known limitation pending formal SuperAdmin role refactor) |
+| **F-030** | System | Automatically generate structured IDs for new employees (`EMP-<ROLE>-<YY><SEQ>`), suppliers (`SUP-<HUB>-<YY><SEQ>`), and purchase orders (`PO-<YYMM>-<SEQ>`) server-side via dedicated `id_sequences` lock table with `SELECT FOR UPDATE`, race-safe backfill, and 3-retry concurrency backstop instead of default UUIDs. | When adding a new user, supplier, or drafting a Purchase Order. | High | S | ✅ Implemented |
+| **F-031** | System | Restrict the permanent deletion ("Firing") and deactivation of Manager accounts exclusively to authenticated Super-Admin accounts (`is_super_admin=True`), enforced via first-run bootstrap setup lock and deletion protection preventing the last remaining Super-Admin from being removed. | When a deletion or deactivation request is sent or the Staff Management UI is rendered. | High | M | ✅ Implemented |
 | **F-032** | Manager | Assign a "Coverage" type (Regional/National) and a "Logistics Hub" region to suppliers to track geographical supply chain distribution. | When creating or editing a supplier record in the Supplier Directory. | Medium | S | ⚠️ Partially Implemented / Divergent (Supplier region/hub is persisted to DB; Coverage type is UI-only and not saved to database pending schema update) |
 | **F-033** | System | Apply live conditional formatting to phone numbers and perform strict validation on email addresses during data entry. | When a user types in phone or email fields in CRM or Supplier modals. | Medium | S | ✅ Implemented |
 | **F-034** | System | **Data Integrity Protocol:** To preserve financial accuracy and prevent PostgreSQL foreign key violations, Staff accounts with associated POS transaction histories cannot be hard-deleted. The backend enforces a 'Soft Delete' (Deactivation) workflow via HTTP 400 rejection on deletion attempts. | When a deletion request is sent for an employee with transaction history. | High | M | ✅ Implemented |
@@ -169,7 +169,7 @@ Cashiers, warehouse operators, and managers cannot efficiently coordinate daily 
 | **F-041** | System | Calculate an 11% tax on the order subtotal at checkout, rounded to IDR precision via `ROUND_HALF_UP` and stored in `Transaction.tax`. | On order subtotal calculation during checkout. | Critical | M | ✅ Implemented |
 | **F-042** | Manager / Cashier | Support Item Modifiers with modifier groups, min/max selection rules, price adjustments, recipe-based modifier ingredient deductions, and per-modifier COGS tracking. | When configuring menu items or adding custom items to the cart. | High | M | ✅ Implemented |
 | **F-043** | Cashier | Enforce order routing for Dine-In vs. Takeaway orders, requiring a mandatory table routing number for Dine-In orders. | On checkout submission. | High | M | ✅ Implemented |
-| **F-044** | System | Manage a 6-state Purchase Order lifecycle (Draft, Sent, Partially Received, Over-Received, Received, Cancelled with mandatory reason) with a 24-hour receipt undo window. | During PO procurement processing. | High | M | ✅ Implemented |
+| **F-044** | System | Manage a 6-state Purchase Order lifecycle (Draft, Sent, Partially Received, Over-Received, Received, Cancelled with mandatory reason) supporting multi-item line items (`PurchaseOrderItem`), Weighted Average Cost (WAC) recalculation, and a 24-hour receipt undo window. | During PO procurement processing. | High | M | ✅ Implemented |
 | **F-045** | System | Store ingredient `unit_cost` and compute real-time recipe-based Cost of Goods Sold (COGS) for items and modifiers at transaction checkout. | On transaction commit. | Critical | M | ✅ Implemented |
 | **F-046** | Manager | Perform Menu Engineering quadrant analysis (Star, Plowhorse, Puzzle, Dog) based on sales volume and contribution margin, gated by a 50-order data threshold. | When viewing Menu Engineering analytics. | High | S | ✅ Implemented |
 | **F-047** | Manager | Calculate Average Ticket Size (ATS) KPI and display sales volume distribution across 5 spend ranges (0-50k, 50k-100k, 100k-150k, 150k-200k, 200k+ IDR). | On BI dashboard load. | Medium | S | ✅ Implemented |
@@ -181,6 +181,12 @@ Cashiers, warehouse operators, and managers cannot efficiently coordinate daily 
 | **F-053** | System | Enforce rate limiting (5 requests per minute per IP) on all authentication endpoints (`/auth/token`, `/auth/refresh`, `/auth/pin-auth`). | On authentication request. | High | M | ✅ Implemented |
 | **F-054** | Manager | Allow soft-deactivation and reactivation (`is_active` toggle) of supplier accounts in the Supplier Directory. | When toggling supplier status in directory. | Medium | S | ✅ Implemented |
 | **F-055** | System | Enrich inventory query responses with `active_po_status` indicating whether a Draft or Sent PO is currently active for each ingredient. | On inventory query execution. | Low | S | ✅ Implemented |
+| **F-056** | System / Manager | Implement a first-run system bootstrap flow (`GET /auth/setup-status`, `POST /auth/setup`) protected by a dedicated `system_config` setup lock table, enabling the initial deployment administrator to create the founding Super-Admin account (`EMP-MGR-YY100`) and embed `is_super_admin` claims in JWT tokens. | On initial system deployment or setup status query. | Critical | M | ✅ Implemented |
+| **F-057** | System | Compute real-time Weighted Average Cost (WAC) for ingredients upon PO receipt (`POST /purchase-orders/{id}/receive`), dynamically blending incoming item unit cost and quantity with current stock levels (`(old_stock * old_cost + received_qty * unit_cost) / new_total_stock`), preserving historical checkout COGS snapshots. | When receiving purchase order goods. | High | M | ✅ Implemented |
+| **F-058** | Warehouse Staff / Manager | Support multi-item Purchase Orders via `PurchaseOrderItem` line-item records, allowing drafting, viewing, and single-call receiving with per-item actual quantity and unit cost entry and live ordered-vs-received valuation summary. | When drafting, receiving, or viewing PO details. | High | M | ✅ Implemented |
+| **F-059** | System / Warehouse | Provide a 24-hour receipt undo operation via `POST /purchase-orders/{id}/undo-receive` that restores ingredient stock levels, reverses Weighted Average Cost (WAC) back to pre-receipt snapshot values, and enforces a reverse-chronological guard (rejecting undo if a subsequent receipt exists for any affected ingredient). | When a Manager or Warehouse staff member clicks "Undo Receipt" on a received PO within 24 hours. | High | M | ✅ Implemented |
+| **F-060** | Warehouse Staff / Manager | Manage master ingredient records (name, unit, stock level, reorder point, unit cost, preferred supplier) with unit-aware integer validation for discrete units (`pcs`) and absolute stock adjustment contract. | When managing ingredients in Inventory module. | High | M | ✅ Implemented |
+| **F-061** | System | Enforce race-safe sequential ID generation across Employee, Supplier, and Purchase Order records using row-level pessimistic locking (`SELECT FOR UPDATE`) on the `id_sequences` table with atomic counter increment, conflict-safe first-use initialization, and a 3-retry-then-409 backstop. | On structured ID allocation during entity creation. | High | M | ✅ Implemented |
 
 ---
 
@@ -225,6 +231,7 @@ Cashiers, warehouse operators, and managers cannot efficiently coordinate daily 
 | NFR-018 | System | Provide structured, searchable system activity logs containing timestamp, user ID, action type, affected resource, and outcome (success/fail) for every logged event. | Every time a transaction occurs, a stock adjustment is made, or an account is modified. | Medium | S | ✅ Implemented |
 | **NFR-019** | System | **Security Protocol:** The authentication service explicitly verifies the 'is_active' status flag during the login sequence. Deactivated staff members are instantly intercepted and rejected with an HTTP 401. | Every time a user attempts to log in. | Critical | M | ✅ Implemented |
 | **NFR-020** | System | **Logging Infrastructure:** System maintains durable, rotating log files (`RotatingFileHandler` with 10MB max size and 5 historical backups) capturing all system events and unhandled exceptions, with optional `DB_ECHO` environment flag for detailed SQL query debugging. | Throughout system execution. | Medium | S | ✅ Implemented |
+| **NFR-021** | System | **Cashier-Only POS Checkout Enforcement:** The system enforces strict Role-Based Access Control on POS checkout by removing undocumented manager role bypasses from `role_required`, ensuring only authenticated Cashier accounts (`RoleEnum.Cashier`) can process checkout transactions, while managers retain oversight and PIN-elevated override scopes. | On checkout execution (`POST /pos/checkout`). | Critical | M | ✅ Implemented |
 
 ---
 
@@ -233,10 +240,10 @@ Cashiers, warehouse operators, and managers cannot efficiently coordinate daily 
 ### 7.1 Workflow: Cashier Processing an Order with CRM Data Capture & Payment
 
 | | |
-| :--- | :--- |
+| --- | --- |
 | **Actor** | Cashier |
 | **Goal** | Process a customer’s food order, optionally capture their WhatsApp number or email for CRM, finalize payment (cash or simulated QRIS), and issue an e-receipt. |
-| **FRs covered** | FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-011, F-041, F-042, F-043 |
+| **FRs covered** | FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-011, FR-028, F-041, F-042, F-043, F-044, F-056, F-057, F-058, F-059, F-060, F-061, NFR-021 |
 
 #### Ideal Path
 
@@ -262,3 +269,4 @@ Cashiers, warehouse operators, and managers cannot efficiently coordinate daily 
 | v3 | 29 June 2026 | Mohammed Aatef Saleh | Appended F-029 to F-034 and NFR-019 to formally document manager and BI features built beyond the MVP scope (Advanced IDs, Supplier Geography, Contact Validation, Last Active Tracking, Super-Admin Delete protection, Soft Delete, and Login Revocation). |
 | v4 | 30 June 2026 | Mohammed Aatef Saleh | Appended F-035 to formally document the 3D inline notification queue feature built beyond the MVP scope. |
 | v5 | 22 July 2026 | Mohammed Aatef Saleh | Comprehensive PRD reconciliation pass aligning spec with production codebase post-expo. Updated concurrency (NFR-011 dual-layer locking), authentication (JWT refresh, PIN auth, rate limiting), PO lifecycle, 11% tax, modifiers, and BI analytics requirements; added structured PO IDs to F-030 and log rotation NFR-020; documented implementation status and gaps across all features. |
+| v6 | 19 August 2026 | Mohammed Aatef Saleh | Documented features shipped post-v5: added F-056 through F-061 and NFR-021 (Super-Admin bootstrap, WAC costing engine, multi-item PO line items, PO receipt undo with reverse-chronological guard, ingredient management, and race-safe ID sequence locking); corrected F-031 (Super-Admin RBAC flag) and FR-028 (Menu Management CRUD + MenuCategoryEnum validation) to Fully Implemented; enhanced F-030 and F-044 descriptions. |
